@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiMenu, FiX, FiSun, FiMoon } from 'react-icons/fi';
-import { useTheme } from '../context/ThemeContext';
+import { FiMenu, FiX } from 'react-icons/fi';
 
 const navLinks = [
   { to: '/', label: 'Home' },
@@ -18,7 +17,6 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
 
   useEffect(() => {
@@ -65,18 +63,10 @@ export default function Navbar() {
             </NavLink>
           ))}
 
-
-          <button onClick={toggleTheme} className="ml-4 p-2 text-gray-400 hover:text-cyan-400 transition-colors">
-            {theme === 'dark' ? <FiSun size={20} /> : <FiMoon size={20} />}
-          </button>
         </div>
 
         {/* Mobile controls */}
         <div className="flex items-center gap-3 md:hidden">
-          <button onClick={toggleTheme} className="p-2 text-gray-400 hover:text-cyan-400 transition-colors">
-            {theme === 'dark' ? <FiSun size={20} /> : <FiMoon size={20} />}
-          </button>
-          
           <button
             className="p-2 text-gray-400 hover:text-white"
             onClick={() => setMenuOpen(!menuOpen)}

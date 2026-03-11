@@ -20,8 +20,8 @@ const socials = [
   {
     icon: FiGithub,
     label: 'GitHub',
-    value: 'github.com/thimira-pathum',
-    href: 'https://github.com/thimira-pathum',
+    value: 'github.com/THIMIRAPATHUM',
+    href: 'https://github.com/THIMIRAPATHUM',
   },
 ];
 

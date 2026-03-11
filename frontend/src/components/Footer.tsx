@@ -1,7 +1,7 @@
 import { FiGithub, FiLinkedin, FiMail, FiTerminal } from 'react-icons/fi';
 
 const socials = [
-  { icon: FiGithub,   href: 'https://github.com/thimira-pathum', label: 'GitHub' },
+  { icon: FiGithub,   href: 'https://github.com/THIMIRAPATHUM', label: 'GitHub' },
   { icon: FiLinkedin, href: 'https://linkedin.com/in/thimira-pathum', label: 'LinkedIn' },
   { icon: FiMail,     href: 'mailto:kasthuriarachchipathum@gmail.com', label: 'Email' },
 ];

@@ -22,7 +22,7 @@ class DatabaseSeeder extends Seeder
             'role'         => 'admin',
             'title'        => 'ICT Undergraduate | University of Colombo',
             'bio'          => 'An undergraduate at the University of Colombo passionate about software engineering, networking, web development, and building modern digital solutions.',
-            'github_url'   => 'https://github.com/thimira-pathum',
+            'github_url'   => 'https://github.com/THIMIRAPATHUM',
             'linkedin_url' => 'https://linkedin.com/in/thimira-pathum',
         ]);
 
@@ -138,7 +138,7 @@ class DatabaseSeeder extends Seeder
             'about_bio'        => "I'm Thimira Pathum, an undergraduate at the University of Colombo with a strong interest in software engineering, networking, web development, and system design. I enjoy building digital solutions that solve real problems and create meaningful user experiences.\n\nThrough academic and project-based work, I have developed skills in web technologies, software modeling, database concepts, technical documentation, and structured problem solving. I am passionate about continuous learning and building modern, purposeful technology.",
             'about_career'     => 'To become a skilled technology professional with strong capabilities in software engineering, networking, and modern digital system development. I want to contribute to projects that are innovative, efficient, scalable, and capable of solving meaningful real-world problems.',
             'contact_blurb'    => 'Interested in collaboration, project ideas, or technology conversations? Let\'s connect and build something meaningful.',
-            'social_github'    => 'https://github.com/thimira-pathum',
+            'social_github'    => 'https://github.com/THIMIRAPATHUM',
             'social_linkedin'  => 'https://linkedin.com/in/thimira-pathum',
             'social_email'     => 'kasthuriarachchipathum@gmail.com',
         ]);

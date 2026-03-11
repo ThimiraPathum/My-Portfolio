@@ -15,6 +15,139 @@ import {
   uploadFile
 } from '../../api';
 
+// Magic Text Formatter Algorithm
+function formatTextAlgorithm(rawText: string) {
+  if (!rawText) return '';
+  // Normalize Windows/Mac line endings and ensure clean gaps
+  let text = rawText.replace(/\r\n/g, '\n');
+
+  // Step 1: Force short paragraphs (split long text walls into 3-4 sentence chunks)
+  // BUT don't merge existing Headings (###) or Rules (---) or standard list elements
+  let linesOfText = text.split('\n');
+  let newBlocks = [];
+  let currentChunk = [];
+  
+  for (let s of linesOfText) {
+    let cleanS = s.trim();
+    if (!cleanS) {
+      if (currentChunk.length > 0) {
+        newBlocks.push(currentChunk.join(' '));
+        currentChunk = [];
+      }
+      continue;
+    }
+
+    // Protect headers/rules/lists AND short title lines from being sucked into a paragraph block
+    if (cleanS.startsWith('#') || cleanS.startsWith('-') || cleanS.startsWith('*') || cleanS === '---' || (cleanS.length < 80 && !/[.,;?!]$/.test(cleanS))) {
+       if (currentChunk.length > 0) {
+          newBlocks.push(currentChunk.join(' '));
+          currentChunk = [];
+       }
+       newBlocks.push(cleanS);
+       continue;
+    }
+
+    // Regular sentence chunking
+    let splitSentences = cleanS.match(/[^\.!\?]+[\.!\?]+/g) || [cleanS];
+    for (const subS of splitSentences) {
+        currentChunk.push(subS.trim());
+        if (currentChunk.length >= 3 || currentChunk.join(' ').length > 250) {
+            newBlocks.push(currentChunk.join(' '));
+            currentChunk = [];
+        }
+    }
+  }
+  if (currentChunk.length > 0) newBlocks.push(currentChunk.join(' '));
+  
+  // Re-join with double newlines
+  text = newBlocks.join('\n\n');
+
+  const blocks = text.split(/\n{2,}/);
+  let wordsCount = 0;
+  
+  const formattedBlocks = blocks.map(block => {
+    let t = block.trim();
+    if (!t) return '';
+    wordsCount += t.split(/\s+/).length;
+
+    const lines = t.split('\n');
+    
+    // Rule 1: STRICT Subtopics & Headings.
+    if (lines.length === 1 && t.length > 2 && t.length < 80 && !/[.,;?!]$/.test(t) && !t.startsWith('#')) {
+      if (!t.startsWith('- ') && !t.startsWith('* ') && !/^\d+\./.test(t) && t !== '---') {
+        const words = t.split(' ');
+        const isUpperCase = t === t.toUpperCase();
+        const capitalizedWordCount = words.filter(w => {
+           const firstChar = w.charAt(0);
+           return firstChar === firstChar.toUpperCase() && firstChar.match(/[A-Z]/);
+        }).length;
+
+        if (isUpperCase || (capitalizedWordCount / words.length >= 0.5)) {
+          return `### ${t}`;
+        }
+      }
+    }
+    
+    // Process lines within the block
+    return lines.map(line => {
+      let l = line.trim();
+      
+      // Auto-Quotes for strong statements ("quote...")
+      if (l.startsWith('"') && l.endsWith('"') && l.length > 20) {
+        return `> *${l}*`;
+      }
+
+      // Convert weird list bullets
+      if (l.startsWith('• ') || l.startsWith('· ') || l.startsWith('o ') || l.startsWith('-  ')) {
+        l = '- ' + l.substring(2).trim();
+      }
+
+      // Special Sections (FAQ, Summary, Why it matters)
+      if (/^(summary|conclusion|why it matters|faq|frequently asked questions)$/i.test(l.replace(/[:]/g, '').trim())) {
+         return `## ${l.toUpperCase()}`;
+      }
+
+      // Auto-bold list patterns
+      if (/^([-*]|\d+\.)\s/.test(l)) {
+        const colonMatch = l.match(/^([-*]|\d+\.)\s+([^:]+):\s+(.+)$/);
+        if (colonMatch && colonMatch[2].split(' ').length <= 4 && !colonMatch[2].includes('http')) {
+          return `${colonMatch[1]} **${colonMatch[2].trim()}:** ${colonMatch[3].trim()}`;
+        }
+        const dashMatch = l.match(/^([-*]|\d+\.)\s+([^-]+)\s+-\s+(.+)$/);
+        if (dashMatch && dashMatch[2].split(' ').length <= 4 && !dashMatch[2].includes('http')) {
+          return `${dashMatch[1]} **${dashMatch[2].trim()}** - ${dashMatch[3].trim()}`;
+        }
+      } else {
+        const colonMatch = l.match(/^([^:]+):\s+(.+)$/);
+        if (colonMatch && colonMatch[1].split(' ').length <= 3 && !colonMatch[1].includes('http')) {
+           return `- **${colonMatch[1].trim()}:** ${colonMatch[2].trim()}`;
+        }
+      }
+
+      // Auto Highlight Specific Key Terms
+      const keyTerms = ['quantum computing', 'qubits', 'superposition', 'entanglement', 'algorithm', 'artificial intelligence'];
+      keyTerms.forEach(term => {
+         const regex = new RegExp(`(?<!\\*\\*)\\b(${term})\\b(?!\\*\\*)`, 'gi');
+         l = l.replace(regex, '**$1**');
+      });
+
+      return l;
+    }).join('\n');
+  });
+
+  // Calculate read time
+  const readingTimeMins = Math.max(1, Math.ceil(wordsCount / 200));
+  const readTimeLabel = `*⏱️ ${readingTimeMins} min read*\n\n---\n\n`;
+
+  // Prevent doubling up if read time already exists
+  let finalMarkdown = formattedBlocks.join('\n\n');
+  if (!finalMarkdown.includes('min read')) {
+      finalMarkdown = readTimeLabel + finalMarkdown;
+  }
+
+  return finalMarkdown;
+}
+
 type TabType = 'messages' | 'settings' | 'blogs' | 'comments' | 'projects' | 'skills' | 'experience';
 
 export default function AdminDashboard() {
@@ -23,7 +156,7 @@ export default function AdminDashboard() {
   
   const [tab, setTab] = useState<TabType>('messages');
   const [loading, setLoading] = useState(false);
-  const [loadedTabs, setLoadedTabs] = useState<Set<TabType>>(new Set(['messages']));
+  const [loadedTabs, setLoadedTabs] = useState<Set<TabType>>(new Set());
   
   // Modal state for creating new items
   const [modal, setModal] = useState<{ isOpen: boolean; title: string; label: string; placeholder: string; onConfirm: (val: string) => void } | null>(null);
@@ -515,13 +648,24 @@ function BlogCard({ blog: b, onUpdate, onDelete, onUpload, setBlogs }: {
         onBlur={(e) => onUpdate({ excerpt: e.target.value })}
         placeholder="Short excerpt..."
       />
-      <textarea
-        className="w-full bg-white/5 rounded p-3 text-sm text-gray-300 mb-2 h-32 focus:border-cyan-400/50 border border-white/10 outline-none"
-        value={b.content}
-        onChange={(e) => setBlogs(prev => prev.map(x => x.id === b.id ? { ...x, content: e.target.value } : x))}
-        onBlur={(e) => onUpdate({ content: e.target.value })}
-        placeholder="Markdown content..."
-      />
+      <div className="flex justify-between items-end mb-2">
+        <textarea
+          className="flex-1 bg-white/5 rounded p-3 text-sm text-gray-300 h-32 focus:border-cyan-400/50 border border-white/10 outline-none"
+          value={b.content}
+          onChange={(e) => setBlogs(prev => prev.map(x => x.id === b.id ? { ...x, content: e.target.value } : x))}
+          onBlur={(e) => onUpdate({ content: e.target.value })}
+          placeholder="Markdown content..."
+        />
+        <button 
+          onClick={() => {
+            const formatted = formatTextAlgorithm(b.content);
+            setBlogs(prev => prev.map(x => x.id === b.id ? { ...x, content: formatted } : x));
+            onUpdate({ content: formatted }).then(() => toast.success('Auto-Formatted!'));
+          }}
+          className="ml-2 px-3 py-1.5 bg-purple-500/20 text-purple-400 hover:bg-purple-500/40 rounded text-xs transition border border-purple-500/30 whitespace-nowrap h-max">
+          Auto Format ✨
+        </button>
+      </div>
       <div className="flex gap-4 items-center mt-2">
         {b.cover_image && <img src={`http://localhost:8000${b.cover_image}`} className="h-10 rounded" alt="cover"/>}
         <label className="btn-gradient px-3 py-1.5 rounded text-xs cursor-pointer flex items-center gap-1"><FiImage/> Cover Image
@@ -568,12 +712,24 @@ function ProjectCard({ project: p, onUpdate, onDelete, onUpload, setProjects }: 
           <button onClick={onDelete} className="text-red-400 ml-2"><FiTrash2 size={16}/></button>
         </div>
       </div>
-      <textarea
-        className="w-full bg-transparent text-gray-400 text-sm h-16 outline-none border-b border-white/5 pb-2 mb-2"
-        value={p.description ?? ''}
-        onChange={(e) => setProjects(prev => prev.map(x => x.id === p.id ? { ...x, description: e.target.value } : x))}
-        onBlur={(e) => onUpdate({ description: e.target.value })}
-      />
+      <div className="flex justify-between items-end mb-2 border-b border-white/5 pb-2 mt-2">
+        <textarea
+          className="flex-1 bg-transparent text-gray-400 text-sm h-16 outline-none resize-none"
+          value={p.description ?? ''}
+          onChange={(e) => setProjects(prev => prev.map(x => x.id === p.id ? { ...x, description: e.target.value } : x))}
+          onBlur={(e) => onUpdate({ description: e.target.value })}
+          placeholder="Project Description..."
+        />
+        <button 
+          onClick={() => {
+            const formatted = formatTextAlgorithm(p.description ?? '');
+            setProjects(prev => prev.map(x => x.id === p.id ? { ...x, description: formatted } : x));
+            onUpdate({ description: formatted }).then(() => toast.success('Auto-Formatted!'));
+          }}
+          className="ml-2 px-3 py-1.5 bg-cyan-400/20 text-cyan-400 hover:bg-cyan-400/40 rounded text-xs transition border border-cyan-400/30 whitespace-nowrap h-max">
+          Auto Format ✨
+        </button>
+      </div>
       
       <div className="flex flex-col gap-3 mt-3 pt-3 border-t border-white/5">
         {/* Main Cover & Video */}

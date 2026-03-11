@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import { SettingsProvider } from './context/SettingsContext';
-import { ThemeProvider } from './context/ThemeContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -24,10 +23,9 @@ import './index.css';
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <SettingsProvider>
-          <BrowserRouter>
+    <AuthProvider>
+      <SettingsProvider>
+        <BrowserRouter>
         <Toaster
           position="top-right"
           toastOptions={{
@@ -83,8 +81,7 @@ export default function App() {
           />
         </Routes>
         </BrowserRouter>
-        </SettingsProvider>
-      </AuthProvider>
-    </ThemeProvider>
+      </SettingsProvider>
+    </AuthProvider>
   );
 }

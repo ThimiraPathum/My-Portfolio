@@ -93,15 +93,8 @@ export default function CodeBackground() {
             transform: translateY(-100px) translateX(var(--drift, 0px));
           }
         }
-        html.theme-light .code-bg-el {
-          color: #0f172a;
-          animation: code-float-light linear infinite;
-        }
-        @keyframes code-float-light {
-          0% { opacity: 0; transform: translateY(30px) translateX(0px); }
-          8% { opacity: 0.08; }
-          92% { opacity: 0.08; }
-          100% { opacity: 0; transform: translateY(-100px) translateX(var(--drift, 0px)); }
+        .code-bg-el {
+          color: #475569 !important; /* Update background code color to paragraph text */
         }
       `}</style>
     </div>
