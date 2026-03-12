@@ -49,6 +49,8 @@ export default function BlogPost() {
     </div>;
   }
 
+  const cleanContent = (blog?.content || '').replace(/^\\s*New blog content here\\.\\.\\.\\s*/i, '');
+
   return (
     <main className="pt-24 pb-20 px-6 min-h-screen grid-bg">
       <div className="max-w-3xl mx-auto">
@@ -71,10 +73,8 @@ export default function BlogPost() {
             )}
           </header>
 
-          <div className="prose prose-invert prose-cyan max-w-none text-gray-300 leading-relaxed marker:text-cyan-400
-               prose-headings:text-white prose-a:text-cyan-400
-               prose-p:mb-6 prose-ul:mb-6 whitespace-pre-wrap font-sans text-base md:text-lg">
-            {blog.content}
+          <div className="text-gray-300 leading-relaxed font-sans text-base md:text-lg whitespace-pre-wrap">
+            {cleanContent}
           </div>
         </motion.article>
 

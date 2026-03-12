@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+﻿import { useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiLogOut, FiTrash2, FiMail, FiCheck, FiCode, FiDatabase, FiSettings, FiEdit3, FiMessageSquare, FiImage, FiVideo, FiPlus, FiBriefcase, FiX } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
@@ -14,139 +14,6 @@ import {
   getAllComments, approveComment, deleteComment,
   uploadFile
 } from '../../api';
-
-// Magic Text Formatter Algorithm
-function formatTextAlgorithm(rawText: string) {
-  if (!rawText) return '';
-  // Normalize Windows/Mac line endings and ensure clean gaps
-  let text = rawText.replace(/\r\n/g, '\n');
-
-  // Step 1: Force short paragraphs (split long text walls into 3-4 sentence chunks)
-  // BUT don't merge existing Headings (###) or Rules (---) or standard list elements
-  let linesOfText = text.split('\n');
-  let newBlocks = [];
-  let currentChunk = [];
-  
-  for (let s of linesOfText) {
-    let cleanS = s.trim();
-    if (!cleanS) {
-      if (currentChunk.length > 0) {
-        newBlocks.push(currentChunk.join(' '));
-        currentChunk = [];
-      }
-      continue;
-    }
-
-    // Protect headers/rules/lists AND short title lines from being sucked into a paragraph block
-    if (cleanS.startsWith('#') || cleanS.startsWith('-') || cleanS.startsWith('*') || cleanS === '---' || (cleanS.length < 80 && !/[.,;?!]$/.test(cleanS))) {
-       if (currentChunk.length > 0) {
-          newBlocks.push(currentChunk.join(' '));
-          currentChunk = [];
-       }
-       newBlocks.push(cleanS);
-       continue;
-    }
-
-    // Regular sentence chunking
-    let splitSentences = cleanS.match(/[^\.!\?]+[\.!\?]+/g) || [cleanS];
-    for (const subS of splitSentences) {
-        currentChunk.push(subS.trim());
-        if (currentChunk.length >= 3 || currentChunk.join(' ').length > 250) {
-            newBlocks.push(currentChunk.join(' '));
-            currentChunk = [];
-        }
-    }
-  }
-  if (currentChunk.length > 0) newBlocks.push(currentChunk.join(' '));
-  
-  // Re-join with double newlines
-  text = newBlocks.join('\n\n');
-
-  const blocks = text.split(/\n{2,}/);
-  let wordsCount = 0;
-  
-  const formattedBlocks = blocks.map(block => {
-    let t = block.trim();
-    if (!t) return '';
-    wordsCount += t.split(/\s+/).length;
-
-    const lines = t.split('\n');
-    
-    // Rule 1: STRICT Subtopics & Headings.
-    if (lines.length === 1 && t.length > 2 && t.length < 80 && !/[.,;?!]$/.test(t) && !t.startsWith('#')) {
-      if (!t.startsWith('- ') && !t.startsWith('* ') && !/^\d+\./.test(t) && t !== '---') {
-        const words = t.split(' ');
-        const isUpperCase = t === t.toUpperCase();
-        const capitalizedWordCount = words.filter(w => {
-           const firstChar = w.charAt(0);
-           return firstChar === firstChar.toUpperCase() && firstChar.match(/[A-Z]/);
-        }).length;
-
-        if (isUpperCase || (capitalizedWordCount / words.length >= 0.5)) {
-          return `### ${t}`;
-        }
-      }
-    }
-    
-    // Process lines within the block
-    return lines.map(line => {
-      let l = line.trim();
-      
-      // Auto-Quotes for strong statements ("quote...")
-      if (l.startsWith('"') && l.endsWith('"') && l.length > 20) {
-        return `> *${l}*`;
-      }
-
-      // Convert weird list bullets
-      if (l.startsWith('• ') || l.startsWith('· ') || l.startsWith('o ') || l.startsWith('-  ')) {
-        l = '- ' + l.substring(2).trim();
-      }
-
-      // Special Sections (FAQ, Summary, Why it matters)
-      if (/^(summary|conclusion|why it matters|faq|frequently asked questions)$/i.test(l.replace(/[:]/g, '').trim())) {
-         return `## ${l.toUpperCase()}`;
-      }
-
-      // Auto-bold list patterns
-      if (/^([-*]|\d+\.)\s/.test(l)) {
-        const colonMatch = l.match(/^([-*]|\d+\.)\s+([^:]+):\s+(.+)$/);
-        if (colonMatch && colonMatch[2].split(' ').length <= 4 && !colonMatch[2].includes('http')) {
-          return `${colonMatch[1]} **${colonMatch[2].trim()}:** ${colonMatch[3].trim()}`;
-        }
-        const dashMatch = l.match(/^([-*]|\d+\.)\s+([^-]+)\s+-\s+(.+)$/);
-        if (dashMatch && dashMatch[2].split(' ').length <= 4 && !dashMatch[2].includes('http')) {
-          return `${dashMatch[1]} **${dashMatch[2].trim()}** - ${dashMatch[3].trim()}`;
-        }
-      } else {
-        const colonMatch = l.match(/^([^:]+):\s+(.+)$/);
-        if (colonMatch && colonMatch[1].split(' ').length <= 3 && !colonMatch[1].includes('http')) {
-           return `- **${colonMatch[1].trim()}:** ${colonMatch[2].trim()}`;
-        }
-      }
-
-      // Auto Highlight Specific Key Terms
-      const keyTerms = ['quantum computing', 'qubits', 'superposition', 'entanglement', 'algorithm', 'artificial intelligence'];
-      keyTerms.forEach(term => {
-         const regex = new RegExp(`(?<!\\*\\*)\\b(${term})\\b(?!\\*\\*)`, 'gi');
-         l = l.replace(regex, '**$1**');
-      });
-
-      return l;
-    }).join('\n');
-  });
-
-  // Calculate read time
-  const readingTimeMins = Math.max(1, Math.ceil(wordsCount / 200));
-  const readTimeLabel = `*⏱️ ${readingTimeMins} min read*\n\n---\n\n`;
-
-  // Prevent doubling up if read time already exists
-  let finalMarkdown = formattedBlocks.join('\n\n');
-  if (!finalMarkdown.includes('min read')) {
-      finalMarkdown = readTimeLabel + finalMarkdown;
-  }
-
-  return finalMarkdown;
-}
 
 type TabType = 'messages' | 'settings' | 'blogs' | 'comments' | 'projects' | 'skills' | 'experience';
 
@@ -168,6 +35,7 @@ export default function AdminDashboard() {
   const [experiences, setExperiences] = useState<any[]>([]);
   const [blogs, setBlogs] = useState<any[]>([]);
   const [comments, setComments] = useState<any[]>([]);
+  const [activeBlogId, setActiveBlogId] = useState<number | null>(null);
   
   // Settings form
   const [settingForm, setSettingForm] = useState<Record<string, string>>({});
@@ -309,9 +177,10 @@ export default function AdminDashboard() {
       placeholder: 'Enter blog title...',
       onConfirm: async (title) => {
         try {
-          await createBlog({ title, excerpt: '', content: 'New blog content here...', status: 'draft', coming_soon: false });
+          const created = await createBlog({ title, excerpt: '', content: '', status: 'draft', coming_soon: false });
           toast.success('Blog created as draft');
-          refreshData();
+          await refreshData();
+          setActiveBlogId(created.data?.id ?? null);
         } catch { toast.error('Failed'); }
         setModal(null);
       }
@@ -395,6 +264,14 @@ export default function AdminDashboard() {
                   <p className="text-gray-400 text-sm whitespace-pre-wrap">{msg.message}</p>
                 </div>
                 <div className="flex gap-2">
+                  <a
+                    href={`mailto:${msg.email}?subject=${encodeURIComponent(`Re: ${msg.subject || 'Your message'}`)}`}
+                    className="p-2 text-purple-400 hover:bg-purple-400/10 rounded"
+                    title={`Email ${msg.email}`}
+                    aria-label={`Email ${msg.email}`}
+                  >
+                    <FiMail />
+                  </a>
                   {!msg.read && <button onClick={() => markRead(msg.id).then(refreshData)} className="p-2 text-cyan-400 hover:bg-cyan-400/10 rounded"><FiCheck /></button>}
                   <button onClick={() => deleteMessage(msg.id).then(refreshData)} className="p-2 text-red-400 hover:bg-red-400/10 rounded"><FiTrash2 /></button>
                 </div>
@@ -461,10 +338,37 @@ export default function AdminDashboard() {
             {/* BLOGS TAB */}
             {tab === 'blogs' && (
               <>
-                <button onClick={handleCreateBlog} className="btn-gradient px-4 py-2 rounded-lg text-sm mb-4 inline-flex items-center gap-2"><FiPlus/> New Blog</button>
-                {blogs.map((b) => (
-                  <BlogCard key={b.id} blog={b} onUpdate={(data) => updateBlog(b.id, data).then(refreshData)} onDelete={() => deleteBlog(b.id).then(refreshData)} onUpload={handleFileUpload} setBlogs={setBlogs} />
-                ))}
+                {activeBlogId === null ? (
+                  <>
+                    <button onClick={handleCreateBlog} className="btn-gradient px-4 py-2 rounded-lg text-sm mb-4 inline-flex items-center gap-2"><FiPlus/> New Blog</button>
+                    {blogs.map((b) => (
+                      <div key={b.id} onClick={() => setActiveBlogId(b.id)}>
+                        <BlogCard blog={b} onUpdate={(data) => updateBlog(b.id, data).then(refreshData)} onDelete={() => deleteBlog(b.id).then(refreshData)} onUpload={handleFileUpload} setBlogs={setBlogs} compact />
+                      </div>
+                    ))}
+                  </>
+                ) : (
+                  <div className="fixed inset-0 z-40 bg-black/80 backdrop-blur-sm overflow-auto">
+                    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-20">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="mono text-xs text-cyan-400">{'>'} blog.editor()</div>
+                        <button onClick={() => setActiveBlogId(null)} className="px-4 py-2 rounded-lg text-sm text-gray-300 hover:text-white bg-white/5 border border-white/10">Back to list</button>
+                      </div>
+                      {blogs.filter(b => b.id === activeBlogId).map((b) => (
+                        <BlogCard
+                          key={b.id}
+                          blog={b}
+                          onUpdate={(data) => updateBlog(b.id, data).then(refreshData)}
+                          onDelete={() => { deleteBlog(b.id).then(refreshData); setActiveBlogId(null); }}
+                          onUpload={handleFileUpload}
+                          setBlogs={setBlogs}
+                          full
+                          onClose={() => setActiveBlogId(null)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
               </>
             )}
 
@@ -613,75 +517,121 @@ function SkillNameInput({ value, onSave }: { value: string; onSave: (v: string) 
   );
 }
 
-function BlogCard({ blog: b, onUpdate, onDelete, onUpload, setBlogs }: {
+function BlogCard({ blog: b, onUpdate, onDelete, onUpload, setBlogs, compact = false, full = false, onClose }: {
   blog: any;
   onUpdate: (data: any) => Promise<any>;
   onDelete: () => void;
   onUpload: (e: React.ChangeEvent<HTMLInputElement>, type: 'image'|'video') => Promise<string | null>;
   setBlogs: React.Dispatch<React.SetStateAction<any[]>>;
+  compact?: boolean;
+  full?: boolean;
+  onClose?: () => void;
 }) {
   // const [title, setTitle] = useState(b.title); // Removed local state
   // const [content, setContent] = useState(b.content || ''); // Removed local state
   // useEffect(() => { setTitle(b.title); setContent(b.content || ''); }, [b.title, b.content]); // Removed local state effect
 
   return (
-    <div className="glass p-5 border-l-4 border-l-purple-500">
+    <div className={`glass p-5 border-l-4 border-l-purple-500 ${compact ? 'cursor-pointer hover:border-l-purple-400' : ''}`}>
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-2">
         <input
           className="bg-transparent text-lg font-bold text-white outline-none w-full sm:w-1/2"
           value={b.title}
           onChange={(e) => setBlogs(prev => prev.map(x => x.id === b.id ? { ...x, title: e.target.value } : x))}
           onBlur={(e) => onUpdate({ title: e.target.value })}
+          readOnly={compact}
         />
         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-          <select value={b.status} onChange={(e) => onUpdate({ status: e.target.value })} className="bg-white/10 text-xs rounded p-1 text-white border-none outline-none">
-            <option value="draft">Draft</option><option value="published">Published</option>
-          </select>
-          <button onClick={() => onUpdate({ coming_soon: !b.coming_soon })} className={`text-xs px-2 py-1 rounded ${b.coming_soon ? 'bg-yellow-400/20 text-yellow-400' : 'bg-white/10 text-gray-400'}`}>Coming Soon</button>
-          <button onClick={onDelete} className="text-red-400 ml-2"><FiTrash2 size={16}/></button>
+          {compact && (
+            <button
+              onClick={async (e) => {
+                e.stopPropagation();
+                if (b.status === 'published') {
+                  await onUpdate({ status: 'draft', coming_soon: false });
+                  toast.success('Unposted');
+                } else {
+                  if (!b.title?.trim() || !b.content?.trim()) {
+                    toast.error('Title and content are required to post.');
+                    return;
+                  }
+                  await onUpdate({ status: 'published', coming_soon: false });
+                  toast.success('Posted');
+                }
+              }}
+              className={`text-xs px-3 py-1.5 rounded font-semibold ${b.status === 'published' ? 'bg-red-500/40 text-white' : 'bg-green-500/30 text-white hover:bg-green-500/45'}`}
+            >
+              {b.status === 'published' ? 'Unpost' : 'Post'}
+            </button>
+          )}
+          {!compact && (
+            <>
+              <button
+                onClick={async () => {
+                  await onUpdate({ status: 'draft', coming_soon: false });
+                  toast.success('Draft saved');
+                  onClose?.();
+                }}
+                className={`text-xs px-3 py-1.5 rounded font-semibold ${b.status === 'draft' ? 'bg-gray-500/40 text-white' : 'bg-gray-500/20 text-gray-200 hover:bg-gray-500/30 hover:text-white'}`}
+              >
+                Save Draft
+              </button>
+              <button
+                onClick={async () => {
+                  if (!b.title?.trim() || !b.content?.trim()) {
+                    toast.error('Title and content are required to post.');
+                    return;
+                  }
+                  await onUpdate({ status: 'published', coming_soon: false });
+                  toast.success('Blog posted');
+                  onClose?.();
+                }}
+                className={`text-xs px-3 py-1.5 rounded font-semibold ${b.status === 'published' ? 'bg-green-500/40 text-white' : 'bg-green-500/25 text-white hover:bg-green-500/40'}`}
+              >
+                Post
+              </button>
+              <button onClick={onDelete} className="text-red-400 ml-2"><FiTrash2 size={16}/></button>
+            </>
+          )}
         </div>
       </div>
-      <textarea
-        className="w-full bg-white/5 rounded p-3 text-sm text-gray-300 mb-2 h-16 focus:border-cyan-400/50 border border-white/10 outline-none"
-        value={b.excerpt ?? ''}
-        onChange={(e) => setBlogs(prev => prev.map(x => x.id === b.id ? { ...x, excerpt: e.target.value } : x))}
-        onBlur={(e) => onUpdate({ excerpt: e.target.value })}
-        placeholder="Short excerpt..."
-      />
+      {!compact && (
+        <textarea
+          className="w-full bg-white/5 rounded p-3 text-sm text-gray-300 mb-2 h-16 focus:border-cyan-400/50 border border-white/10 outline-none"
+          value={b.excerpt ?? ''}
+          onChange={(e) => setBlogs(prev => prev.map(x => x.id === b.id ? { ...x, excerpt: e.target.value } : x))}
+          onBlur={(e) => onUpdate({ excerpt: e.target.value })}
+          placeholder="Short excerpt..."
+        />
+      )}
       <div className="flex justify-between items-end mb-2">
         <textarea
-          className="flex-1 bg-white/5 rounded p-3 text-sm text-gray-300 h-32 focus:border-cyan-400/50 border border-white/10 outline-none"
+          className={`flex-1 bg-white/5 rounded p-3 text-sm text-gray-300 ${compact ? 'h-24' : full ? 'min-h-[70vh]' : 'min-h-[420px]'} focus:border-cyan-400/50 border border-white/10 outline-none`}
           value={b.content}
           onChange={(e) => setBlogs(prev => prev.map(x => x.id === b.id ? { ...x, content: e.target.value } : x))}
           onBlur={(e) => onUpdate({ content: e.target.value })}
           placeholder="Markdown content..."
+          readOnly={compact}
         />
-        <button 
-          onClick={() => {
-            const formatted = formatTextAlgorithm(b.content);
-            setBlogs(prev => prev.map(x => x.id === b.id ? { ...x, content: formatted } : x));
-            onUpdate({ content: formatted }).then(() => toast.success('Auto-Formatted!'));
-          }}
-          className="ml-2 px-3 py-1.5 bg-purple-500/20 text-purple-400 hover:bg-purple-500/40 rounded text-xs transition border border-purple-500/30 whitespace-nowrap h-max">
-          Auto Format ✨
-        </button>
+        {/* Auto format removed */}
       </div>
-      <div className="flex gap-4 items-center mt-2">
-        {b.cover_image && <img src={`http://localhost:8000${b.cover_image}`} className="h-10 rounded" alt="cover"/>}
-        <label className="btn-gradient px-3 py-1.5 rounded text-xs cursor-pointer flex items-center gap-1"><FiImage/> Cover Image
-          <input type="file" hidden accept="image/*" onChange={async (e) => { const url = await onUpload(e, 'image'); if (url) onUpdate({ cover_image: url }); }} />
-        </label>
-        <label className="border border-white/20 text-gray-300 hover:text-white px-3 py-1.5 rounded text-xs cursor-pointer flex items-center gap-1"><FiImage/> Insert Image
-          <input type="file" hidden accept="image/*" onChange={async (e) => { 
-            const url = await onUpload(e, 'image'); 
-            if (url) {
-              const md = `\n![image](http://localhost:8000${url})\n`;
-              setBlogs(prev => prev.map(x => x.id === b.id ? { ...x, content: x.content + md } : x));
-              onUpdate({ content: b.content + md });
-            }
-          }} />
-        </label>
-      </div>
+      {!compact && (
+        <div className="flex gap-4 items-center mt-2">
+          {b.cover_image && <img src={`http://localhost:8000${b.cover_image}`} className="h-10 rounded" alt="cover"/>}
+          <label className="btn-gradient px-3 py-1.5 rounded text-xs cursor-pointer flex items-center gap-1"><FiImage/> Cover Image
+            <input type="file" hidden accept="image/*" onChange={async (e) => { const url = await onUpload(e, 'image'); if (url) onUpdate({ cover_image: url }); }} />
+          </label>
+          <label className="border border-white/20 text-gray-300 hover:text-white px-3 py-1.5 rounded text-xs cursor-pointer flex items-center gap-1"><FiImage/> Insert Image
+            <input type="file" hidden accept="image/*" onChange={async (e) => { 
+              const url = await onUpload(e, 'image'); 
+              if (url) {
+                const md = `\n![image](http://localhost:8000${url})\n`;
+                setBlogs(prev => prev.map(x => x.id === b.id ? { ...x, content: x.content + md } : x));
+                onUpdate({ content: b.content + md });
+              }
+            }} />
+          </label>
+        </div>
+      )}
     </div>
   );
 }
@@ -720,15 +670,7 @@ function ProjectCard({ project: p, onUpdate, onDelete, onUpload, setProjects }: 
           onBlur={(e) => onUpdate({ description: e.target.value })}
           placeholder="Project Description..."
         />
-        <button 
-          onClick={() => {
-            const formatted = formatTextAlgorithm(p.description ?? '');
-            setProjects(prev => prev.map(x => x.id === p.id ? { ...x, description: formatted } : x));
-            onUpdate({ description: formatted }).then(() => toast.success('Auto-Formatted!'));
-          }}
-          className="ml-2 px-3 py-1.5 bg-cyan-400/20 text-cyan-400 hover:bg-cyan-400/40 rounded text-xs transition border border-cyan-400/30 whitespace-nowrap h-max">
-          Auto Format ✨
-        </button>
+        {/* Auto format removed */}
       </div>
       
       <div className="flex flex-col gap-3 mt-3 pt-3 border-t border-white/5">
@@ -774,3 +716,11 @@ function ProjectCard({ project: p, onUpdate, onDelete, onUpload, setProjects }: 
     </div>
   );
 }
+
+
+
+
+
+
+
+
