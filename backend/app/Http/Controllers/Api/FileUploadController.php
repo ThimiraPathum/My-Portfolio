@@ -10,12 +10,15 @@ class FileUploadController extends Controller
     public function upload(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|max:51200|mimes:jpg,jpeg,png,gif,webp,mp4,mov,avi,webm',
-            'type' => 'nullable|string|in:image,video',
+            'file' => 'required|file|max:51200|mimes:jpg,jpeg,png,gif,webp,mp4,mov,avi,webm,pdf',
+            'type' => 'nullable|string|in:image,video,document',
         ]);
 
         $file = $request->file('file');
-        $folder = $request->input('type', 'image') === 'video' ? 'videos' : 'images';
+        $type = $request->input('type', 'image');
+        $folder = 'images';
+        if ($type === 'video') $folder = 'videos';
+        if ($type === 'document') $folder = 'documents';
         $path = $file->store("uploads/{$folder}", 'public');
 
         return response()->json([

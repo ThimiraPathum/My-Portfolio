@@ -16,6 +16,7 @@ class Experience extends Model
         'current',
         'tech_stack',
         'order',
+        'certificate_url',
     ];
 
     protected $casts = [

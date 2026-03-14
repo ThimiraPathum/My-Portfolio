@@ -16,15 +16,16 @@ class ExperienceController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'company'    => 'required|string|max:255',
-            'role'       => 'required|string|max:255',
-            'description'=> 'required|string',
-            'location'   => 'nullable|string',
-            'start_date' => 'nullable|date',
-            'end_date'   => 'nullable|date',
-            'current'    => 'boolean',
-            'tech_stack' => 'nullable|array',
-            'order'      => 'integer',
+            'company'        => 'required|string|max:255',
+            'role'           => 'required|string|max:255',
+            'description'    => 'required|string',
+            'location'       => 'nullable|string',
+            'start_date'     => 'nullable|date',
+            'end_date'       => 'nullable|date',
+            'current'        => 'boolean',
+            'tech_stack'     => 'nullable|array',
+            'order'          => 'integer',
+            'certificate_url'=> 'nullable|string',
         ]);
 
         return response()->json(Experience::create($validated), 201);
@@ -33,7 +34,19 @@ class ExperienceController extends Controller
     public function update(Request $request, $id)
     {
         $exp = Experience::findOrFail($id);
-        $exp->update($request->all());
+        $validated = $request->validate([
+            'company'        => 'sometimes|string|max:255',
+            'role'           => 'sometimes|string|max:255',
+            'description'    => 'sometimes|string',
+            'location'       => 'nullable|string',
+            'start_date'     => 'nullable|date',
+            'end_date'       => 'nullable|date',
+            'current'        => 'boolean',
+            'tech_stack'     => 'nullable|array',
+            'order'          => 'integer',
+            'certificate_url'=> 'nullable|string',
+        ]);
+        $exp->update($validated);
         return response()->json($exp);
     }
 
