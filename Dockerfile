@@ -27,14 +27,21 @@ ENV APACHE_DOCUMENT_ROOT /app/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/000-default.conf
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
+# Set environment variables directly to override any cached .env
+ENV APP_ENV=production
+ENV APP_DEBUG=false
+ENV DB_CONNECTION=sqlite
+ENV DB_DATABASE=/app/database/database.sqlite
+ENV LOG_CHANNEL=stdout
+ENV APP_KEY=base64:V29Tfl5/5HTDXIqn2DPaOMvt/m3C6wq/gsfkKgbVaDk=
+
+# Install dependencies
 RUN composer install --no-dev --optimize-autoloader
 
+# Final Permissions fix
 RUN mkdir -p /app/database /app/storage /app/bootstrap/cache && \
     chmod -R 777 /app/database /app/storage /app/bootstrap/cache && \
     chown -R www-data:www-data /app/storage /app/bootstrap/cache /app/database
-
-# Force clear any cached configs
-RUN rm -f /app/bootstrap/cache/config.php
 
 # Start Apache with runtime port substitution, config clearing, and automated migrations
 CMD ["sh", "-c", "sed -i \"s/Listen 80/Listen ${PORT:-80}/g\" /etc/apache2/ports.conf && sed -i \"s/:80/:${PORT:-80}/g\" /etc/apache2/sites-available/000-default.conf && php artisan config:clear && php artisan migrate --force --seed && apache2-foreground"]
