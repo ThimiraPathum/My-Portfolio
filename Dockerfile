@@ -30,6 +30,7 @@ ENV APP_DEBUG=false
 ENV DB_CONNECTION=sqlite
 ENV DB_DATABASE=/app/database/database.sqlite
 ENV LOG_CHANNEL=stdout
+ENV APP_URL=https://my-portfolio-api-20fo.onrender.com
 ENV APP_KEY=base64:V29Tfl5/5HTDXIqn2DPaOMvt/m3C6wq/gsfkKgbVaDk=
 ENV JWT_SECRET=GtMNiJzftWTGFxN009IIl9pLm74woAZfjBcvMEIIT
 
