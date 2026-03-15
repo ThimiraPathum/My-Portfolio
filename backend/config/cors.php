@@ -22,6 +22,7 @@ return [
     'allowed_origins' => [
         'https://thimiradev.me',
         'https://www.thimiradev.me',
+        'https://my-portfolio-api-20fo.onrender.com',
         'https://vercel.app', 
     ],
 
