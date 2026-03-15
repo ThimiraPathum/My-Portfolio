@@ -10,10 +10,7 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 
 RUN a2enmod rewrite
 
-# Update Apache configuration to use the PORT environment variable at runtime
-RUN sed -i 's/Listen 80/Listen ${PORT}/g' /etc/apache2/ports.conf
-RUN sed -i 's/:80/:${PORT}/g' /etc/apache2/sites-available/000-default.conf
-
+# Set working directory
 WORKDIR /app
 
 # Copy .env FIRST as requested
