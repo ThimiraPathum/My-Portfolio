@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { NavLink } from 'react-router-dom';
 import { FiArrowRight, FiClock } from 'react-icons/fi';
-import { getBlogs } from '../api';
+import { getBlogs, BASE_URL } from '../api';
 
 interface Blog {
   id: number;
@@ -70,7 +70,7 @@ export default function BlogList() {
                       {blog.cover_image && (
                         <div className="w-full md:w-48 h-32 flex-shrink-0 rounded-lg overflow-hidden border border-white/10">
                           <img
-                            src={`http://localhost:8000${blog.cover_image}`}
+                            src={`${BASE_URL}${blog.cover_image}`}
                             alt={blog.title}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           />

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, NavLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiArrowLeft, FiMessageSquare } from 'react-icons/fi';
-import { getBlog, postComment } from '../api';
+import { getBlog, postComment, BASE_URL } from '../api';
 import toast from 'react-hot-toast';
 
 export default function BlogPost() {
@@ -68,7 +68,7 @@ export default function BlogPost() {
             </h1>
             {blog.cover_image && (
               <div className="w-full aspect-video rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
-                <img src={`http://localhost:8000${blog.cover_image}`} alt={blog.title} className="w-full h-full object-cover" />
+                 <img src={`${BASE_URL}${blog.cover_image}`} alt={blog.title} className="w-full h-full object-cover" />
               </div>
             )}
           </header>

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { FiArrowRight, FiGithub, FiLinkedin, FiMail } from 'react-icons/fi';
 import { NavLink } from 'react-router-dom';
 import { useSettings } from '../context/SettingsContext';
+import { BASE_URL } from '../api';
 
 export default function Home() {
   const { settings, isLoading } = useSettings();
@@ -127,7 +128,7 @@ export default function Home() {
           <div className="absolute inset-0 bg-gradient-to-tr from-cyan-400 to-purple-500 rounded-full blur-3xl opacity-20 animate-pulse" />
           <div className="absolute inset-0 rounded-full border border-white/10 bg-white/5" />
           <img 
-            src={settings.profile_photo ? `http://localhost:8000${settings.profile_photo}` : "/profile.jpg"} 
+            src={settings.profile_photo ? `${BASE_URL}${settings.profile_photo}` : "/profile.jpg"} 
             alt={name} 
             className="w-full h-full object-cover object-top rounded-full relative z-10 shadow-2xl p-2"
           />

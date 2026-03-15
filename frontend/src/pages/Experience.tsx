@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiMapPin, FiCalendar, FiMessageSquare, FiX, FiExternalLink } from 'react-icons/fi';
-import { getExperiences } from '../api';
+import { getExperiences, BASE_URL } from '../api';
 
 interface Experience {
   id: number;
@@ -136,7 +136,7 @@ export default function Experience() {
                           {(() => {
                             const fullUrl = exp.certificate_url.startsWith('http') 
                               ? exp.certificate_url 
-                              : `http://localhost:8000${exp.certificate_url.startsWith('/') ? '' : '/'}${exp.certificate_url}`;
+                              : `${BASE_URL}${exp.certificate_url.startsWith('/') ? '' : '/'}${exp.certificate_url}`;
                             const isPdf = exp.certificate_url.toLowerCase().endsWith('.pdf');
                             
                             return isPdf ? (

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiGithub, FiExternalLink, FiFilter } from 'react-icons/fi';
 import { NavLink } from 'react-router-dom';
-import { getProjects } from '../api';
+import { getProjects, BASE_URL } from '../api';
 
 interface Project {
   id: number;
@@ -96,7 +96,7 @@ export default function Projects() {
                     {(project.image_url || (project.gallery && project.gallery.length > 0)) && (
                       <div className="w-full h-48 border-b border-white/5 overflow-hidden bg-black/50">
                         <img 
-                          src={`http://localhost:8000${project.image_url || project.gallery![0]}`} 
+                          src={`${BASE_URL}${project.image_url || project.gallery![0]}`} 
                           alt={project.title} 
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />

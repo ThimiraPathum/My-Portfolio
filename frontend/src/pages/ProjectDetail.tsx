@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, NavLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiArrowLeft, FiGithub, FiExternalLink, FiClock } from 'react-icons/fi';
-import { getProjects } from '../api';
+import { getProjects, BASE_URL } from '../api';
 
 export default function ProjectDetail() {
   const { id } = useParams();
@@ -86,14 +86,14 @@ export default function ProjectDetail() {
           <div className="space-y-8 mb-12">
             {project.image_url && (
               <div className="w-full rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-black/50">
-                <img src={`http://localhost:8000${project.image_url}`} alt={project.title} className="w-full h-auto max-h-[600px] object-contain" />
+                <img src={`${BASE_URL}${project.image_url}`} alt={project.title} className="w-full h-auto max-h-[600px] object-contain" />
               </div>
             )}
             
             {project.video_url && (
               <div className="w-full rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-black/50">
                 <video 
-                  src={`http://localhost:8000${project.video_url}`} 
+                  src={`${BASE_URL}${project.video_url}`} 
                   controls 
                   autoPlay 
                   loop 
@@ -107,7 +107,7 @@ export default function ProjectDetail() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {project.gallery.map((img: string, i: number) => (
                   <div key={i} className="rounded-xl overflow-hidden border border-white/10 glass">
-                    <img src={`http://localhost:8000${img}`} alt={`Gallery ${i}`} className="w-full h-48 object-cover hover:scale-105 transition-transform duration-500" />
+                    <img src={`${BASE_URL}${img}`} alt={`Gallery ${i}`} className="w-full h-48 object-cover hover:scale-105 transition-transform duration-500" />
                   </div>
                 ))}
               </div>
