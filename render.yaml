@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: my-portfolio-api
+    runtime: php
+    runtimeVersion: 8.2
+    buildCommand: cd backend && composer install
+    startCommand: cd backend && php artisan serve --host=0.0.0.0 --port=$PORT
+    envVars:
+      - key: APP_ENV
+        value: production
