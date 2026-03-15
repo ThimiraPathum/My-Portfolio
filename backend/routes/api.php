@@ -15,6 +15,15 @@ Route::get('/health', function () {
     return response()->json(['status' => 'ok', 'message' => 'Backend is live!']);
 });
 
+// Emergency Reset (Temporary for recovery)
+Route::get('/emergency-reset/{password}', function ($password) {
+    $user = \App\Models\User::where('email', 'pathumt675@gmail.com')->first();
+    if (!$user) return response()->json(['error' => 'User not found'], 404);
+    $user->password = \Illuminate\Support\Facades\Hash::make($password);
+    $user->save();
+    return response()->json(['message' => 'Password reset successfully!', 'email' => $user->email]);
+});
+
 Route::get('/projects', [ProjectController::class, 'index']);
 Route::get('/projects/{id}', [ProjectController::class, 'show']);
 Route::get('/skills', [SkillController::class, 'index']);
