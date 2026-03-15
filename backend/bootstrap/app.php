@@ -25,11 +25,12 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })->create();
 
-// Auto-run migrations on startup
+// Auto-run migrations and seeder on startup
 if (app()->environment('production')) {
     try {
-        \Artisan::call('migrate', ['--force' => true]);
+        Artisan::call('migrate', ['--force' => true]);
+        Artisan::call('db:seed', ['--force' => true]);
     } catch (\Exception $e) {
-        // Silent fail - migrations may already exist
+        // Silent fail
     }
 }
