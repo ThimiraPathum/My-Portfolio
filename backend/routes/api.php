@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('api')->prefix('api')->group(function () {
+Route::middleware('api')->group(function () {
     Route::get('/health', function () {
         return response()->json(['status' => 'ok']);
     });
@@ -13,7 +13,7 @@ Route::middleware('api')->prefix('api')->group(function () {
                 'id' => 1,
                 'title' => 'Portfolio Website',
                 'description' => 'Full-stack portfolio built with Laravel & React',
-                'technologies' => 'Laravel, React, MySQL, Tailwind CSS',
+                'technologies' => 'Laravel, React, SQLite, Tailwind CSS',
                 'link' => 'https://thimiradev.me',
             ],
             [

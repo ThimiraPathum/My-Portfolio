@@ -26,11 +26,12 @@ RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf
 
 # Set environment variables directly to override any cached .env
 ENV APP_ENV=production
-ENV APP_DEBUG=false
+ENV APP_DEBUG=true
 ENV DB_CONNECTION=sqlite
 ENV DB_DATABASE=/app/database/database.sqlite
 ENV LOG_CHANNEL=stdout
 ENV APP_KEY=base64:V29Tfl5/5HTDXIqn2DPaOMvt/m3C6wq/gsfkKgbVaDk=
+ENV JWT_SECRET=GtMNiJzftWTGFxN009IIl9pLm74woAZfjBcvMEIIT
 
 # Install dependencies
 RUN composer install --no-dev --optimize-autoloader
