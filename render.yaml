@@ -3,8 +3,12 @@ services:
     name: my-portfolio-api
     runtime: php
     runtimeVersion: 8.2
-    buildCommand: cd backend && composer install
+    buildCommand: cd backend && composer install --no-dev --optimize-autoloader
     startCommand: cd backend && php artisan serve --host=0.0.0.0 --port=$PORT
     envVars:
       - key: APP_ENV
         value: production
+      - key: APP_DEBUG
+        value: "true"
+      - key: LOG_CHANNEL
+        value: stderr
