@@ -1,12 +1,13 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+// Health check
 Route::get('/health', function () {
     return response()->json(['status' => 'ok']);
 });
 
+// Projects endpoint
 Route::get('/projects', function () {
     return response()->json([
         [
@@ -26,6 +27,7 @@ Route::get('/projects', function () {
     ]);
 });
 
+// Skills endpoint
 Route::get('/skills', function () {
     return response()->json([
         ['id' => 1, 'name' => 'PHP', 'proficiency' => 90, 'category' => 'Backend'],
