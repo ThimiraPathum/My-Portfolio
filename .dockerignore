@@ -2,7 +2,6 @@
 node_modules
 backend/node_modules
 backend/vendor
-backend/.env
 backend/storage/*.php
 backend/storage/framework/cache/data/*
 backend/storage/framework/sessions/*

@@ -16,6 +16,10 @@ RUN sed -i 's/:80/:${PORT}/g' /etc/apache2/sites-available/000-default.conf
 
 WORKDIR /app
 
+# Copy .env FIRST as requested
+COPY backend/.env /app/.env
+
+# Copy remaining backend files
 COPY backend/ /app/
 
 # Set Apache document root to Laravel's public folder
