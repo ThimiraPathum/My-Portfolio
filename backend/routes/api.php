@@ -31,6 +31,8 @@ Route::get('/blogs/{blogId}/comments', [CommentController::class, 'index']);
 // Auth routes
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/register', [AuthController::class, 'register']);
+Route::post('/auth/forgot-password', [App\Http\Controllers\Api\ResetPasswordController::class, 'sendResetLinkEmail']);
+Route::post('/auth/reset-password', [App\Http\Controllers\Api\ResetPasswordController::class, 'reset']);
 
 // Protected routes
 Route::middleware('auth:api')->group(function () {
