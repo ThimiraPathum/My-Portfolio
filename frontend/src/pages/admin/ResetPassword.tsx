@@ -36,7 +36,7 @@ export default function ResetPassword() {
 
     setLoading(true);
     try {
-      const response = await resetPassword({
+      await resetPassword({
         token,
         email,
         password,

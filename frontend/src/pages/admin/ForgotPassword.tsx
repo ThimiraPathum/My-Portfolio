@@ -18,8 +18,9 @@ export default function ForgotPassword() {
     }
     
     setLoading(true);
-      const response = await forgotPassword(email);
-      toast.success(response.data.message || 'Password reset link sent to your email.');
+    try {
+      await forgotPassword(email);
+      toast.success('Password reset link sent to your email.');
       navigate('/admin/login');
     } catch (error: any) {
       const data = error.response?.data;
