@@ -11,8 +11,8 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Create a user if doesn't exist
-        User::firstOrCreate(
+        // Create or update admin user
+        User::updateOrCreate(
             ['email' => 'pathumt675@gmail.com'],
             [
                 'name' => 'Thimira Pathum',
