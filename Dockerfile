@@ -42,4 +42,4 @@ RUN mkdir -p /app/database /app/storage /app/bootstrap/cache && \
     chown -R www-data:www-data /app/storage /app/bootstrap/cache /app/database
 
 # Start Apache with runtime port substitution, config clearing, and automated migrations
-CMD ["sh", "-c", "sed -i \"s/Listen 80/Listen ${PORT:-80}/g\" /etc/apache2/ports.conf && sed -i \"s/:80/:${PORT:-80}/g\" /etc/apache2/sites-available/000-default.conf && php artisan config:clear && php artisan migrate --force --seed && apache2-foreground"]
+CMD ["sh", "-c", "sed -i \"s/Listen 80/Listen ${PORT:-80}/g\" /etc/apache2/ports.conf && sed -i \"s/:80/:${PORT:-80}/g\" /etc/apache2/sites-available/000-default.conf && php artisan config:clear && php artisan migrate --force --seed && chown -R www-data:www-data /app/storage /app/bootstrap/cache /app/database && apache2-foreground"]
