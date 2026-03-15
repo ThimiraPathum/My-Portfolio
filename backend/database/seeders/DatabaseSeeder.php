@@ -20,11 +20,11 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // Create sample skills
-        Skill::firstOrCreate(['name' => 'PHP'], ['proficiency' => 90, 'category' => 'Backend']);
-        Skill::firstOrCreate(['name' => 'Laravel'], ['proficiency' => 85, 'category' => 'Backend']);
-        Skill::firstOrCreate(['name' => 'React'], ['proficiency' => 80, 'category' => 'Frontend']);
-        Skill::firstOrCreate(['name' => 'MySQL'], ['proficiency' => 85, 'category' => 'Database']);
+        // Create sample skills (Fix: Removed 'proficiency', using 'level' instead)
+        Skill::firstOrCreate(['name' => 'PHP'], ['level' => 90, 'category' => 'Backend']);
+        Skill::firstOrCreate(['name' => 'Laravel'], ['level' => 85, 'category' => 'Backend']);
+        Skill::firstOrCreate(['name' => 'React'], ['level' => 80, 'category' => 'Frontend']);
+        Skill::firstOrCreate(['name' => 'MySQL'], ['level' => 85, 'category' => 'Database']);
 
         // Create sample project
         Project::firstOrCreate(
