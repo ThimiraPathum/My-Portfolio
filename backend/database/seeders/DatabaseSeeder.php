@@ -13,10 +13,10 @@ class DatabaseSeeder extends Seeder
     {
         // Create a user if doesn't exist
         User::firstOrCreate(
-            ['email' => 'admin@thimiradev.me'],
+            ['email' => 'pathumt675@gmail.com'],
             [
                 'name' => 'Thimira Pathum',
-                'password' => bcrypt('password123'),
+                'password' => bcrypt('thimirAP12335.'),
             ]
         );
 
