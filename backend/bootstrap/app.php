@@ -24,13 +24,3 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();
-
-// Auto-run migrations and seeder on startup
-if (app()->environment('production')) {
-    try {
-        Artisan::call('migrate', ['--force' => true]);
-        Artisan::call('db:seed', ['--force' => true]);
-    } catch (\Exception $e) {
-        // Silent fail
-    }
-}
