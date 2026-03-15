@@ -26,13 +26,13 @@ class DatabaseSeeder extends Seeder
         Skill::firstOrCreate(['name' => 'React'], ['level' => 80, 'category' => 'Frontend']);
         Skill::firstOrCreate(['name' => 'MySQL'], ['level' => 85, 'category' => 'Database']);
 
-        // Create sample project
+        // Create sample project (Fix: technologies -> tech_stack, link -> live_url)
         Project::firstOrCreate(
             ['title' => 'Portfolio Website'],
             [
                 'description' => 'Full-stack portfolio built with Laravel & React',
-                'technologies' => 'Laravel, React, MySQL, Tailwind CSS',
-                'link' => 'https://thimiradev.me',
+                'tech_stack' => ['Laravel', 'React', 'SQLite', 'Tailwind CSS'],
+                'live_url' => 'https://thimiradev.me',
             ]
         );
     }
