@@ -16,7 +16,7 @@ return [
     |
     */
 
-    'default' => env('DB_CONNECTION', 'sqlite'),
+    'default' => 'sqlite',
 
     /*
     |--------------------------------------------------------------------------
@@ -27,14 +27,16 @@ return [
     | An example configuration is provided for each database system which
     | is supported by Laravel. You're free to add / remove connections.
     |
+    | Supported: "sqlite", "mysql", "mariadb", "pgsql", "sqlsrv"
+    |
     */
-
+ 
     'connections' => [
-
+ 
         'sqlite' => [
             'driver' => 'sqlite',
             'url' => env('DB_URL'),
-            'database' => env('DB_DATABASE', database_path('database.sqlite')),
+            'database' => database_path('database.sqlite'),
             'prefix' => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
             'busy_timeout' => null,
