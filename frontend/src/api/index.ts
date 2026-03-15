@@ -49,6 +49,8 @@ api.interceptors.response.use(
 export const login  = (email: string, password: string) => api.post('/auth/login', { email, password });
 export const logout = () => api.post('/auth/logout');
 export const getMe  = () => api.get('/auth/me');
+export const forgotPassword = (email: string) => api.post('/auth/forgot-password', { email });
+export const resetPassword = (data: object) => api.post('/auth/reset-password', data);
 
 // Projects
 export const getProjects   = () => api.get('/projects');

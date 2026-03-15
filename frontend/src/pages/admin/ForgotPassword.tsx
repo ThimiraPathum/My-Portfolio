@@ -3,6 +3,7 @@ import { useNavigate, NavLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiMail, FiArrowLeft, FiShield } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+import { forgotPassword } from '../../api';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -17,26 +18,12 @@ export default function ForgotPassword() {
     }
     
     setLoading(true);
-    try {
-      const response = await fetch('http://localhost:8000/api/auth/forgot-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({ email })
-      });
-      
-      const data = await response.json();
-      
-      if (response.ok) {
-        toast.success(data.message || 'Password reset link sent to your email.');
-        navigate('/admin/login');
-      } else {
-        toast.error(data.email || data.message || 'Failed to send reset link.');
-      }
-    } catch {
-      toast.error('Network error. Please try again.');
+      const response = await forgotPassword(email);
+      toast.success(response.data.message || 'Password reset link sent to your email.');
+      navigate('/admin/login');
+    } catch (error: any) {
+      const data = error.response?.data;
+      toast.error(data?.email || data?.message || 'Failed to send reset link.');
     } finally {
       setLoading(false);
     }

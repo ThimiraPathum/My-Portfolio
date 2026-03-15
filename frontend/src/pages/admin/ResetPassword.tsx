@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams, NavLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiLock, FiCheckCircle } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+import { resetPassword } from '../../api';
 
 export default function ResetPassword() {
   const [params] = useSearchParams();
@@ -35,30 +36,18 @@ export default function ResetPassword() {
 
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/auth/reset-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          token,
-          email,
-          password,
-          password_confirmation: passwordConfirm
-        })
+      const response = await resetPassword({
+        token,
+        email,
+        password,
+        password_confirmation: passwordConfirm
       });
       
-      const data = await response.json();
-      
-      if (response.ok) {
-        toast.success('Password successfully reset!');
-        setSuccess(true);
-      } else {
-        toast.error(data.email || data.password || data.message || 'Failed to reset password.');
-      }
-    } catch {
-      toast.error('Network error. Please try again.');
+      toast.success('Password successfully reset!');
+      setSuccess(true);
+    } catch (error: any) {
+      const data = error.response?.data;
+      toast.error(data?.email || data?.password || data?.message || 'Failed to reset password.');
     } finally {
       setLoading(false);
     }
