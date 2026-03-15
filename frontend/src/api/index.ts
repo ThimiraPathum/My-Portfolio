@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+export const API_URL = import.meta.env.VITE_API_URL || 
+  (typeof window !== 'undefined' && window.location.hostname === 'localhost' 
+    ? 'http://localhost:8000/api' 
+    : 'https://my-portfolio-api-20fo.onrender.com/api');
 // Remove trailing /api if present to get the root URL for images
 export const BASE_URL = API_URL.replace(/\/api$/, '');
 
