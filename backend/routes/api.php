@@ -3,6 +3,10 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/health', function () {
+    return response()->json(['status' => 'ok']);
+});
+
 Route::get('/projects', function () {
     return response()->json([
         [
@@ -29,8 +33,4 @@ Route::get('/skills', function () {
         ['id' => 3, 'name' => 'React', 'proficiency' => 80, 'category' => 'Frontend'],
         ['id' => 4, 'name' => 'MySQL', 'proficiency' => 85, 'category' => 'Database'],
     ]);
-});
-
-Route::get('/health', function () {
-    return response()->json(['status' => 'ok']);
 });
