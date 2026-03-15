@@ -6,7 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 
 export default function AdminLogin() {
-  const [email, setEmail] = useState('kasthuriarachchipathum@gmail.com');
+  const [email, setEmail] = useState('pathumt675@gmail.com');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { loginFn } = useAuth();

@@ -20,6 +20,8 @@ return [
     'allowed_methods' => ['*'],
 
     'allowed_origins' => [
+        'http://localhost:5173',
+        'http://localhost:3000',
         'https://thimiradev.me',
         'https://www.thimiradev.me',
         'https://my-portfolio-api-20fo.onrender.com',
