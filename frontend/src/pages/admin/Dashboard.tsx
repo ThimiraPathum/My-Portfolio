@@ -199,7 +199,7 @@ export default function AdminDashboard() {
       const url = response.data.url;
       
       // If we're on the settings tab, update the profile_photo preview
-      if (activeTab === 'settings') {
+      if (tab === 'settings') {
         setSettingForm(prev => ({ ...prev, profile_photo: url }));
       }
       
