@@ -41,7 +41,7 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => 'https://api.thimiradev.me/storage',
+            'url' => env('APP_URL', 'https://my-portfolio-api-20fo.onrender.com').'/storage',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,
