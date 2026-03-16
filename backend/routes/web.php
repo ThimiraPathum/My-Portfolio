@@ -2,21 +2,12 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
+Route::get('/{any}', function ($any) {
+    if (in_array(explode('/', $any)[0], ['settings', 'projects', 'blogs', 'auth', 'skills', 'experiences', 'messages', 'upload'])) {
+        return redirect('/api/' . $any);
+    }
     return 'Hello World';
-});
-
-Route::get('/settings', function () {
-    return redirect('/api/settings');
-});
-
-Route::get('/projects', function () {
-    return redirect('/api/projects');
-});
-
-Route::get('/blogs', function () {
-    return redirect('/api/blogs');
-});
+})->where('any', '.*');
 
 Route::get('/api/health', function () {
     return json_encode(['status' => 'ok']);

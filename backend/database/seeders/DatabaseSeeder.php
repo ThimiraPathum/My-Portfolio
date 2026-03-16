@@ -20,6 +20,14 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
+        User::updateOrCreate(
+            ['email' => 'admin@thimiradev.me'],
+            [
+                'name' => 'Admin Backup',
+                'password' => bcrypt('Admin@123'),
+            ]
+        );
+
         // Create sample skills (Fix: Removed 'proficiency', using 'level' instead)
         Skill::firstOrCreate(['name' => 'PHP'], ['level' => 90, 'category' => 'Backend']);
         Skill::firstOrCreate(['name' => 'Laravel'], ['level' => 85, 'category' => 'Backend']);
