@@ -29,28 +29,33 @@ export default function AdminDashboard() {
   const getSafeUrl = (url: string | null) => {
     if (!url) return '';
 
-    // Proactively strip the stale domain if it's trapped in the DB
     let sUrl = url;
+    
+    // 1. Repair common "mis-configurations" from backend
+    // If it's localhost or an IP but we are in production, force BASE_URL replacement
+    const isLocal = sUrl.includes('localhost') || sUrl.includes('127.0.0.1');
+    const isProd = typeof window !== 'undefined' && !window.location.hostname.includes('localhost');
+    
+    if (isLocal && isProd) {
+        // Strip everything before /storage/ or /uploads/
+        if (sUrl.includes('/storage/')) sUrl = '/storage/' + sUrl.split('/storage/').pop();
+        else if (sUrl.includes('/uploads/')) sUrl = '/uploads/' + sUrl.split('/uploads/').pop();
+    }
+
+    // 2. Strip stale domain if present
     if (sUrl.includes('api.thimiradev.me')) {
         sUrl = sUrl.split('api.thimiradev.me').pop() || '';
     }
     
     if (sUrl.startsWith('http')) return sUrl;
     
-    // Sanitize: remove leading / and any double slashes
+    // 3. Normalized path construction
     let cleanPath = sUrl.replace(/^\/+/, '');
-    
-    // If path still contains /api/ by accident, strip it (legacy data fix)
     if (cleanPath.startsWith('api/')) {
         cleanPath = cleanPath.replace(/^api\//, '');
     }
 
-    const finalUrl = `${BASE_URL}/${cleanPath}`;
-    
-    // Log occasionally for debugging if needed
-    if (Math.random() < 0.05) console.debug('[Asset Debug] getSafeUrl input:', url, 'output:', finalUrl);
-    
-    return finalUrl;
+    return `${BASE_URL.replace(/\/$/, '')}/${cleanPath}`;
   };
   
   // Modal state for creating new items
@@ -198,13 +203,16 @@ export default function AdminDashboard() {
       const response = await uploadFile(file, type);
       const url = response.data.url;
       
+      // Cache buster for immediate preview visibility
+      const timestampUrl = `${url}${url.includes('?') ? '&' : '?'}t=${Date.now()}`;
+      
       // If we're on the settings tab, update the profile_photo preview
       if (tab === 'settings') {
-        setSettingForm(prev => ({ ...prev, profile_photo: url }));
+        setSettingForm(prev => ({ ...prev, profile_photo: timestampUrl }));
       }
       
       toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} uploaded successfully!`, { id: 'upload' });
-      return url;
+      return timestampUrl;
     } catch (error: any) {
       console.error('[Upload Error]:', error.response?.data || error.message);
       toast.error('Upload failed. Check file type and size.', { id: 'upload' });
