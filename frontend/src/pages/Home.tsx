@@ -50,7 +50,8 @@ export default function Home() {
   if (isLoading) return null; // Avoid flicker
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center relative px-4 sm:px-6 grid-bg">
+  return (
+    <main className="min-h-screen flex flex-col items-center justify-start sm:justify-center pt-32 sm:pt-0 relative px-4 sm:px-6 grid-bg">
       {/* Background blobs */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-blue-500/5 blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full bg-cyan-400/5 blur-3xl pointer-events-none" />
@@ -68,14 +69,14 @@ export default function Home() {
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}>
-          <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-extrabold mb-4 leading-none tracking-tight">
+          <h1 className="text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-extrabold mb-4 leading-tight sm:leading-none tracking-tight">
             <span className="text-white">{name.split(' ')[0]}</span>{' '}
             <span className="gradient-text">{name.split(' ').slice(1).join(' ')}</span>
           </h1>
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-xl md:text-2xl text-gray-300 font-light mb-3 h-9">
+          className="text-lg md:text-2xl text-gray-300 font-light mb-3 min-h-[1.5rem] sm:h-9">
           <span className="text-cyan-400/70 mono mr-2">{'>'}</span>
           <span className="typewriter">{displayed}</span>
         </motion.div>
@@ -133,7 +134,7 @@ export default function Home() {
           initial={{ opacity: 0, scale: 0.9 }} 
           animate={{ opacity: 1, scale: 1 }} 
           transition={{ duration: 0.7, delay: 0.2 }}
-          className="w-56 h-56 sm:w-64 sm:h-64 md:w-80 md:h-80 lg:w-[380px] lg:h-[380px] flex-shrink-0 relative mb-8 md:mb-0"
+          className="w-48 h-48 sm:w-64 sm:h-64 md:w-80 md:h-80 lg:w-[380px] lg:h-[380px] flex-shrink-0 relative mb-8 md:mb-0"
         >
           <div className="absolute inset-0 bg-gradient-to-tr from-cyan-400 to-purple-500 rounded-full blur-3xl opacity-20 animate-pulse" />
           <div className="absolute inset-0 rounded-full border border-white/10 bg-white/5" />
