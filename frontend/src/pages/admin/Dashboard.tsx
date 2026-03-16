@@ -189,14 +189,21 @@ export default function AdminDashboard() {
     } catch { toast.error('Failed to save settings'); }
   };
 
-  const handleFileUpload = async (file: File, type: 'image' | 'video' = 'image') => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video' = 'image') => {
+    const file = e.target.files?.[0];
+    if (!file) return null;
+    
     toast.loading(`Uploading ${type}...`, { id: 'upload' });
     try {
       const response = await uploadFile(file, type);
       const url = response.data.url;
-      setSettingForm(prev => ({ ...prev, profile_photo: url }));
+      
+      // If we're on the settings tab, update the profile_photo preview
+      if (activeTab === 'settings') {
+        setSettingForm(prev => ({ ...prev, profile_photo: url }));
+      }
+      
       toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} uploaded successfully!`, { id: 'upload' });
-      // Force a slight state update to re-trigger rendering of the photo with a cache buster if needed
       return url;
     } catch (error: any) {
       console.error('[Upload Error]:', error.response?.data || error.message);
