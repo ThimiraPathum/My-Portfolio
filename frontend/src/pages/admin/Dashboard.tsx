@@ -7,12 +7,12 @@ import toast from 'react-hot-toast';
 import {
   getMessages, markRead, deleteMessage,
   getProjects, createProject, updateProject, deleteProject,
-  getSkills, createSkill, updateSkill as apiUpdateSkill, deleteSkill,
-  getExperiences, createExperience, deleteExperience,
+  getSkills, createSkill, updateSkill as persistSkill, deleteSkill,
+  getExperiences, createExperience, updateExperience as persistExperience, deleteExperience,
   updateSettings,
   getAdminBlogs, createBlog, updateBlog, deleteBlog,
   getAllComments, approveComment, deleteComment,
-  uploadFile, BASE_URL, API_URL
+  uploadFile, BASE_URL
 } from '../../api';
 
 type TabType = 'messages' | 'settings' | 'blogs' | 'comments' | 'projects' | 'skills' | 'experience';
@@ -203,30 +203,26 @@ export default function AdminDashboard() {
     });
   };
 
-  async function handleUpdateSkill(id: number, data: any) {
-    // Optimistic UI update
-    setSkills(s => s.map(x => x.id === id ? { ...x, ...data } : x));
-    // Persist to backend
+  async function apiUpdateSkill(id: number, data: any) {
     try {
-      await apiUpdateSkill(id, data);
-    } catch {
+      await persistSkill(id, data);
+    } catch (err: any) {
+      console.error('Skill update error:', err);
       toast.error('Failed to update skill');
-      refreshData(); // revert optimistic update on failure
+      refreshData();
     }
+  }
+
+  async function handleUpdateSkill(id: number, data: any) {
+    setSkills(s => s.map(x => x.id === id ? { ...x, ...data } : x));
+    await apiUpdateSkill(id, data);
   }
 
   async function apiUpdateExperience(id: number, data: any) {
     try {
-      // we already updated local state on change, so just persist
-      await fetch(`${API_URL.replace(/\/$/, '')}/experiences/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(data)
-      });
-    } catch {
+      await persistExperience(id, data);
+    } catch (err: any) {
+      console.error('Experience update error:', err);
       toast.error('Failed to update experience');
       refreshData();
     }

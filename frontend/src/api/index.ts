@@ -61,6 +61,7 @@ export const resetPassword = (data: object) => api.post('auth/reset-password', d
 
 // Projects
 export const getProjects   = () => api.get('projects');
+export const getProject    = (id: string | number) => api.get(`projects/${id}`);
 export const createProject = (data: object) => api.post('projects', data);
 export const updateProject = (id: number, data: object) => api.put(`projects/${id}`, data);
 export const deleteProject = (id: number) => api.delete(`projects/${id}`);
@@ -74,6 +75,7 @@ export const deleteSkill = (id: number) => api.delete(`skills/${id}`);
 // Experiences
 export const getExperiences   = () => api.get('experiences');
 export const createExperience = (data: object) => api.post('experiences', data);
+export const updateExperience = (id: number, data: object) => api.put(`experiences/${id}`, data);
 export const deleteExperience = (id: number) => api.delete(`experiences/${id}`);
 
 // Messages

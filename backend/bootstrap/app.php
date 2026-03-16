@@ -15,16 +15,6 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
 
-        // Request Logger Middleware
-        $middleware->append(function (\Illuminate\Http\Request $request, \Closure $next) {
-            \Log::info('Incoming Request', [
-                'method' => $request->method(),
-                'path' => $request->path(),
-                'origin' => $request->header('Origin'),
-            ]);
-            return $next($request);
-        });
-
         $middleware->validateCsrfTokens(except: [
             'api/*',
             'auth/*',
