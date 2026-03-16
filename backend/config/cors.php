@@ -18,19 +18,9 @@ return [
     'paths' => ['*'],
 
     'allowed_methods' => ['*'],
-    'allowed_origins' => [
-        'http://localhost:5173',
-        'http://localhost:3000',
-        'http://localhost:*',
-        'https://thimiradev.me',
-        'https://www.thimiradev.me',
-        'https://my-portfolio-api-20fo.onrender.com',
-        'https://vercel.app',
-    ],
+    'allowed_origins' => ['*'],
 
-    'allowed_origins_patterns' => [
-        '#^https://.*\.vercel\.app$#',
-    ],
+    'allowed_origins_patterns' => [],
 
     'allowed_headers' => ['*'],
 
