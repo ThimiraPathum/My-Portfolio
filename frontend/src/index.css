@@ -15,9 +15,11 @@
   --border-hover: rgba(37, 99, 235, 0.4);
 }
 
-* {
+html, body {
   box-sizing: border-box;
   scroll-behavior: smooth;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 body {
@@ -27,6 +29,8 @@ body {
   margin: 0;
   padding: 0;
   overflow-x: hidden;
+  width: 100%;
+  position: relative;
 }
 
 /* Cursor glow effect */

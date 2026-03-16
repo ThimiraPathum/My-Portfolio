@@ -38,7 +38,7 @@ export default function Navbar() {
         scrolled ? 'backdrop-blur-xl border-b border-white/5 bg-[#030712]/80' : 'bg-transparent'
       }`}
     >
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <div className="max-w-6xl mx-auto px-6 sm:px-6 h-16 flex items-center justify-between">
         {/* Logo */}
         <NavLink to="/" className="mono text-cyan-400 font-semibold text-sm hover:text-cyan-300 transition-colors">
           {'<'}<span className="text-blue-400">TP</span>{' />'}
