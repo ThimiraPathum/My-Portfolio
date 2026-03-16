@@ -50,7 +50,6 @@ export default function Home() {
   if (isLoading) return null; // Avoid flicker
 
   return (
-  return (
     <main className="min-h-screen flex flex-col items-center justify-start sm:justify-center pt-32 sm:pt-0 relative px-4 sm:px-6 grid-bg">
       {/* Background blobs */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-blue-500/5 blur-3xl pointer-events-none" />
