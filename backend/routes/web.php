@@ -7,31 +7,33 @@ Route::get('/', function () {
     return 'Hello World';
 });
 
-// Auth routes (Root level for debugging/session support)
+// Auth routes (Root level for debugging/session support, updated for JWT compatibility)
 Route::post('/auth/login', function () {
     $credentials = request(['email', 'password']);
-    \Log::info('Web Login attempt', ['email' => $credentials['email']]);
+    \Log::info('Web/JWT Login attempt', ['email' => $credentials['email']]);
     
-    if (Auth::attempt($credentials)) {
-        \Log::info('Web Login successful', ['email' => $credentials['email']]);
-        return response()->json([
-            'message' => 'Login successful',
-            'user' => auth()->user()
-        ]);
+    if (!$token = Auth::guard('api')->attempt($credentials)) {
+        \Log::error('Web/JWT Login failed: Invalid credentials', ['email' => $credentials['email']]);
+        return response()->json(['error' => 'Invalid credentials'], 401);
     }
     
-    \Log::error('Web Login failed: Invalid credentials', ['email' => $credentials['email']]);
-    return response()->json(['message' => 'Invalid credentials'], 401);
+    \Log::info('Web/JWT Login successful', ['email' => $credentials['email']]);
+    return response()->json([
+        'access_token' => $token,
+        'token_type'   => 'bearer',
+        'expires_in'   => Auth::guard('api')->factory()->getTTL() * 60,
+        'user'         => Auth::guard('api')->user(),
+    ]);
 });
 
 Route::post('/auth/logout', function () {
-    Auth::logout();
-    return response()->json(['message' => 'Logged out']);
+    Auth::guard('api')->logout();
+    return response()->json(['message' => 'Successfully logged out']);
 });
 
 Route::get('/auth/user', function () {
-    return response()->json(auth()->user());
-})->middleware('auth');
+    return response()->json(Auth::guard('api')->user());
+})->middleware('auth:api');
 
 // Preservation of API health and redirects
 Route::get('/api/health', function () {
