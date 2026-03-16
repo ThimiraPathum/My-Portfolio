@@ -17,6 +17,7 @@ const api = axios.create({
 
 // Request interceptor: attach JWT token
 api.interceptors.request.use((config) => {
+  console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, config.data || '');
   const token = localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -28,17 +29,20 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
+    console.error(`[API Error] ${error.config?.url}:`, error.response?.data || error.message);
     const originalRequest = error.config;
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
+        console.log('[API Auth] Attempting token refresh...');
         const refreshToken = localStorage.getItem('token');
         if (!refreshToken) throw new Error('No token');
         const { data } = await api.post('auth/refresh');
         localStorage.setItem('token', data.access_token);
         originalRequest.headers.Authorization = `Bearer ${data.access_token}`;
         return api(originalRequest);
-      } catch {
+      } catch (err) {
+        console.error('[API Auth] Refresh failed, logging out:', err);
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         window.location.href = '/admin/login';

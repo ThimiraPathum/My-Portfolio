@@ -40,14 +40,6 @@ Route::get('/api/health', function () {
     return json_encode(['status' => 'ok']);
 });
 
-Route::any('/{any}', function ($any) {
-    if (in_array(explode('/', $any)[0], ['settings', 'projects', 'blogs', 'skills', 'experiences', 'messages', 'upload'])) {
-        return redirect('/api/' . $any);
-    }
-    // Also redirect auth if prefix is used in frontend but routes are here
-    if (explode('/', $any)[0] === 'auth') {
-         // Keep the logic here for root but allow api prefix redirect if needed
-         // However, api.php already has auth routes.
-    }
+Route::any('/{any}', function () {
     return 'Hello World';
 })->where('any', '.*');
