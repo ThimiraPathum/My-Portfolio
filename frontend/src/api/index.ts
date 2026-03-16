@@ -33,7 +33,11 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    console.error(`[API Error] ${error.config?.url}:`, error.response?.data || error.message);
+    const errorData = error.response?.data;
+    console.error(`[API Error] ${error.config?.url}:`, errorData || error.message);
+    if (error.response?.status === 422) {
+      console.warn('[API Validation Error Details]:', JSON.stringify(errorData, null, 2));
+    }
     const originalRequest = error.config;
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
