@@ -15,8 +15,8 @@ class AuthController extends Controller
         \Log::info('Login attempt', ['email' => $request->email]);
         
         $validator = Validator::make($request->all(), [
-            'email'    => 'required|email',
-            'password' => 'required|string|min:6',
+            'email'    => 'required|string',
+            'password' => 'required|string',
         ]);
 
         if ($validator->fails()) {

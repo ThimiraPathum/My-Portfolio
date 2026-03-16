@@ -12,14 +12,15 @@ export default function AdminLogin() {
   const { loginFn } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await loginFn(email, password);
+      await loginFn(email.trim(), password.trim());
       toast.success('Welcome back!');
       navigate('/admin');
-    } catch {
+    } catch (err: any) {
+      console.error('[Login Error Detail]:', err.response?.data || err.message);
       toast.error('Invalid credentials. Check your email and password.');
     } finally {
       setLoading(false);
