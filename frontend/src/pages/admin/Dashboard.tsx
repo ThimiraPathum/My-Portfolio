@@ -183,7 +183,15 @@ export default function AdminDashboard() {
       placeholder: 'Enter project title...',
       onConfirm: async (title) => {
         try {
-          await createProject({ title, description: 'New project...', order: 99, category: 'web', tech_stack: [], featured: false, coming_soon: false });
+          await createProject({ 
+            title, 
+            description: 'New project description...', 
+            order: 0, 
+            category: 'Web Development', 
+            tech_stack: [], 
+            featured: false, 
+            coming_soon: false 
+          });
           toast.success('Project created');
           refreshData();
         } catch { toast.error('Failed'); }
@@ -217,7 +225,13 @@ export default function AdminDashboard() {
       placeholder: 'Enter blog title...',
       onConfirm: async (title) => {
         try {
-          const created = await createBlog({ title, excerpt: '', content: '', status: 'draft', coming_soon: false });
+          const created = await createBlog({ 
+            title, 
+            excerpt: 'New blog excerpt...', 
+            content: 'Write your blog content here...', 
+            status: 'draft', 
+            coming_soon: false 
+          });
           toast.success('Blog created as draft');
           await refreshData();
           setActiveBlogId(created.data?.id ?? null);

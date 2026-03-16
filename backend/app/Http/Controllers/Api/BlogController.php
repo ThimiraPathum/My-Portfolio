@@ -39,7 +39,7 @@ class BlogController extends Controller
         $validated = $request->validate([
             'title'       => 'required|string|max:255',
             'excerpt'     => 'nullable|string',
-            'content'     => 'required|string',
+            'content'     => 'nullable|string',
             'cover_image' => 'nullable|string',
             'status'      => 'in:draft,published',
             'coming_soon' => 'boolean',

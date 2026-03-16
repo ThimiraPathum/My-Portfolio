@@ -21,7 +21,7 @@ class ProjectController extends Controller
     {
         $validated = $request->validate([
             'title'        => 'required|string|max:255',
-            'description'  => 'required|string',
+            'description'  => 'nullable|string',
             'image_url'    => 'nullable|string',
             'gallery'      => 'nullable|array',
             'video_url'    => 'nullable|string',
