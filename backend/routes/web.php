@@ -6,6 +6,18 @@ Route::get('/', function () {
     return 'Hello World';
 });
 
+Route::get('/settings', function () {
+    return redirect('/api/settings');
+});
+
+Route::get('/projects', function () {
+    return redirect('/api/projects');
+});
+
+Route::get('/blogs', function () {
+    return redirect('/api/blogs');
+});
+
 Route::get('/api/health', function () {
     return json_encode(['status' => 'ok']);
 });
