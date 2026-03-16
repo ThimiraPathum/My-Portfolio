@@ -953,7 +953,7 @@ export default function AdminDashboard() {
    Extracted sub-components with local state for friendly editing
    ────────────────────────────────────────────────────────────── */
 
-function BlogCard({ blog: b, onUpdate, onDelete, onUpload, setBlogs, compact = false, full = false, onClose }: {
+function BlogCard({ blog: b, onUpdate, onDelete, onUpload, setBlogs, getSafeUrl, compact = false, full = false, onClose }: {
   blog: any;
   onUpdate: (data: any) => Promise<any>;
   onDelete: () => void;
@@ -1073,7 +1073,7 @@ function BlogCard({ blog: b, onUpdate, onDelete, onUpload, setBlogs, compact = f
   );
 }
 
-function ProjectCard({ project: p, onUpdate, onDelete, onUpload, setProjects }: {
+function ProjectCard({ project: p, onUpdate, onDelete, onUpload, setProjects, getSafeUrl }: {
   project: any;
   onUpdate: (data: any) => Promise<any>;
   onDelete: () => void;
