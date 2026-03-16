@@ -24,6 +24,15 @@ export default function AdminDashboard() {
   const [tab, setTab] = useState<TabType>('messages');
   const [loading, setLoading] = useState(false);
   const [loadedTabs, setLoadedTabs] = useState<Set<TabType>>(new Set());
+
+  // Helper to ensure URLs are absolute and don't double-prepend BASE_URL
+  const getSafeUrl = (url: string | null) => {
+    if (!url) return '';
+    if (url.startsWith('http')) return url;
+    // Ensure url starts with / if it doesn't
+    const cleanUrl = url.startsWith('/') ? url : `/${url}`;
+    return `${BASE_URL}${cleanUrl}`;
+  };
   
   // Modal state for creating new items
   const [modal, setModal] = useState<{ isOpen: boolean; title: string; label: string; placeholder: string; onConfirm: (val: string) => void } | null>(null);
@@ -380,7 +389,7 @@ export default function AdminDashboard() {
                   <div className="flex items-center gap-4">
                     {(settingForm.profile_photo || settings.profile_photo) ? (
                       <img 
-                        src={`${BASE_URL}${settingForm.profile_photo || settings.profile_photo}`} 
+                        src={getSafeUrl(settingForm.profile_photo || settings.profile_photo)} 
                         alt="Profile Preview" 
                         className="w-16 h-16 rounded-full object-cover border border-white/10"
                       />
@@ -420,9 +429,9 @@ export default function AdminDashboard() {
                   <>
                     <button onClick={handleCreateBlog} className="btn-gradient px-4 py-2 rounded-lg text-sm mb-4 inline-flex items-center gap-2"><FiPlus/> New Blog</button>
                     {Array.isArray(blogs) && blogs.map((b) => (
-                      <div key={b.id} onClick={() => setActiveBlogId(b.id)}>
-                        <BlogCard blog={b} onUpdate={(data) => updateBlog(b.id, data).then(refreshData)} onDelete={() => deleteBlog(b.id).then(refreshData)} onUpload={handleFileUpload} setBlogs={setBlogs} compact />
-                      </div>
+                    <div key={b.id} onClick={() => setActiveBlogId(b.id)}>
+                      <BlogCard blog={b} onUpdate={(data) => updateBlog(b.id, data).then(refreshData)} onDelete={() => deleteBlog(b.id).then(refreshData)} onUpload={handleFileUpload} setBlogs={setBlogs} compact getSafeUrl={getSafeUrl} />
+                    </div>
                     ))}
                   </>
                 ) : (
@@ -442,6 +451,7 @@ export default function AdminDashboard() {
                           setBlogs={setBlogs}
                           full
                           onClose={() => setActiveBlogId(null)}
+                          getSafeUrl={getSafeUrl}
                         />
                       ))}
                     </div>
@@ -471,7 +481,7 @@ export default function AdminDashboard() {
               <>
                 <button onClick={handleCreateProject} className="btn-gradient px-4 py-2 rounded-lg text-sm mb-4 inline-flex items-center gap-2"><FiPlus/> New Project</button>
                 {Array.isArray(projects) && projects.map((p) => (
-                  <ProjectCard key={p.id} project={p} onUpdate={(data) => updateProject(p.id, data).then(refreshData)} onDelete={() => deleteProject(p.id).then(refreshData)} onUpload={handleFileUpload} setProjects={setProjects} />
+                  <ProjectCard key={p.id} project={p} onUpdate={(data) => updateProject(p.id, data).then(refreshData)} onDelete={() => deleteProject(p.id).then(refreshData)} onUpload={handleFileUpload} setProjects={setProjects} getSafeUrl={getSafeUrl} />
                 ))}
               </>
             )}
@@ -747,7 +757,7 @@ export default function AdminDashboard() {
                                   description: e.description,
                                   role: e.role,
                                   location: e.location || '',
-                                  start_date: e.start_date.split('T')[0],
+                                  start_date: e.start_date?.split('T')[0] || '',
                                   end_date: e.end_date?.split('T')[0] || '',
                                   current: e.current,
                                   tech_stack: e.tech_stack || [],
@@ -799,13 +809,13 @@ export default function AdminDashboard() {
                           {e.certificate_url && (
                             <div className="flex items-center gap-2">
                               {e.certificate_url.toLowerCase().endsWith('.pdf') ? (
-                                <a href={`${BASE_URL}${e.certificate_url}`} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[10px] text-red-400 hover:text-red-300">
+                                <a href={getSafeUrl(e.certificate_url)} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[10px] text-red-400 hover:text-red-300">
                                   <FiMessageSquare size={10} /> View PDF
                                 </a>
                               ) : (
                                 <div className="relative group">
-                                  <img src={`${BASE_URL}${e.certificate_url}`} className="h-6 w-8 object-cover rounded border border-white/10" alt="cert"/>
-                                  <div className="absolute inset-0 bg-black/60 hidden group-hover:flex items-center justify-center rounded transition-all cursor-pointer" onClick={() => window.open(`${BASE_URL}${e.certificate_url}`, '_blank')}>
+                                  <img src={getSafeUrl(e.certificate_url)} className="h-6 w-8 object-cover rounded border border-white/10" alt="cert"/>
+                                  <div className="absolute inset-0 bg-black/60 hidden group-hover:flex items-center justify-center rounded transition-all cursor-pointer" onClick={() => window.open(getSafeUrl(e.certificate_url), '_blank')}>
                                     <FiImage size={10} className="text-white" />
                                   </div>
                                 </div>
@@ -940,6 +950,7 @@ function BlogCard({ blog: b, onUpdate, onDelete, onUpload, setBlogs, compact = f
   compact?: boolean;
   full?: boolean;
   onClose?: () => void;
+  getSafeUrl: (url: string | null) => string;
 }) {
   // const [title, setTitle] = useState(b.title); // Removed local state
   // const [content, setContent] = useState(b.content || ''); // Removed local state
@@ -1030,7 +1041,7 @@ function BlogCard({ blog: b, onUpdate, onDelete, onUpload, setBlogs, compact = f
       </div>
       {!compact && (
         <div className="flex gap-4 items-center mt-2">
-          {b.cover_image && <img src={`${BASE_URL}${b.cover_image}`} className="h-10 rounded" alt="cover"/>}
+          {b.cover_image && <img src={getSafeUrl(b.cover_image)} className="h-10 rounded" alt="cover"/>}
           <label className="btn-gradient px-3 py-1.5 rounded text-xs cursor-pointer flex items-center gap-1"><FiImage/> Cover Image
             <input type="file" hidden accept="image/*" onChange={async (e) => { const url = await onUpload(e, 'image'); if (url) onUpdate({ cover_image: url }); }} />
           </label>
@@ -1038,7 +1049,7 @@ function BlogCard({ blog: b, onUpdate, onDelete, onUpload, setBlogs, compact = f
             <input type="file" hidden accept="image/*" onChange={async (e) => { 
               const url = await onUpload(e, 'image'); 
               if (url) {
-                const md = `\n![image](${BASE_URL}${url})\n`;
+                const md = `\n![image](${getSafeUrl(url)})\n`;
                 setBlogs(prev => prev.map(x => x.id === b.id ? { ...x, content: x.content + md } : x));
                 onUpdate({ content: b.content + md });
               }
@@ -1056,6 +1067,7 @@ function ProjectCard({ project: p, onUpdate, onDelete, onUpload, setProjects }: 
   onDelete: () => void;
   onUpload: (e: React.ChangeEvent<HTMLInputElement>, type: 'image'|'video') => Promise<string | null>;
   setProjects: React.Dispatch<React.SetStateAction<any[]>>;
+  getSafeUrl: (url: string | null) => string;
 }) {
   // const [title, setTitle] = useState(p.title); // Removed local state
   // const [desc, setDesc] = useState(p.description || ''); // Removed local state
@@ -1090,7 +1102,7 @@ function ProjectCard({ project: p, onUpdate, onDelete, onUpload, setProjects }: 
       <div className="flex flex-col gap-3 mt-3 pt-3 border-t border-white/5">
         {/* Main Cover & Video */}
         <div className="flex flex-wrap gap-4 items-center">
-          {p.image_url && <img src={`${BASE_URL}${p.image_url}`} className="h-8 rounded" alt="img"/>}
+          {p.image_url && <img src={getSafeUrl(p.image_url)} className="h-8 rounded" alt="img"/>}
           <label className="text-xs text-blue-400 cursor-pointer flex items-center gap-1"><FiImage/> Main Image
             <input type="file" hidden accept="image/*" onChange={async (e) => { const url = await onUpload(e, 'image'); if (url) onUpdate({ image_url: url }); }} />
           </label>
@@ -1105,7 +1117,7 @@ function ProjectCard({ project: p, onUpdate, onDelete, onUpload, setProjects }: 
           <span className="text-xs text-gray-400 mono mr-2">Gallery:</span>
           {p.gallery?.map((img: string, idx: number) => (
              <div key={idx} className="relative group">
-               <img src={`${BASE_URL}${img}`} className="h-10 w-10 object-cover rounded border border-white/10" alt="gallery"/>
+               <img src={getSafeUrl(img)} className="h-10 w-10 object-cover rounded border border-white/10" alt="gallery"/>
                <button onClick={() => {
                  const newGallery = p.gallery.filter((_: any, i: number) => i !== idx);
                  onUpdate({ gallery: newGallery });
