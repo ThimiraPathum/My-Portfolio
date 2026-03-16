@@ -46,6 +46,7 @@ Route::post('/auth/reset-password', [App\Http\Controllers\Api\ResetPasswordContr
 // Protected routes
 Route::middleware('auth:api')->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
+    Route::post('/auth/refresh', [AuthController::class, 'refresh']);
     Route::get('/auth/me', [AuthController::class, 'me']);
 
     // Admin Resources (Matching frontend paths)

@@ -66,8 +66,10 @@ export default function AdminDashboard() {
         case 'comments': setComments((await getAllComments()).data); break;
       }
       setLoadedTabs(prev => new Set(prev).add(t));
-    } catch {
-      toast.error('Failed to load data');
+    } catch (err: any) {
+      console.error('Data load error:', err);
+      const msg = err.response?.data?.message || err.message || 'Failed to load data';
+      toast.error(`${msg} (${t})`);
     }
     if (showSpinner) setLoading(false);
   }, []);
@@ -216,7 +218,7 @@ export default function AdminDashboard() {
   async function apiUpdateExperience(id: number, data: any) {
     try {
       // we already updated local state on change, so just persist
-      await fetch(`${API_URL}/experiences/${id}`, {
+      await fetch(`${API_URL.replace(/\/$/, '')}/experiences/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

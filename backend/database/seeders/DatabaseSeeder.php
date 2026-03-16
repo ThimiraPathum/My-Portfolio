@@ -43,5 +43,14 @@ class DatabaseSeeder extends Seeder
                 'live_url' => 'https://thimiradev.me',
             ]
         );
+
+        // Seed Default Settings
+        \App\Models\SiteSetting::setMany([
+            'site_title' => 'Thimira Pathum | Full Stack Developer',
+            'hero_title' => 'Building Digital Experiences',
+            'hero_subtitle' => 'Full Stack Developer & AI Enthusiast',
+            'about_me' => 'I am a passionate developer...',
+            'contact_email' => 'pathumt675@gmail.com',
+        ]);
     }
 }
