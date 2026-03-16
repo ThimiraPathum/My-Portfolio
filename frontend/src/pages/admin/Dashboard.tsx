@@ -29,9 +29,21 @@ export default function AdminDashboard() {
   const getSafeUrl = (url: string | null) => {
     if (!url) return '';
     if (url.startsWith('http')) return url;
-    // Ensure url starts with / if it doesn't
-    const cleanUrl = url.startsWith('/') ? url : `/${url}`;
-    return `${BASE_URL}${cleanUrl}`;
+    
+    // Sanitize: remove leading / and any double slashes
+    let cleanPath = url.replace(/^\/+/, '');
+    
+    // If path still contains /api/ by accident, strip it (legacy data fix)
+    if (cleanPath.startsWith('api/')) {
+        cleanPath = cleanPath.replace(/^api\//, '');
+    }
+
+    const finalUrl = `${BASE_URL}/${cleanPath}`;
+    
+    // Log occasionally for debugging if needed
+    if (Math.random() < 0.05) console.debug('[Asset Debug] getSafeUrl input:', url, 'output:', finalUrl);
+    
+    return finalUrl;
   };
   
   // Modal state for creating new items

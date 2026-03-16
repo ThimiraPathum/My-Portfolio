@@ -8,8 +8,10 @@ const rawApiUrl = import.meta.env.VITE_API_URL ||
 // Ensure the URL always ends with /api/
 export const API_URL = rawApiUrl.replace(/\/$/, '') + (rawApiUrl.includes('/api') ? '/' : '/api/');
 console.log('[API Config] Normalized API_URL:', API_URL);
-// Remove trailing /api/ or /api if present to get the root URL for images
-export const BASE_URL = API_URL.replace(/\/api\/?$/, '');
+
+// Derive BASE_URL carefully - it should be the root origin without /api
+export const BASE_URL = API_URL.split('/api')[0];
+console.log('[API Config] Derived BASE_URL for assets:', BASE_URL);
 
 const api = axios.create({
   baseURL: API_URL,
