@@ -4,6 +4,18 @@ import { FiGithub, FiExternalLink, FiFilter } from 'react-icons/fi';
 import { NavLink } from 'react-router-dom';
 import { getProjects, BASE_URL } from '../api';
 
+// Helper to ensure URLs are absolute and don't double-prepend BASE_URL
+// Map from api/index.ts or defined locally if not exported
+const getSafeUrl = (url: string | null) => {
+    if (!url) return '';
+    let sUrl = url;
+    if (sUrl.includes('api.thimiradev.me')) sUrl = sUrl.split('api.thimiradev.me').pop() || '';
+    if (sUrl.startsWith('http')) return sUrl;
+    let cleanPath = sUrl.replace(/^\/+/, '');
+    if (cleanPath.startsWith('api/')) cleanPath = cleanPath.replace(/^api\//, '');
+    return `${BASE_URL.replace(/\/$/, '')}/${cleanPath}`;
+};
+
 interface Project {
   id: number;
   title: string;
@@ -96,7 +108,7 @@ export default function Projects() {
                     {(project.image_url || (project.gallery && project.gallery.length > 0)) && (
                       <div className="w-full h-48 border-b border-white/5 overflow-hidden bg-black/50">
                         <img 
-                          src={`${BASE_URL}${project.image_url || project.gallery![0]}`} 
+                          src={getSafeUrl(project.image_url || project.gallery![0])} 
                           alt={project.title} 
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />

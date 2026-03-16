@@ -3,6 +3,16 @@ import { useParams, NavLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiArrowLeft, FiMessageSquare } from 'react-icons/fi';
 import { getBlog, postComment, BASE_URL } from '../api';
+
+const getSafeUrl = (url: string | null) => {
+    if (!url) return '';
+    let sUrl = url;
+    if (sUrl.includes('api.thimiradev.me')) sUrl = sUrl.split('api.thimiradev.me').pop() || '';
+    if (sUrl.startsWith('http')) return sUrl;
+    let cleanPath = sUrl.replace(/^\/+/, '');
+    if (cleanPath.startsWith('api/')) cleanPath = cleanPath.replace(/^api\//, '');
+    return `${BASE_URL.replace(/\/$/, '')}/${cleanPath}`;
+};
 import toast from 'react-hot-toast';
 
 export default function BlogPost() {
@@ -68,7 +78,7 @@ export default function BlogPost() {
             </h1>
             {blog.cover_image && (
               <div className="w-full aspect-video rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
-                 <img src={`${BASE_URL}${blog.cover_image}`} alt={blog.title} className="w-full h-full object-cover" />
+                 <img src={getSafeUrl(blog.cover_image)} alt={blog.title} className="w-full h-full object-cover" />
               </div>
             )}
           </header>

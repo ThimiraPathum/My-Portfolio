@@ -3,6 +3,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiMapPin, FiCalendar, FiMessageSquare, FiX, FiExternalLink } from 'react-icons/fi';
 import { getExperiences, BASE_URL } from '../api';
 
+const getSafeUrl = (url: string | null) => {
+    if (!url) return '';
+    let sUrl = url;
+    if (sUrl.includes('api.thimiradev.me')) sUrl = sUrl.split('api.thimiradev.me').pop() || '';
+    if (sUrl.startsWith('http')) return sUrl;
+    let cleanPath = sUrl.replace(/^\/+/, '');
+    if (cleanPath.startsWith('api/')) cleanPath = cleanPath.replace(/^api\//, '');
+    return `${BASE_URL.replace(/\/$/, '')}/${cleanPath}`;
+};
+
 interface Experience {
   id: number;
   company: string;
@@ -134,9 +144,7 @@ export default function Experience() {
                           </label>
                           
                           {(() => {
-                            const fullUrl = exp.certificate_url.startsWith('http') 
-                              ? exp.certificate_url 
-                              : `${BASE_URL}${exp.certificate_url.startsWith('/') ? '' : '/'}${exp.certificate_url}`;
+                            const fullUrl = getSafeUrl(exp.certificate_url);
                             const isPdf = exp.certificate_url.toLowerCase().endsWith('.pdf');
                             
                             return isPdf ? (

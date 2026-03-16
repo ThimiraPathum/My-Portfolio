@@ -4,6 +4,16 @@ import { motion } from 'framer-motion';
 import { FiArrowLeft, FiGithub, FiExternalLink, FiClock } from 'react-icons/fi';
 import { getProjects, BASE_URL } from '../api';
 
+const getSafeUrl = (url: string | null) => {
+    if (!url) return '';
+    let sUrl = url;
+    if (sUrl.includes('api.thimiradev.me')) sUrl = sUrl.split('api.thimiradev.me').pop() || '';
+    if (sUrl.startsWith('http')) return sUrl;
+    let cleanPath = sUrl.replace(/^\/+/, '');
+    if (cleanPath.startsWith('api/')) cleanPath = cleanPath.replace(/^api\//, '');
+    return `${BASE_URL.replace(/\/$/, '')}/${cleanPath}`;
+};
+
 export default function ProjectDetail() {
   const { id } = useParams();
   const [project, setProject] = useState<any>(null);
@@ -86,14 +96,14 @@ export default function ProjectDetail() {
           <div className="space-y-8 mb-12">
             {project.image_url && (
               <div className="w-full rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-black/50">
-                <img src={`${BASE_URL}${project.image_url}`} alt={project.title} className="w-full h-auto max-h-[600px] object-contain" />
+                <img src={getSafeUrl(project.image_url)} alt={project.title} className="w-full h-auto max-h-[600px] object-contain" />
               </div>
             )}
             
             {project.video_url && (
               <div className="w-full rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-black/50">
                 <video 
-                  src={`${BASE_URL}${project.video_url}`} 
+                  src={getSafeUrl(project.video_url)} 
                   controls 
                   autoPlay 
                   loop 

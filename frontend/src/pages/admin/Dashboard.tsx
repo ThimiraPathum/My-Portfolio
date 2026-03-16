@@ -321,22 +321,62 @@ export default function AdminDashboard() {
     { key: 'experience', label: 'Education & Certifications', icon: FiBriefcase },
   ];
 
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   return (
-    <main className="pt-24 pb-20 px-4 sm:px-6 min-h-screen">
+    <main className="pt-16 sm:pt-24 pb-20 px-4 sm:px-6 min-h-screen">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
+        {/* Mobile Header (Visible only on small screens) */}
+        <div className="sm:hidden flex items-center justify-between mb-6 bg-white/5 border border-white/10 p-4 rounded-xl backdrop-blur-md">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></div>
+            <span className="text-white font-bold text-sm">Dashboard</span>
+          </div>
+          <button 
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="p-2 text-cyan-400 hover:bg-cyan-400/10 rounded-lg transition-colors"
+          >
+            {isMenuOpen ? <FiX size={20} /> : <FiSettings size={20} />}
+          </button>
+        </div>
+
+        {/* Mobile Navigation Dropdown */}
+        <AnimatePresence>
+          {isMenuOpen && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="sm:hidden absolute left-4 right-4 z-50 bg-gray-900/95 border border-white/10 p-4 rounded-xl backdrop-blur-xl shadow-2xl space-y-1 mb-6"
+            >
+              {tabs.map(({ key, label, icon: Icon }) => (
+                <button 
+                  key={key} 
+                  onClick={() => { setTab(key); setIsMenuOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition-all ${
+                    tab === key ? 'bg-cyan-400/20 text-cyan-400 font-bold' : 'text-gray-400 hover:bg-white/5'
+                  }`}
+                >
+                  <Icon size={16} /> {label}
+                </button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Desktop/Tablet Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div>
             <div className="mono text-xs text-cyan-400 mb-2">{'>'} admin.dashboard()</div>
-            <h1 className="text-3xl font-bold text-white">Full <span className="gradient-text">CMS Dashboard</span></h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-white">Full <span className="gradient-text">CMS Dashboard</span></h1>
           </div>
           <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/10 text-gray-400 hover:text-white transition-all text-sm">
             <FiLogOut size={15} /> Logout
           </button>
         </div>
 
-        {/* Tabs */}
-        <div className="flex flex-wrap gap-2 mb-6 border-b border-white/5 pb-4">
+        {/* Desktop Tabs (Hidden on mobile) */}
+        <div className="hidden sm:flex flex-wrap gap-2 mb-6 border-b border-white/5 pb-4">
           {tabs.map(({ key, label, icon: Icon }) => (
             <button key={key} onClick={() => setTab(key)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
@@ -754,7 +794,12 @@ export default function AdminDashboard() {
                                   {newExpData.certificate_url.toLowerCase().endsWith('.pdf') ? (
                                     <FiMessageSquare className="text-red-400 shrink-0" size={20} />
                                   ) : (
-                                    <img src={`${BASE_URL}${newExpData.certificate_url}`} className="h-10 w-10 object-cover rounded shrink-0" alt="preview"/>
+                                    <img 
+                                      src={getSafeUrl(newExpData.certificate_url)} 
+                                      className="h-10 w-10 object-cover rounded shrink-0" 
+                                      alt="preview"
+                                      onError={(e) => (e.currentTarget.src = 'https://via.placeholder.com/40?text=Error')}
+                                    />
                                   )}
                                   <span className="text-[10px] text-gray-400 truncate max-w-[100px]">Attached</span>
                                 </div>

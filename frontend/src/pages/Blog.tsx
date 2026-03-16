@@ -4,6 +4,16 @@ import { NavLink } from 'react-router-dom';
 import { FiArrowRight, FiClock } from 'react-icons/fi';
 import { getBlogs, BASE_URL } from '../api';
 
+const getSafeUrl = (url: string | null) => {
+    if (!url) return '';
+    let sUrl = url;
+    if (sUrl.includes('api.thimiradev.me')) sUrl = sUrl.split('api.thimiradev.me').pop() || '';
+    if (sUrl.startsWith('http')) return sUrl;
+    let cleanPath = sUrl.replace(/^\/+/, '');
+    if (cleanPath.startsWith('api/')) cleanPath = cleanPath.replace(/^api\//, '');
+    return `${BASE_URL.replace(/\/$/, '')}/${cleanPath}`;
+};
+
 interface Blog {
   id: number;
   title: string;
@@ -70,7 +80,7 @@ export default function BlogList() {
                       {blog.cover_image && (
                         <div className="w-full md:w-48 h-32 flex-shrink-0 rounded-lg overflow-hidden border border-white/10">
                           <img
-                            src={`${BASE_URL}${blog.cover_image}`}
+                            src={getSafeUrl(blog.cover_image)}
                             alt={blog.title}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           />

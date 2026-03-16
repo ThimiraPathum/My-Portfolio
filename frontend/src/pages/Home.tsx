@@ -5,6 +5,16 @@ import { NavLink } from 'react-router-dom';
 import { useSettings } from '../context/SettingsContext';
 import { BASE_URL } from '../api';
 
+const getSafeUrl = (url: string | null) => {
+    if (!url) return '';
+    let sUrl = url;
+    if (sUrl.includes('api.thimiradev.me')) sUrl = sUrl.split('api.thimiradev.me').pop() || '';
+    if (sUrl.startsWith('http')) return sUrl;
+    let cleanPath = sUrl.replace(/^\/+/, '');
+    if (cleanPath.startsWith('api/')) cleanPath = cleanPath.replace(/^api\//, '');
+    return `${BASE_URL.replace(/\/$/, '')}/${cleanPath}`;
+};
+
 export default function Home() {
   const { settings, isLoading } = useSettings();
   const [roleIndex, setRoleIndex] = useState(0);
@@ -128,7 +138,7 @@ export default function Home() {
           <div className="absolute inset-0 bg-gradient-to-tr from-cyan-400 to-purple-500 rounded-full blur-3xl opacity-20 animate-pulse" />
           <div className="absolute inset-0 rounded-full border border-white/10 bg-white/5" />
           <img 
-            src={settings.profile_photo ? `${BASE_URL}${settings.profile_photo}` : "/profile.jpg"} 
+            src={settings.profile_photo ? getSafeUrl(settings.profile_photo) : "/profile.jpg"} 
             alt={name} 
             className="w-full h-full object-cover object-top rounded-full relative z-10 shadow-2xl p-2"
           />
