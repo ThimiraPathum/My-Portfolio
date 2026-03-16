@@ -12,7 +12,7 @@ import {
   updateSettings,
   getAdminBlogs, createBlog, updateBlog, deleteBlog,
   getAllComments, approveComment, deleteComment,
-  uploadFile, BASE_URL
+  uploadFile, BASE_URL, API_URL
 } from '../../api';
 
 type TabType = 'messages' | 'settings' | 'blogs' | 'comments' | 'projects' | 'skills' | 'experience';
