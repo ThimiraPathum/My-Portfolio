@@ -16,7 +16,7 @@ class DatabaseSeeder extends Seeder
             ['email' => 'pathumt675@gmail.com'],
             [
                 'name' => 'Thimira Pathum',
-                'password' => bcrypt('thimirAP12335.'),
+                'password' => 'thimirAP12335.',
             ]
         );
 
@@ -24,7 +24,7 @@ class DatabaseSeeder extends Seeder
             ['email' => 'admin@thimiradev.me'],
             [
                 'name' => 'Admin Backup',
-                'password' => bcrypt('Admin@123'),
+                'password' => 'Admin@123',
             ]
         );
 

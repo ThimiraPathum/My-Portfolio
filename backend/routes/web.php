@@ -10,14 +10,17 @@ Route::get('/', function () {
 // Auth routes (Root level for debugging/session support)
 Route::post('/auth/login', function () {
     $credentials = request(['email', 'password']);
+    \Log::info('Web Login attempt', ['email' => $credentials['email']]);
     
     if (Auth::attempt($credentials)) {
+        \Log::info('Web Login successful', ['email' => $credentials['email']]);
         return response()->json([
             'message' => 'Login successful',
             'user' => auth()->user()
         ]);
     }
     
+    \Log::error('Web Login failed: Invalid credentials', ['email' => $credentials['email']]);
     return response()->json(['message' => 'Invalid credentials'], 401);
 });
 
