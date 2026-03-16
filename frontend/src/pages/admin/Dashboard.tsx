@@ -115,27 +115,27 @@ export default function AdminDashboard() {
       switch (tab) {
         case 'messages':
           const msgs = await getMessages();
-          setMessages(msgs.data);
+          setMessages(Array.isArray(msgs.data) ? msgs.data : []);
           break;
         case 'projects':
           const projs = await getProjects();
-          setProjects(projs.data);
+          setProjects(Array.isArray(projs.data) ? projs.data : []);
           break;
         case 'skills':
           const skls = await getSkills();
-          setSkills(skls.data);
+          setSkills(Array.isArray(skls.data) ? skls.data : []);
           break;
         case 'experience':
           const exps = await getExperiences();
-          setExperiences(exps.data);
+          setExperiences(Array.isArray(exps.data) ? exps.data : []);
           break;
         case 'blogs':
           const blgs = await getAdminBlogs();
-          setBlogs(blgs.data);
+          setBlogs(Array.isArray(blgs.data) ? blgs.data : []);
           break;
         case 'comments':
           const cmts = await getAllComments();
-          setComments(cmts.data);
+          setComments(Array.isArray(cmts.data) ? cmts.data : []);
           break;
       }
     } catch { /* silent */ }

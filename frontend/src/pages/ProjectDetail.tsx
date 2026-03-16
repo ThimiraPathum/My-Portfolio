@@ -103,7 +103,7 @@ export default function ProjectDetail() {
               </div>
             )}
             
-            {project.gallery && project.gallery.length > 0 && (
+            {project.gallery && Array.isArray(project.gallery) && project.gallery.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {project.gallery.map((img: string, i: number) => (
                   <div key={i} className="rounded-xl overflow-hidden border border-white/10 glass">
