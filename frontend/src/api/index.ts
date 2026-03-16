@@ -31,31 +31,84 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+let isRefreshing = false;
+let failedQueue: any[] = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 // Response interceptor: handle 401 (token expired)
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const errorData = error.response?.data;
-    console.error(`[API Error] ${error.config?.url}:`, errorData || error.message);
+    const originalRequest = error.config;
+    const url = originalRequest?.url || '';
+
+    // Log the error
+    console.error(`[API Error] ${url}:`, errorData || error.message);
     if (error.response?.status === 422) {
       console.warn('[API Validation Error Details]:', JSON.stringify(errorData, null, 2));
     }
-    const originalRequest = error.config;
+
+    // 1. Explicitly check if the failing request is the refresh call itself
+    // If it is, DO NOT RETRY. Immediately log out to break any loop.
+    if (url.includes('auth/refresh') && error.response?.status === 401) {
+      console.error('[API Auth] Refresh call failed. Logging out to prevent loop.');
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/admin/login';
+      return Promise.reject(error);
+    }
+
+    // 2. Handle 401 for other requests
     if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        // Queue this request if a refresh is already in progress
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return api(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
       originalRequest._retry = true;
+      isRefreshing = true;
+
       try {
         console.log('[API Auth] Attempting token refresh...');
-        const refreshToken = localStorage.getItem('token');
-        if (!refreshToken) throw new Error('No token');
+        const token = localStorage.getItem('token');
+        if (!token) throw new Error('No existing token to refresh');
+
+        // Note: Use the raw axios or a separate instance if possible to avoid interceptors,
+        // but here we rely on the url check above.
         const { data } = await api.post('auth/refresh');
-        localStorage.setItem('token', data.access_token);
-        originalRequest.headers.Authorization = `Bearer ${data.access_token}`;
+        const newToken = data.access_token;
+        
+        localStorage.setItem('token', newToken);
+        processQueue(null, newToken);
+        
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return api(originalRequest);
       } catch (err) {
-        console.error('[API Auth] Refresh failed, logging out:', err);
+        processQueue(err, null);
+        console.error('[API Auth] Refresh sequence failed, logging out:', err);
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         window.location.href = '/admin/login';
+      } finally {
+        isRefreshing = false;
       }
     }
     return Promise.reject(error);
