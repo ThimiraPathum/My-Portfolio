@@ -1,9 +1,13 @@
 import axios from 'axios';
 
-export const API_URL = import.meta.env.VITE_API_URL || 
+const rawApiUrl = import.meta.env.VITE_API_URL || 
   (typeof window !== 'undefined' && window.location.hostname === 'localhost' 
     ? 'http://localhost:8000/api/' 
     : 'https://my-portfolio-api-20fo.onrender.com/api/');
+
+// Ensure the URL always ends with /api/
+export const API_URL = rawApiUrl.replace(/\/$/, '') + (rawApiUrl.includes('/api') ? '/' : '/api/');
+console.log('[API Config] Normalized API_URL:', API_URL);
 // Remove trailing /api/ or /api if present to get the root URL for images
 export const BASE_URL = API_URL.replace(/\/api\/?$/, '');
 
