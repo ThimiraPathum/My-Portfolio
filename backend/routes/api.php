@@ -66,7 +66,7 @@ Route::middleware('auth:api')->group(function () {
     Route::put('/experiences/{id}', [ExperienceController::class, 'update']);
     Route::delete('/experiences/{id}', [ExperienceController::class, 'destroy']);
 
-    Route::get('/admin/blogs', [BlogController::class, 'index']);
+    Route::get('/admin/blogs', [BlogController::class, 'adminIndex']);
     Route::post('/blogs', [BlogController::class, 'store']);
     Route::put('/blogs/{id}', [BlogController::class, 'update']);
     Route::delete('/blogs/{id}', [BlogController::class, 'destroy']);

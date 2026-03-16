@@ -58,12 +58,36 @@ export default function AdminDashboard() {
     if (showSpinner) setLoading(true);
     try {
       switch (t) {
-        case 'messages': setMessages((await getMessages()).data); break;
-        case 'projects': setProjects((await getProjects()).data); break;
-        case 'skills': setSkills((await getSkills()).data); break;
-        case 'experience': setExperiences((await getExperiences()).data); break;
-        case 'blogs': setBlogs((await getAdminBlogs()).data); break;
-        case 'comments': setComments((await getAllComments()).data); break;
+        case 'messages': {
+          const res = await getMessages();
+          setMessages(Array.isArray(res.data) ? res.data : []);
+          break;
+        }
+        case 'projects': {
+          const res = await getProjects();
+          setProjects(Array.isArray(res.data) ? res.data : []);
+          break;
+        }
+        case 'skills': {
+          const res = await getSkills();
+          setSkills(Array.isArray(res.data) ? res.data : []);
+          break;
+        }
+        case 'experience': {
+          const res = await getExperiences();
+          setExperiences(Array.isArray(res.data) ? res.data : []);
+          break;
+        }
+        case 'blogs': {
+          const res = await getAdminBlogs();
+          setBlogs(Array.isArray(res.data) ? res.data : []);
+          break;
+        }
+        case 'comments': {
+          const res = await getAllComments();
+          setComments(Array.isArray(res.data) ? res.data : []);
+          break;
+        }
       }
       setLoadedTabs(prev => new Set(prev).add(t));
     } catch (err: any) {
@@ -268,7 +292,7 @@ export default function AdminDashboard() {
           <motion.div key={tab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
             
             {/* MESSAGES TAB */}
-            {tab === 'messages' && messages.map((msg) => (
+            {tab === 'messages' && Array.isArray(messages) && messages.map((msg) => (
               <div 
                 key={msg.id} 
                 className={`glass p-5 flex items-start gap-4 transition-all hover:bg-white/5 cursor-pointer ${!msg.read ? 'border-cyan-400/30' : ''}`}
@@ -381,7 +405,7 @@ export default function AdminDashboard() {
                 {activeBlogId === null ? (
                   <>
                     <button onClick={handleCreateBlog} className="btn-gradient px-4 py-2 rounded-lg text-sm mb-4 inline-flex items-center gap-2"><FiPlus/> New Blog</button>
-                    {blogs.map((b) => (
+                    {Array.isArray(blogs) && blogs.map((b) => (
                       <div key={b.id} onClick={() => setActiveBlogId(b.id)}>
                         <BlogCard blog={b} onUpdate={(data) => updateBlog(b.id, data).then(refreshData)} onDelete={() => deleteBlog(b.id).then(refreshData)} onUpload={handleFileUpload} setBlogs={setBlogs} compact />
                       </div>
@@ -413,7 +437,7 @@ export default function AdminDashboard() {
             )}
 
             {/* COMMENTS TAB */}
-            {tab === 'comments' && comments.map((c) => (
+            {tab === 'comments' && Array.isArray(comments) && comments.map((c) => (
               <div key={c.id} className={`glass p-4 flex gap-4 ${!c.approved ? 'border-yellow-400/30' : ''}`}>
                 <div className="flex-1">
                   <div className="text-xs text-purple-400 mono mb-1">On: {c.blog?.title}</div>
@@ -432,7 +456,7 @@ export default function AdminDashboard() {
             {tab === 'projects' && (
               <>
                 <button onClick={handleCreateProject} className="btn-gradient px-4 py-2 rounded-lg text-sm mb-4 inline-flex items-center gap-2"><FiPlus/> New Project</button>
-                {projects.map((p) => (
+                {Array.isArray(projects) && projects.map((p) => (
                   <ProjectCard key={p.id} project={p} onUpdate={(data) => updateProject(p.id, data).then(refreshData)} onDelete={() => deleteProject(p.id).then(refreshData)} onUpload={handleFileUpload} setProjects={setProjects} />
                 ))}
               </>
@@ -443,7 +467,7 @@ export default function AdminDashboard() {
               <>
                 <button onClick={handleCreateSkill} className="btn-gradient px-4 py-2 rounded-lg text-sm mb-4 inline-flex items-center gap-2"><FiPlus/> New Skill</button>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {skills.map((s) => (
+                  {Array.isArray(skills) && skills.map((s) => (
                     <div key={s.id} className="glass p-5 transition-all hover:bg-white/5 border-white/5 group relative overflow-hidden">
                       <div className="flex justify-between items-start mb-6">
                         <div className="flex-1 space-y-4">
@@ -692,7 +716,7 @@ export default function AdminDashboard() {
                 )}
 
                 <div className="space-y-4">
-                  {experiences.map((e) => (
+                  {Array.isArray(experiences) && experiences.map((e) => (
                     <div key={e.id} className={`glass p-4 flex justify-between items-start border-l-4 transition-all ${e.current ? 'border-l-green-400' : 'border-l-gray-600'}`}>
                       <div className="w-full pr-4 flex flex-col gap-2">
                         <div className="flex items-center justify-between">
