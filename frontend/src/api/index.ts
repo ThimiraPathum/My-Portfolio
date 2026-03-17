@@ -212,7 +212,7 @@ export const uploadFile = (
   formData.append('file', file);
   formData.append('type', type);
   return api.post('upload', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
+    // headers: { 'Content-Type': 'multipart/form-data' }, // Removed: let Axios set this and the boundary automatically
     onUploadProgress: (progressEvent) => {
       if (onProgress && progressEvent.total) {
         const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);

@@ -163,14 +163,30 @@ export default function AdminDashboard() {
     } catch { toast.error('Failed to save settings'); }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video' = 'image') => {
-    const file = e.target.files?.[0];
+  const handleFileUpload = async (file: File, type: 'image' | 'video' | 'document' = 'image') => {
     if (!file) return null;
     
+    // Client-side validation
+    const maxSize = type === 'video' ? 100 * 1024 * 1024 : 10 * 1024 * 1024; // 100MB for video, 10MB others
+    if (file.size > maxSize) {
+      toast.error(`File "${file.name}" is too large. Max size is ${Math.round(maxSize / (1024 * 1024))}MB`);
+      return null;
+    }
+
+    const supportedTypes = {
+      image: ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'image/bmp'],
+      video: ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/webm', 'video/x-matroska'],
+      document: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', 'application/zip']
+    };
+
+    if (!supportedTypes[type].includes(file.type) && type !== 'video') { // Video can be more tricky with mimetypes
+       console.warn(`[Upload Warning]: File type ${file.type} might not be supported.`);
+    }
+
     setUploadProgress(0);
     toast.loading(`Uploading ${type}...`, { id: 'upload' });
     try {
-      const response = await uploadFile(file, type, (progress) => {
+      const response = await uploadFile(file, type as any, (progress) => {
         setUploadProgress(progress);
       });
       const url = response.data.url;
@@ -183,7 +199,8 @@ export default function AdminDashboard() {
       return timestampUrl;
     } catch (error: any) {
       console.error('[Upload Error]:', error.response?.data || error.message);
-      toast.error('Upload failed. Check file type and size.', { id: 'upload' });
+      const serverMsg = error.response?.data?.message || 'Upload failed.';
+      toast.error(`${serverMsg} Check file type and size.`, { id: 'upload' });
       setUploadProgress(null);
       return null;
     }
@@ -488,9 +505,12 @@ export default function AdminDashboard() {
                         className="hidden" 
                         accept="image/*"
                         onChange={async (e) => {
-                          const url = await handleFileUpload(e, 'image');
-                          if (url) {
-                            setSettingForm({ ...settingForm, profile_photo: url });
+                          const file = e.target.files?.[0];
+                          if (file) {
+                             const url = await handleFileUpload(file, 'image');
+                             if (url) {
+                               setSettingForm({ ...settingForm, profile_photo: url });
+                             }
                           }
                         }}
                       />
@@ -753,13 +773,13 @@ export default function AdminDashboard() {
                                   const file = ev.target.files?.[0];
                                   if (!file) return;
                                   const isPdf = file.type === 'application/pdf';
-                                  const url = await handleFileUpload(ev, isPdf ? 'document' as any : 'image');
+                                  const url = await handleFileUpload(file, isPdf ? 'document' : 'image');
                                   if (url) {
                                     setNewExpData({ ...newExpData, certificate_url: url });
                                     toast.success('File uploaded');
                                   }
                                 }} 
-                              />
+                      />
                             </label>
 
                             {newExpData.certificate_url && (
@@ -884,7 +904,7 @@ export default function AdminDashboard() {
                                 const file = ev.target.files?.[0];
                                 if (!file) return;
                                 const isPdf = file.type === 'application/pdf';
-                                const url = await handleFileUpload(ev, isPdf ? 'document' as any : 'image');
+                                const url = await handleFileUpload(file, isPdf ? 'document' : 'image');
                                 if (url) {
                                   const updated = { ...e, certificate_url: url };
                                   setExperiences(prev => prev.map(x => x.id === e.id ? updated : x));
@@ -1033,7 +1053,7 @@ function BlogCard({ blog: b, onUpdate, onDelete, onUpload, setBlogs, getSafeUrl,
   blog: any;
   onUpdate: (data: any) => Promise<any>;
   onDelete: () => void;
-  onUpload: (e: React.ChangeEvent<HTMLInputElement>, type: 'image'|'video') => Promise<string | null>;
+  onUpload: (file: File, type: 'image'|'video'|'document') => Promise<string | null>;
   setBlogs: React.Dispatch<React.SetStateAction<any[]>>;
   compact?: boolean;
   full?: boolean;
@@ -1131,15 +1151,24 @@ function BlogCard({ blog: b, onUpdate, onDelete, onUpload, setBlogs, getSafeUrl,
         <div className="flex gap-4 items-center mt-2">
           {b.cover_image && <img src={getSafeUrl(b.cover_image)} className="h-10 rounded" alt="cover"/>}
           <label className="btn-gradient px-3 py-1.5 rounded text-xs cursor-pointer flex items-center gap-1"><FiImage/> Cover Image
-            <input type="file" hidden accept="image/*" onChange={async (e) => { const url = await onUpload(e, 'image'); if (url) onUpdate({ cover_image: url }); }} />
+            <input type="file" hidden accept="image/*" onChange={async (e) => { 
+                const file = e.target.files?.[0];
+                if (file) {
+                    const url = await onUpload(file, 'image'); 
+                    if (url) onUpdate({ cover_image: url }); 
+                }
+            }} />
           </label>
           <label className="border border-white/20 text-gray-300 hover:text-white px-3 py-1.5 rounded text-xs cursor-pointer flex items-center gap-1"><FiImage/> Insert Image
             <input type="file" hidden accept="image/*" onChange={async (e) => { 
-              const url = await onUpload(e, 'image'); 
-              if (url) {
-                const md = `\n![image](${getSafeUrl(url)})\n`;
-                setBlogs(prev => prev.map(x => x.id === b.id ? { ...x, content: x.content + md } : x));
-                onUpdate({ content: b.content + md });
+              const file = e.target.files?.[0];
+              if (file) {
+                  const url = await onUpload(file, 'image'); 
+                  if (url) {
+                    const md = `\n![image](${getSafeUrl(url)})\n`;
+                    setBlogs(prev => prev.map(x => x.id === b.id ? { ...x, content: x.content + md } : x));
+                    onUpdate({ content: b.content + md });
+                  }
               }
             }} />
           </label>
@@ -1153,7 +1182,7 @@ function ProjectCard({ project: p, onUpdate, onDelete, onUpload, setProjects, ge
   project: any;
   onUpdate: (data: any) => Promise<any>;
   onDelete: () => void;
-  onUpload: (e: React.ChangeEvent<HTMLInputElement>, type: 'image'|'video') => Promise<string | null>;
+  onUpload: (file: File, type: 'image'|'video'|'document') => Promise<string | null>;
   setProjects: React.Dispatch<React.SetStateAction<any[]>>;
   getSafeUrl: (url: string | null) => string;
 }) {
@@ -1192,11 +1221,23 @@ function ProjectCard({ project: p, onUpdate, onDelete, onUpload, setProjects, ge
         <div className="flex flex-wrap gap-4 items-center">
           {p.image_url && <img src={getSafeUrl(p.image_url)} className="h-8 rounded" alt="img"/>}
           <label className="text-xs text-blue-400 cursor-pointer flex items-center gap-1"><FiImage/> Main Image
-            <input type="file" hidden accept="image/*" onChange={async (e) => { const url = await onUpload(e, 'image'); if (url) onUpdate({ image_url: url }); }} />
+            <input type="file" hidden accept="image/*" onChange={async (e) => { 
+                const file = e.target.files?.[0];
+                if (file) {
+                    const url = await onUpload(file, 'image'); 
+                    if (url) onUpdate({ image_url: url }); 
+                }
+            }} />
           </label>
           {p.video_url && <div className="text-xs text-green-400 flex items-center gap-1"><FiVideo/> Video attached</div>}
           <label className="text-xs text-purple-400 cursor-pointer flex items-center gap-1"><FiVideo/> Main Video
-            <input type="file" hidden accept="video/*" onChange={async (e) => { const url = await onUpload(e, 'video'); if (url) onUpdate({ video_url: url }); }} />
+            <input type="file" hidden accept="video/*" onChange={async (e) => { 
+                const file = e.target.files?.[0];
+                if (file) {
+                    const url = await onUpload(file, 'video'); 
+                    if (url) onUpdate({ video_url: url }); 
+                }
+            }} />
           </label>
         </div>
         
@@ -1217,7 +1258,7 @@ function ProjectCard({ project: p, onUpdate, onDelete, onUpload, setProjects, ge
               if (!e.target.files?.length) return;
               const newUrls = [];
               for(let i=0; i<e.target.files.length; i++){
-                const url = await onUpload({ target: { files: [e.target.files[i]] } } as any, 'image');
+                const url = await onUpload(e.target.files[i], 'image');
                 if (url) newUrls.push(url);
               }
               if (newUrls.length > 0) {
