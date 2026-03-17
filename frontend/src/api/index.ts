@@ -28,16 +28,21 @@ export const getSafeUrl = (url: string | null | undefined): string => {
     const markers = ['/storage/', '/uploads/'];
     for (const marker of markers) {
       if (sUrl.includes(marker)) {
-        sUrl = marker + sUrl.split(marker).pop();
-        break;
+        // Find the index of the marker and keep everything starting from it (relative to the root)
+        const parts = sUrl.split(marker);
+        if (parts.length > 1) {
+          sUrl = marker + parts.slice(1).join(marker);
+          break;
+        }
       }
     }
   }
 
-  // 2. If it's still absolute (didn't match markers but starts with http), return as is
+  // 2. If it's still absolute (didn't match makers but starts with http), return as is
   if (sUrl.startsWith('http')) return sUrl;
   
   // 3. Normalize and combine with BASE_URL
+  // Ensure we don't end up with /storage/storage/... or /uploads/uploads/...
   const cleanPath = sUrl.replace(/^\/+/, '');
   const normalizedBase = BASE_URL.replace(/\/$/, '');
   

@@ -173,11 +173,6 @@ export default function AdminDashboard() {
       // Cache buster for immediate preview visibility
       const timestampUrl = `${url}${url.includes('?') ? '&' : '?'}t=${Date.now()}`;
       
-      // If we're on the settings tab, update the profile_photo preview
-      if (tab === 'settings') {
-        setSettingForm(prev => ({ ...prev, profile_photo: timestampUrl }));
-      }
-      
       toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} uploaded successfully!`, { id: 'upload' });
       return timestampUrl;
     } catch (error: any) {
@@ -435,6 +430,11 @@ export default function AdminDashboard() {
                         src={getSafeUrl(settingForm.profile_photo || settings.profile_photo)} 
                         alt="Profile Preview" 
                         className="w-16 h-16 rounded-full object-cover border border-white/10"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = '/profile.jpg'; // Local fallback
+                          console.warn('Profile preview failed to load, using fallback');
+                        }}
                       />
                     ) : (
                       <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-500">
