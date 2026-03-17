@@ -13,6 +13,37 @@ console.log('[API Config] Normalized API_URL:', API_URL);
 export const BASE_URL = API_URL.split('/api')[0];
 console.log('[API Config] Derived BASE_URL for assets:', BASE_URL);
 
+/**
+ * Ensures URLs are absolute and points them to the current environment's backend.
+ * Handles cases where absolute URLs (from Prod) might be stored in a Local database.
+ */
+export const getSafeUrl = (url: string | null | undefined): string => {
+  if (!url) return '';
+
+  let sUrl = url;
+  
+  // 1. Robustly extract the relative path if it's an absolute URL
+  // This handles both Local-pointing-to-Prod and Prod-pointing-to-Local
+  if (sUrl.startsWith('http')) {
+    const markers = ['/storage/', '/uploads/'];
+    for (const marker of markers) {
+      if (sUrl.includes(marker)) {
+        sUrl = marker + sUrl.split(marker).pop();
+        break;
+      }
+    }
+  }
+
+  // 2. If it's still absolute (didn't match markers but starts with http), return as is
+  if (sUrl.startsWith('http')) return sUrl;
+  
+  // 3. Normalize and combine with BASE_URL
+  const cleanPath = sUrl.replace(/^\/+/, '');
+  const normalizedBase = BASE_URL.replace(/\/$/, '');
+  
+  return `${normalizedBase}/${cleanPath}`;
+};
+
 const api = axios.create({
   baseURL: API_URL,
   headers: {

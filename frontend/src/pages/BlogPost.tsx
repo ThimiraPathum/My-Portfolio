@@ -2,17 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, NavLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiArrowLeft, FiMessageSquare } from 'react-icons/fi';
-import { getBlog, postComment, BASE_URL } from '../api';
-
-const getSafeUrl = (url: string | null) => {
-    if (!url) return '';
-    let sUrl = url;
-    if (sUrl.includes('api.thimiradev.me')) sUrl = sUrl.split('api.thimiradev.me').pop() || '';
-    if (sUrl.startsWith('http')) return sUrl;
-    let cleanPath = sUrl.replace(/^\/+/, '');
-    if (cleanPath.startsWith('api/')) cleanPath = cleanPath.replace(/^api\//, '');
-    return `${BASE_URL.replace(/\/$/, '')}/${cleanPath}`;
-};
+import { getBlog, postComment, getSafeUrl } from '../api';
 import toast from 'react-hot-toast';
 
 export default function BlogPost() {

@@ -12,7 +12,7 @@ import {
   updateSettings,
   getAdminBlogs, createBlog, updateBlog, deleteBlog,
   getAllComments, approveComment, deleteComment,
-  uploadFile, BASE_URL
+  uploadFile, getSafeUrl
 } from '../../api';
 
 type TabType = 'messages' | 'settings' | 'blogs' | 'comments' | 'projects' | 'skills' | 'experience';
@@ -25,39 +25,6 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(false);
   const [loadedTabs, setLoadedTabs] = useState<Set<TabType>>(new Set());
 
-  // Helper to ensure URLs are absolute and don't double-prepend BASE_URL
-  const getSafeUrl = (url: string | null) => {
-    if (!url) return '';
-
-    let sUrl = url;
-    
-    // 1. Repair common "mis-configurations" from backend
-    // If it's localhost or an IP but we are in production, force BASE_URL replacement
-    const isLocal = sUrl.includes('localhost') || sUrl.includes('127.0.0.1');
-    const isProd = typeof window !== 'undefined' && !window.location.hostname.includes('localhost');
-    
-    if (isLocal && isProd) {
-        // Strip everything before /storage/ or /uploads/
-        if (sUrl.includes('/storage/')) sUrl = '/storage/' + sUrl.split('/storage/').pop();
-        else if (sUrl.includes('/uploads/')) sUrl = '/uploads/' + sUrl.split('/uploads/').pop();
-    }
-
-    // 2. Strip stale domain if present
-    if (sUrl.includes('api.thimiradev.me')) {
-        sUrl = sUrl.split('api.thimiradev.me').pop() || '';
-    }
-    
-    if (sUrl.startsWith('http')) return sUrl;
-    
-    // 3. Normalized path construction
-    let cleanPath = sUrl.replace(/^\/+/, '');
-    if (cleanPath.startsWith('api/')) {
-        cleanPath = cleanPath.replace(/^api\//, '');
-    }
-
-    return `${BASE_URL.replace(/\/$/, '')}/${cleanPath}`;
-  };
-  
   // Modal state for creating new items
   const [modal, setModal] = useState<{ isOpen: boolean; title: string; label: string; placeholder: string; onConfirm: (val: string) => void } | null>(null);
 

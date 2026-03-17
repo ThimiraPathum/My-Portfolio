@@ -3,17 +3,7 @@ import { motion } from 'framer-motion';
 import { FiArrowRight, FiGithub, FiLinkedin, FiMail } from 'react-icons/fi';
 import { NavLink } from 'react-router-dom';
 import { useSettings } from '../context/SettingsContext';
-import { BASE_URL } from '../api';
-
-const getSafeUrl = (url: string | null) => {
-    if (!url) return '';
-    let sUrl = url;
-    if (sUrl.includes('api.thimiradev.me')) sUrl = sUrl.split('api.thimiradev.me').pop() || '';
-    if (sUrl.startsWith('http')) return sUrl;
-    let cleanPath = sUrl.replace(/^\/+/, '');
-    if (cleanPath.startsWith('api/')) cleanPath = cleanPath.replace(/^api\//, '');
-    return `${BASE_URL.replace(/\/$/, '')}/${cleanPath}`;
-};
+import { getSafeUrl } from '../api';
 
 export default function Home() {
   const { settings, isLoading } = useSettings();

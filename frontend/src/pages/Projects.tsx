@@ -2,19 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiGithub, FiExternalLink, FiFilter } from 'react-icons/fi';
 import { NavLink } from 'react-router-dom';
-import { getProjects, BASE_URL } from '../api';
-
-// Helper to ensure URLs are absolute and don't double-prepend BASE_URL
-// Map from api/index.ts or defined locally if not exported
-const getSafeUrl = (url: string | null) => {
-    if (!url) return '';
-    let sUrl = url;
-    if (sUrl.includes('api.thimiradev.me')) sUrl = sUrl.split('api.thimiradev.me').pop() || '';
-    if (sUrl.startsWith('http')) return sUrl;
-    let cleanPath = sUrl.replace(/^\/+/, '');
-    if (cleanPath.startsWith('api/')) cleanPath = cleanPath.replace(/^api\//, '');
-    return `${BASE_URL.replace(/\/$/, '')}/${cleanPath}`;
-};
+import { getProjects, getSafeUrl } from '../api';
 
 interface Project {
   id: number;

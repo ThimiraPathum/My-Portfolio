@@ -1,17 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiMapPin, FiCalendar, FiMessageSquare, FiX, FiExternalLink } from 'react-icons/fi';
-import { getExperiences, BASE_URL } from '../api';
-
-const getSafeUrl = (url: string | null) => {
-    if (!url) return '';
-    let sUrl = url;
-    if (sUrl.includes('api.thimiradev.me')) sUrl = sUrl.split('api.thimiradev.me').pop() || '';
-    if (sUrl.startsWith('http')) return sUrl;
-    let cleanPath = sUrl.replace(/^\/+/, '');
-    if (cleanPath.startsWith('api/')) cleanPath = cleanPath.replace(/^api\//, '');
-    return `${BASE_URL.replace(/\/$/, '')}/${cleanPath}`;
-};
+import { getExperiences, getSafeUrl } from '../api';
 
 interface Experience {
   id: number;

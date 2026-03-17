@@ -2,17 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, NavLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiArrowLeft, FiGithub, FiExternalLink, FiClock } from 'react-icons/fi';
-import { getProjects, BASE_URL } from '../api';
-
-const getSafeUrl = (url: string | null) => {
-    if (!url) return '';
-    let sUrl = url;
-    if (sUrl.includes('api.thimiradev.me')) sUrl = sUrl.split('api.thimiradev.me').pop() || '';
-    if (sUrl.startsWith('http')) return sUrl;
-    let cleanPath = sUrl.replace(/^\/+/, '');
-    if (cleanPath.startsWith('api/')) cleanPath = cleanPath.replace(/^api\//, '');
-    return `${BASE_URL.replace(/\/$/, '')}/${cleanPath}`;
-};
+import { getProjects, getSafeUrl } from '../api';
 
 export default function ProjectDetail() {
   const { id } = useParams();
@@ -117,7 +107,7 @@ export default function ProjectDetail() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {project.gallery.map((img: string, i: number) => (
                   <div key={i} className="rounded-xl overflow-hidden border border-white/10 glass">
-                    <img src={`${BASE_URL}${img}`} alt={`Gallery ${i}`} className="w-full h-48 object-cover hover:scale-105 transition-transform duration-500" />
+                    <img src={getSafeUrl(img)} alt={`Gallery ${i}`} className="w-full h-48 object-cover hover:scale-105 transition-transform duration-500" />
                   </div>
                 ))}
               </div>
