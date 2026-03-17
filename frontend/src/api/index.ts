@@ -211,7 +211,7 @@ export const uploadFile = (
   console.log(`[API Upload] Initializing upload for ${file.name} (${file.type}, ${file.size} bytes) as ${type}`);
   
   const formData = new FormData();
-  formData.append('file', file);
+  formData.append('file', file, file.name);
   formData.append('type', type);
   
   // Debug FormData entries

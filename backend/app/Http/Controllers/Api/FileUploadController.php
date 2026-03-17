@@ -13,6 +13,8 @@ class FileUploadController extends Controller
         try {
             $type = $request->input('type', 'image');
             $uploadedFile = $request->file('file');
+            $contentLength = (int) $request->server('CONTENT_LENGTH', 0);
+            $postMaxSizeBytes = $this->toBytes((string) ini_get('post_max_size'));
             
             // Log only metadata that does not force Symfony to read the temp file path.
             Log::info('Upload Request Received', [
@@ -23,19 +25,44 @@ class FileUploadController extends Controller
                 'file_size' => $uploadedFile?->getSize(),
                 'file_error' => $uploadedFile?->getError(),
                 'file_is_valid' => $uploadedFile?->isValid(),
+                'content_length' => $contentLength,
+                'post_max_size' => ini_get('post_max_size'),
+                'upload_max_filesize' => ini_get('upload_max_filesize'),
             ]);
+
+            if ($contentLength > 0 && $postMaxSizeBytes > 0 && $contentLength > $postMaxSizeBytes) {
+                return response()->json([
+                    'message' => 'The uploaded payload exceeds the server post_max_size limit.',
+                    'errors' => [
+                        'file' => [
+                            'The uploaded payload exceeds the server post_max_size limit.'
+                        ]
+                    ]
+                ], 422);
+            }
 
             if (!$request->hasFile('file')) {
                 return response()->json([
-                    'message' => 'The given data was invalid.',
+                    'message' => 'No file found in request payload.',
                     'errors' => ['file' => ['No file found in request payload']]
                 ], 422);
             }
 
             if (!$uploadedFile || !$uploadedFile->isValid()) {
+                $errorMessage = match ($uploadedFile?->getError()) {
+                    UPLOAD_ERR_INI_SIZE => 'The file exceeds the server upload_max_filesize limit.',
+                    UPLOAD_ERR_FORM_SIZE => 'The file exceeds the form upload size limit.',
+                    UPLOAD_ERR_PARTIAL => 'The file was only partially uploaded.',
+                    UPLOAD_ERR_NO_FILE => 'No file was uploaded.',
+                    UPLOAD_ERR_NO_TMP_DIR => 'The server is missing a temporary upload directory.',
+                    UPLOAD_ERR_CANT_WRITE => 'The server could not write the uploaded file to disk.',
+                    UPLOAD_ERR_EXTENSION => 'A server extension stopped the file upload.',
+                    default => 'The uploaded file is invalid or incomplete.',
+                };
+
                 return response()->json([
-                    'message' => 'The uploaded file is invalid or incomplete.',
-                    'errors' => ['file' => ['The uploaded file is invalid or incomplete.']]
+                    'message' => $errorMessage,
+                    'errors' => ['file' => [$errorMessage]]
                 ], 422);
             }
 
@@ -103,5 +130,23 @@ class FileUploadController extends Controller
         $request->validate(['path' => 'required|string']);
         Storage::disk('public')->delete($request->path);
         return response()->json(['message' => 'File deleted']);
+    }
+
+    private function toBytes(string $value): int
+    {
+        $value = trim($value);
+        if ($value === '') {
+            return 0;
+        }
+
+        $number = (int) $value;
+        $unit = strtolower(substr($value, -1));
+
+        return match ($unit) {
+            'g' => $number * 1024 * 1024 * 1024,
+            'm' => $number * 1024 * 1024,
+            'k' => $number * 1024,
+            default => $number,
+        };
     }
 }

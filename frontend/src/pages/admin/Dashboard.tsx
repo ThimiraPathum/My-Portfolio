@@ -179,8 +179,10 @@ export default function AdminDashboard() {
       document: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', 'application/zip']
     };
 
-    if (!supportedTypes[type].includes(file.type) && type !== 'video') { // Video can be more tricky with mimetypes
-       console.warn(`[Upload Warning]: File type ${file.type} might not be supported.`);
+    if (type !== 'video' && !supportedTypes[type].includes(file.type)) {
+      const kind = type === 'image' ? 'image' : 'document';
+      toast.error(`Unsupported ${kind} type: ${file.type || file.name}. Please choose a supported file.`);
+      return null;
     }
 
     setUploadProgress(0);
@@ -199,7 +201,10 @@ export default function AdminDashboard() {
       return timestampUrl;
     } catch (error: any) {
       console.error('[Upload Error]:', error.response?.data || error.message);
-      const serverMsg = error.response?.data?.message || 'Upload failed.';
+      const serverMsg =
+        error.response?.data?.errors?.file?.[0] ||
+        error.response?.data?.message ||
+        'Upload failed.';
       toast.error(`${serverMsg} Check file type and size.`, { id: 'upload' });
       setUploadProgress(null);
       return null;

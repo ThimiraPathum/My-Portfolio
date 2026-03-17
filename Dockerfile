@@ -6,6 +6,9 @@ RUN apt-get update && apt-get install -y \
 
 RUN docker-php-ext-install pdo pdo_mysql pdo_pgsql pdo_sqlite mbstring xml bcmath
 
+# Match PHP upload limits with the app's backend/frontend expectations.
+RUN printf "file_uploads=On\nupload_max_filesize=120M\npost_max_size=120M\nmemory_limit=256M\nmax_file_uploads=20\n" > /usr/local/etc/php/conf.d/uploads.ini
+
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 RUN a2enmod rewrite
@@ -43,4 +46,4 @@ RUN mkdir -p /app/database /app/storage /app/bootstrap/cache && \
     chown -R www-data:www-data /app/storage /app/bootstrap/cache /app/database
 
 # Start Apache with runtime port substitution, config clearing, and automated migrations
-CMD ["sh", "-c", "sed -i \"s/Listen 80/Listen ${PORT:-80}/g\" /etc/apache2/ports.conf && sed -i \"s/:80/:${PORT:-80}/g\" /etc/apache2/sites-available/000-default.conf && php artisan config:clear && php artisan migrate --force --seed && chown -R www-data:www-data /app/storage /app/bootstrap/cache /app/database && apache2-foreground"]
+CMD ["sh", "-c", "sed -i \"s/Listen 80/Listen ${PORT:-80}/g\" /etc/apache2/ports.conf && sed -i \"s/:80/:${PORT:-80}/g\" /etc/apache2/sites-available/000-default.conf && php artisan config:clear && php artisan migrate --force --seed && php artisan storage:link || true && chown -R www-data:www-data /app/storage /app/bootstrap/cache /app/database && apache2-foreground"]
