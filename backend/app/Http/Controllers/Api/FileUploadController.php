@@ -12,20 +12,30 @@ class FileUploadController extends Controller
     {
         try {
             $type = $request->input('type', 'image');
+            $uploadedFile = $request->file('file');
             
-            // Log entry
+            // Log only metadata that does not force Symfony to read the temp file path.
             Log::info('Upload Request Received', [
                 'type' => $type,
                 'has_file' => $request->hasFile('file'),
-                'file_name' => $request->file('file')?->getClientOriginalName(),
-                'file_mime' => $request->file('file')?->getMimeType(),
-                'file_size' => $request->file('file')?->getSize(),
+                'file_name' => $uploadedFile?->getClientOriginalName(),
+                'file_client_mime' => $uploadedFile?->getClientMimeType(),
+                'file_size' => $uploadedFile?->getSize(),
+                'file_error' => $uploadedFile?->getError(),
+                'file_is_valid' => $uploadedFile?->isValid(),
             ]);
 
             if (!$request->hasFile('file')) {
                 return response()->json([
                     'message' => 'The given data was invalid.',
                     'errors' => ['file' => ['No file found in request payload']]
+                ], 422);
+            }
+
+            if (!$uploadedFile || !$uploadedFile->isValid()) {
+                return response()->json([
+                    'message' => 'The uploaded file is invalid or incomplete.',
+                    'errors' => ['file' => ['The uploaded file is invalid or incomplete.']]
                 ], 422);
             }
 
@@ -44,7 +54,10 @@ class FileUploadController extends Controller
                 $rules['file'] = 'required|image|max:15360'; 
             }
 
-            $validator = \Illuminate\Support\Facades\Validator::make($request->all(), $rules);
+            $validator = \Illuminate\Support\Facades\Validator::make(
+                array_merge($request->all(), ['file' => $uploadedFile]),
+                $rules
+            );
 
             if ($validator->fails()) {
                 Log::warning('Upload validation failed', ['errors' => $validator->errors()]);
@@ -54,7 +67,7 @@ class FileUploadController extends Controller
                 ], 422);
             }
 
-            $file = $request->file('file');
+            $file = $uploadedFile;
             $folder = 'images';
             if ($type === 'video') $folder = 'videos';
             if ($type === 'document') $folder = 'documents';
