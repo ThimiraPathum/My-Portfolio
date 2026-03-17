@@ -203,12 +203,22 @@ export const approveComment = (id: number) => api.put(`comments/${id}/approve`);
 export const deleteComment = (id: number) => api.delete(`comments/${id}`);
 
 // --- File Uploads ---
-export const uploadFile = (file: File, type: 'image' | 'video' = 'image') => {
+export const uploadFile = (
+  file: File, 
+  type: 'image' | 'video' = 'image',
+  onProgress?: (progress: number) => void
+) => {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('type', type);
   return api.post('upload', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
+    onUploadProgress: (progressEvent) => {
+      if (onProgress && progressEvent.total) {
+        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        onProgress(percentCompleted);
+      }
+    }
   });
 };
 

@@ -54,6 +54,8 @@ export default function AdminDashboard() {
   // Settings form
   const [settingForm, setSettingForm] = useState<Record<string, string>>({});
 
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+
   const loadTabData = useCallback(async (t: TabType, showSpinner = true) => {
     if (showSpinner) setLoading(true);
     try {
@@ -165,19 +167,24 @@ export default function AdminDashboard() {
     const file = e.target.files?.[0];
     if (!file) return null;
     
+    setUploadProgress(0);
     toast.loading(`Uploading ${type}...`, { id: 'upload' });
     try {
-      const response = await uploadFile(file, type);
+      const response = await uploadFile(file, type, (progress) => {
+        setUploadProgress(progress);
+      });
       const url = response.data.url;
       
       // Cache buster for immediate preview visibility
       const timestampUrl = `${url}${url.includes('?') ? '&' : '?'}t=${Date.now()}`;
       
       toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} uploaded successfully!`, { id: 'upload' });
+      setUploadProgress(null);
       return timestampUrl;
     } catch (error: any) {
       console.error('[Upload Error]:', error.response?.data || error.message);
       toast.error('Upload failed. Check file type and size.', { id: 'upload' });
+      setUploadProgress(null);
       return null;
     }
   };
@@ -348,6 +355,39 @@ export default function AdminDashboard() {
             </button>
           ))}
         </div>
+
+        {/* Global Upload Progress Indicator */}
+        <AnimatePresence>
+          {uploadProgress !== null && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-4 overflow-hidden"
+            >
+              <div className="glass p-3 border-cyan-400/30">
+                <div className="flex justify-between items-center mb-1.5">
+                  <span className="text-[10px] text-cyan-400 mono uppercase tracking-widest font-bold flex items-center gap-2">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+                    </span>
+                    Sending data to server
+                  </span>
+                  <span className="text-xs text-white mono font-bold">{uploadProgress}%</span>
+                </div>
+                <div className="w-full bg-white/5 rounded-full h-1 overflow-hidden border border-white/5">
+                  <motion.div 
+                    className="h-full bg-gradient-to-r from-cyan-500 to-purple-500 shadow-[0_0_10px_rgba(34,211,238,0.5)]"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${uploadProgress}%` }}
+                    transition={{ type: 'spring', bounce: 0, duration: 0.3 }}
+                  />
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {loading ? <div className="space-y-3">{[...Array(3)].map((_, i) => <div key={i} className="glass h-20 animate-pulse" />)}</div> : (
           <motion.div key={tab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
