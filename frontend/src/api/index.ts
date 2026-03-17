@@ -52,7 +52,7 @@ export const getSafeUrl = (url: string | null | undefined): string => {
 const api = axios.create({
   baseURL: API_URL,
   headers: {
-    'Content-Type': 'application/json',
+    // 'Content-Type': 'application/json', // Removed: Let Axios auto-detect for JSON or multipart/form-data
     'Accept': 'application/json',
   },
 });
@@ -205,12 +205,20 @@ export const deleteComment = (id: number) => api.delete(`comments/${id}`);
 // --- File Uploads ---
 export const uploadFile = (
   file: File, 
-  type: 'image' | 'video' = 'image',
+  type: 'image' | 'video' | 'document' = 'image',
   onProgress?: (progress: number) => void
 ) => {
+  console.log(`[API Upload] Initializing upload for ${file.name} (${file.type}, ${file.size} bytes) as ${type}`);
+  
   const formData = new FormData();
   formData.append('file', file);
   formData.append('type', type);
+  
+  // Debug FormData entries
+  for (let pair of (formData as any).entries()) {
+    console.log(`[API Upload] FormData Entry: ${pair[0]} =`, pair[1]);
+  }
+
   return api.post('upload', formData, {
     // headers: { 'Content-Type': 'multipart/form-data' }, // Removed: let Axios set this and the boundary automatically
     onUploadProgress: (progressEvent) => {
