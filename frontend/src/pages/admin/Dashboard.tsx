@@ -17,6 +17,80 @@ import {
 
 type TabType = 'messages' | 'settings' | 'blogs' | 'comments' | 'projects' | 'skills' | 'experience';
 
+const CLIENT_IMAGE_LIMIT_BYTES = 10 * 1024 * 1024;
+const SERVER_SAFE_IMAGE_LIMIT_BYTES = 1800 * 1024;
+
+const loadImageElement = (file: File): Promise<HTMLImageElement> =>
+  new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const image = new Image();
+
+    image.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(image);
+    };
+
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('Failed to read image file.'));
+    };
+
+    image.src = objectUrl;
+  });
+
+const canvasToFile = (canvas: HTMLCanvasElement, fileName: string, mimeType: string, quality?: number): Promise<File> =>
+  new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        reject(new Error('Failed to encode image.'));
+        return;
+      }
+
+      resolve(new File([blob], fileName, { type: mimeType, lastModified: Date.now() }));
+    }, mimeType, quality);
+  });
+
+const optimizeImageForUpload = async (file: File): Promise<File> => {
+  if (file.size <= SERVER_SAFE_IMAGE_LIMIT_BYTES) {
+    return file;
+  }
+
+  if (!['image/jpeg', 'image/png', 'image/webp', 'image/bmp'].includes(file.type)) {
+    return file;
+  }
+
+  const image = await loadImageElement(file);
+  const maxDimension = 2200;
+  const scale = Math.min(1, maxDimension / Math.max(image.width, image.height));
+  const width = Math.max(1, Math.round(image.width * scale));
+  const height = Math.max(1, Math.round(image.height * scale));
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+
+  const context = canvas.getContext('2d');
+  if (!context) {
+    throw new Error('Canvas is not available for image processing.');
+  }
+
+  context.drawImage(image, 0, 0, width, height);
+
+  const sourceName = file.name.replace(/\.[^.]+$/, '');
+  const preferredMimeType = file.type === 'image/png' ? 'image/webp' : 'image/jpeg';
+  const preferredExtension = preferredMimeType === 'image/webp' ? 'webp' : 'jpg';
+
+  let optimized = await canvasToFile(canvas, `${sourceName}.${preferredExtension}`, preferredMimeType, 0.82);
+
+  if (optimized.size <= SERVER_SAFE_IMAGE_LIMIT_BYTES) {
+    return optimized;
+  }
+
+  optimized = await canvasToFile(canvas, `${sourceName}.${preferredExtension}`, preferredMimeType, 0.7);
+
+  return optimized.size < file.size ? optimized : file;
+};
+
 export default function AdminDashboard() {
   const { logoutFn } = useAuth();
   const { settings, refreshSettings } = useSettings();
@@ -167,7 +241,7 @@ export default function AdminDashboard() {
     if (!file) return null;
     
     // Client-side validation
-    const maxSize = type === 'video' ? 100 * 1024 * 1024 : 10 * 1024 * 1024; // 100MB for video, 10MB others
+    const maxSize = type === 'video' ? 100 * 1024 * 1024 : CLIENT_IMAGE_LIMIT_BYTES; // 100MB for video, 10MB others
     if (file.size > maxSize) {
       toast.error(`File "${file.name}" is too large. Max size is ${Math.round(maxSize / (1024 * 1024))}MB`);
       return null;
@@ -185,10 +259,22 @@ export default function AdminDashboard() {
       return null;
     }
 
+    let uploadCandidate = file;
+    if (type === 'image') {
+      try {
+        uploadCandidate = await optimizeImageForUpload(file);
+        if (uploadCandidate !== file) {
+          toast.loading('Optimizing image for upload...', { id: 'upload' });
+        }
+      } catch (optimizationError) {
+        console.warn('[Upload Optimization Error]:', optimizationError);
+      }
+    }
+
     setUploadProgress(0);
     toast.loading(`Uploading ${type}...`, { id: 'upload' });
     try {
-      const response = await uploadFile(file, type as any, (progress) => {
+      const response = await uploadFile(uploadCandidate, type as any, (progress) => {
         setUploadProgress(progress);
       });
       const url = response.data.url;
@@ -201,10 +287,13 @@ export default function AdminDashboard() {
       return timestampUrl;
     } catch (error: any) {
       console.error('[Upload Error]:', error.response?.data || error.message);
-      const serverMsg =
+      const rawServerMsg =
         error.response?.data?.errors?.file?.[0] ||
         error.response?.data?.message ||
         'Upload failed.';
+      const serverMsg = rawServerMsg === 'No file found in request payload'
+        ? 'Upload rejected by the server before Laravel received the file. Redeploy the backend with the new upload limits.'
+        : rawServerMsg;
       toast.error(`${serverMsg} Check file type and size.`, { id: 'upload' });
       setUploadProgress(null);
       return null;
