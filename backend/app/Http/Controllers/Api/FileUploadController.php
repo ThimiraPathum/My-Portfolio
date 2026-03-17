@@ -10,57 +10,79 @@ class FileUploadController extends Controller
 {
     public function upload(Request $request)
     {
-        $type = $request->input('type', 'image');
-        
-        Log::debug('Upload attempt:', [
-            'has_file' => $request->hasFile('file'),
-            'type_sent' => $type,
-            'mime' => $request->file('file')?->getMimeType(),
-            'ext' => $request->file('file')?->getClientOriginalExtension(),
-            'size' => $request->file('file')?->getSize(),
-        ]);
-
-        // Define base rules
-        $rules = [
-            'file' => 'required|file',
-            'type' => 'nullable|string|in:image,video,document',
-        ];
-
-        // Refine rules based on type to be more robust
-        if ($type === 'video') {
-            $rules['file'] .= '|max:102400|mimes:mp4,mov,avi,webm,m4v'; // 100MB for video
-        } elseif ($type === 'document') {
-            $rules['file'] .= '|max:20480|mimes:pdf,doc,docx,txt'; // 20MB for docs
-        } else {
-            // Default to image
-            $rules['file'] .= '|max:10240|mimes:jpg,jpeg,png,gif,webp,svg,bmp'; // 10MB for images
-        }
-
         try {
-            $request->validate($rules);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            Log::error('Upload validation failed:', [
-                'errors' => $e->errors(),
-                'request_type' => $type,
-                'file_info' => [
-                    'mime' => $request->file('file')?->getMimeType(),
-                    'ext' => $request->file('file')?->getClientOriginalExtension(),
-                ]
+            $type = $request->input('type', 'image');
+            
+            // Log entry
+            Log::info('Upload Request Received', [
+                'type' => $type,
+                'has_file' => $request->hasFile('file'),
+                'file_name' => $request->file('file')?->getClientOriginalName(),
+                'file_mime' => $request->file('file')?->getMimeType(),
+                'file_size' => $request->file('file')?->getSize(),
             ]);
-            throw $e;
+
+            if (!$request->hasFile('file')) {
+                return response()->json([
+                    'message' => 'The given data was invalid.',
+                    'errors' => ['file' => ['No file found in request payload']]
+                ], 422);
+            }
+
+            // Define rules based on type
+            $rules = [
+                'type' => 'nullable|string|in:image,video,document',
+            ];
+
+            if ($type === 'video') {
+                // More permissive for videos
+                $rules['file'] = 'required|file|max:102400'; 
+            } elseif ($type === 'document') {
+                $rules['file'] = 'required|file|max:20480|mimes:pdf,doc,docx,txt,zip';
+            } else {
+                // Use 'image' rule - it's more robust than specifying mimes manually
+                $rules['file'] = 'required|image|max:15360'; 
+            }
+
+            $validator = \Illuminate\Support\Facades\Validator::make($request->all(), $rules);
+
+            if ($validator->fails()) {
+                Log::warning('Upload validation failed', ['errors' => $validator->errors()]);
+                return response()->json([
+                    'message' => $validator->errors()->first(),
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $file = $request->file('file');
+            $folder = 'images';
+            if ($type === 'video') $folder = 'videos';
+            if ($type === 'document') $folder = 'documents';
+            
+            // Use 'public' disk. Ensure storage:link is run on the server if possible.
+            $path = $file->store("uploads/{$folder}", 'public');
+
+            if (!$path) {
+                throw new \Exception('Disk storage failed - check directory permissions');
+            }
+
+            return response()->json([
+                'url'  => Storage::disk('public')->url($path),
+                'path' => $path,
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Critical Upload Error:', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+            
+            return response()->json([
+                'message' => 'Server Error: ' . $e->getMessage(),
+                'error_type' => get_class($e)
+            ], 500);
         }
-
-        $file = $request->file('file');
-        $folder = 'images';
-        if ($type === 'video') $folder = 'videos';
-        if ($type === 'document') $folder = 'documents';
-        
-        $path = $file->store("uploads/{$folder}", 'public');
-
-        return response()->json([
-            'url'  => Storage::url($path),
-            'path' => $path,
-        ]);
     }
 
     public function delete(Request $request)
