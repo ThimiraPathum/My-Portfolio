@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiLogOut, FiTrash2, FiMail, FiCheck, FiCode, FiDatabase, FiSettings, FiEdit2, FiEdit3, FiMessageSquare, FiImage, FiVideo, FiPlus, FiBriefcase, FiX } from 'react-icons/fi';
+import { FiLogOut, FiTrash2, FiMail, FiCheck, FiCode, FiDatabase, FiSettings, FiEdit2, FiEdit3, FiMessageSquare, FiImage, FiVideo, FiPlus, FiBriefcase, FiX, FiSearch, FiCopy, FiExternalLink, FiLink, FiClock, FiHash } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
 import { useSettings } from '../../context/SettingsContext';
 import toast from 'react-hot-toast';
@@ -16,6 +16,37 @@ import {
 } from '../../api';
 
 type TabType = 'messages' | 'settings' | 'blogs' | 'comments' | 'projects' | 'skills' | 'experience';
+
+const countWords = (text: string | null | undefined) =>
+  (text || '').trim().split(/\s+/).filter(Boolean).length;
+
+const estimateReadingTime = (text: string | null | undefined) =>
+  Math.max(1, Math.ceil(countWords(text) / 200));
+
+const slugify = (text: string | null | undefined) =>
+  (text || '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+
+const copyText = async (value: string, label: string) => {
+  try {
+    await navigator.clipboard.writeText(value);
+    toast.success(`${label} copied`);
+  } catch {
+    toast.error(`Failed to copy ${label.toLowerCase()}`);
+  }
+};
+
+const appendSnippet = (content: string, snippet: string) =>
+  `${content || ''}${content?.endsWith('\n') ? '' : '\n'}${snippet}\n`;
+
+const getBlogPublicUrl = (slug: string | null | undefined) => {
+  if (!slug) return '';
+  if (typeof window === 'undefined') return `/blog/${slug}`;
+  return `${window.location.origin}/blog/${slug}`;
+};
 
 const CLIENT_IMAGE_LIMIT_BYTES = 10 * 1024 * 1024;
 const SERVER_SAFE_IMAGE_LIMIT_BYTES = 1800 * 1024;
@@ -129,6 +160,10 @@ export default function AdminDashboard() {
   const [settingForm, setSettingForm] = useState<Record<string, string>>({});
 
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [blogStatusFilter, setBlogStatusFilter] = useState<'all' | 'draft' | 'published' | 'coming_soon'>('all');
+  const [projectFilter, setProjectFilter] = useState<'all' | 'featured' | 'coming_soon'>('all');
+  const [commentFilter, setCommentFilter] = useState<'all' | 'pending' | 'approved'>('all');
 
   const loadTabData = useCallback(async (t: TabType, showSpinner = true) => {
     if (showSpinner) setLoading(true);
@@ -402,6 +437,51 @@ export default function AdminDashboard() {
   ];
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const query = searchTerm.trim().toLowerCase();
+  const groupedSettings = {
+    hero: Object.keys(settingForm).filter((key) => /hero|headline|tagline|bio|intro|about/i.test(key)),
+    contact: Object.keys(settingForm).filter((key) => /email|phone|contact|location|address/i.test(key)),
+    social: Object.keys(settingForm).filter((key) => /github|linkedin|twitter|x_|instagram|facebook|youtube|behance|dribbble/i.test(key)),
+  };
+  const assignedSettingKeys = new Set([...groupedSettings.hero, ...groupedSettings.contact, ...groupedSettings.social, 'profile_photo']);
+  const otherSettingKeys = Object.keys(settingForm).filter((key) => !assignedSettingKeys.has(key));
+
+  const visibleMessages = messages.filter((msg) => {
+    if (!query) return true;
+    return [msg.name, msg.email, msg.subject, msg.message].some((value) => String(value || '').toLowerCase().includes(query));
+  });
+
+  const visibleBlogs = blogs.filter((blog) => {
+    const matchesSearch = !query || [blog.title, blog.slug, blog.excerpt, blog.content].some((value) => String(value || '').toLowerCase().includes(query));
+    const matchesStatus =
+      blogStatusFilter === 'all' ||
+      (blogStatusFilter === 'coming_soon' ? Boolean(blog.coming_soon) : blog.status === blogStatusFilter);
+    return matchesSearch && matchesStatus;
+  });
+
+  const visibleComments = comments.filter((comment) => {
+    const matchesSearch = !query || [comment.name, comment.email, comment.body, comment.blog?.title].some((value) => String(value || '').toLowerCase().includes(query));
+    const matchesStatus =
+      commentFilter === 'all' ||
+      (commentFilter === 'pending' ? !comment.approved : Boolean(comment.approved));
+    return matchesSearch && matchesStatus;
+  });
+
+  const visibleProjects = projects.filter((project) => {
+    const matchesSearch = !query || [project.title, project.description, project.category, ...(project.tech_stack || [])].some((value) => String(value || '').toLowerCase().includes(query));
+    const matchesFilter =
+      projectFilter === 'all' ||
+      (projectFilter === 'featured' ? Boolean(project.featured) : Boolean(project.coming_soon));
+    return matchesSearch && matchesFilter;
+  });
+
+  const visibleSkills = skills.filter((skill) =>
+    !query || [skill.name, skill.category, skill.icon].some((value) => String(value || '').toLowerCase().includes(query))
+  );
+
+  const visibleExperiences = experiences.filter((experience) =>
+    !query || [experience.company, experience.role, experience.location, experience.description, ...(experience.tech_stack || [])].some((value) => String(value || '').toLowerCase().includes(query))
+  );
 
   return (
     <main className="pt-16 sm:pt-24 pb-20 px-4 sm:px-6 min-h-screen">
@@ -467,11 +547,142 @@ export default function AdminDashboard() {
           ))}
         </div>
 
+        <div className="glass p-4 mb-6 border-white/5">
+          <div className="flex flex-col lg:flex-row lg:items-center gap-3">
+            <div className="flex-1 relative">
+              <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
+              <input
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder={`Search ${tabs.find((item) => item.key === tab)?.label.toLowerCase()}...`}
+                className="w-full bg-white/5 border border-white/10 rounded-lg text-sm text-gray-200 pl-9 pr-3 py-2.5 outline-none focus:border-cyan-400/40"
+              />
+            </div>
+            {tab === 'blogs' && (
+              <div className="flex flex-wrap gap-2">
+                {[
+                  ['all', 'All'],
+                  ['draft', 'Drafts'],
+                  ['published', 'Published'],
+                  ['coming_soon', 'Coming Soon'],
+                ].map(([value, label]) => (
+                  <button
+                    key={value}
+                    onClick={() => setBlogStatusFilter(value as typeof blogStatusFilter)}
+                    className={`px-3 py-2 rounded-lg text-xs border ${
+                      blogStatusFilter === value ? 'border-cyan-400/30 text-cyan-400 bg-cyan-400/10' : 'border-white/10 text-gray-400'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
+            {tab === 'projects' && (
+              <div className="flex flex-wrap gap-2">
+                {[
+                  ['all', 'All'],
+                  ['featured', 'Featured'],
+                  ['coming_soon', 'Coming Soon'],
+                ].map(([value, label]) => (
+                  <button
+                    key={value}
+                    onClick={() => setProjectFilter(value as typeof projectFilter)}
+                    className={`px-3 py-2 rounded-lg text-xs border ${
+                      projectFilter === value ? 'border-cyan-400/30 text-cyan-400 bg-cyan-400/10' : 'border-white/10 text-gray-400'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
+            {tab === 'comments' && (
+              <div className="flex flex-wrap gap-2">
+                {[
+                  ['all', 'All'],
+                  ['pending', 'Pending'],
+                  ['approved', 'Approved'],
+                ].map(([value, label]) => (
+                  <button
+                    key={value}
+                    onClick={() => setCommentFilter(value as typeof commentFilter)}
+                    className={`px-3 py-2 rounded-lg text-xs border ${
+                      commentFilter === value ? 'border-cyan-400/30 text-cyan-400 bg-cyan-400/10' : 'border-white/10 text-gray-400'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
+            <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+              <div className="text-[10px] uppercase tracking-widest text-gray-500 mono">Visible</div>
+              <div className="text-xl font-bold text-white">
+                {{
+                  messages: visibleMessages.length,
+                  settings: Object.keys(settingForm).length,
+                  blogs: visibleBlogs.length,
+                  comments: visibleComments.length,
+                  projects: visibleProjects.length,
+                  skills: visibleSkills.length,
+                  experience: visibleExperiences.length,
+                }[tab]}
+              </div>
+            </div>
+            <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+              <div className="text-[10px] uppercase tracking-widest text-gray-500 mono">Needs Attention</div>
+              <div className="text-xl font-bold text-white">
+                {{
+                  messages: messages.filter((msg) => !msg.read).length,
+                  settings: Object.keys(settingForm).filter((key) => !String(settingForm[key] || '').trim()).length,
+                  blogs: blogs.filter((blog) => blog.status !== 'published' || blog.coming_soon).length,
+                  comments: comments.filter((comment) => !comment.approved).length,
+                  projects: projects.filter((project) => !project.image_url || project.coming_soon).length,
+                  skills: skills.filter((skill) => !skill.category || skill.level < 50).length,
+                  experience: experiences.filter((experience) => !experience.description || !experience.start_date).length,
+                }[tab]}
+              </div>
+            </div>
+            <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+              <div className="text-[10px] uppercase tracking-widest text-gray-500 mono">Published / Live</div>
+              <div className="text-xl font-bold text-white">
+                {{
+                  messages: messages.filter((msg) => msg.read).length,
+                  settings: Object.keys(settingForm).filter((key) => String(settingForm[key] || '').trim()).length,
+                  blogs: blogs.filter((blog) => blog.status === 'published' && !blog.coming_soon).length,
+                  comments: comments.filter((comment) => comment.approved).length,
+                  projects: projects.filter((project) => !project.coming_soon).length,
+                  skills: skills.filter((skill) => skill.level >= 80).length,
+                  experience: experiences.filter((experience) => experience.current).length,
+                }[tab]}
+              </div>
+            </div>
+            <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+              <div className="text-[10px] uppercase tracking-widest text-gray-500 mono">Quick Signal</div>
+              <div className="text-sm font-semibold text-gray-200 mt-1">
+                {{
+                  messages: 'Reply to unread leads',
+                  settings: 'Keep hero and contact complete',
+                  blogs: 'Publish from polished drafts',
+                  comments: 'Moderate pending replies',
+                  projects: 'Feature strongest case studies',
+                  skills: 'Keep categories consistent',
+                  experience: 'Add proof and dates',
+                }[tab]}
+              </div>
+            </div>
+          </div>
+        </div>
+
         {loading ? <div className="space-y-3">{[...Array(3)].map((_, i) => <div key={i} className="glass h-20 animate-pulse" />)}</div> : (
           <motion.div key={tab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
             
             {/* MESSAGES TAB */}
-            {tab === 'messages' && Array.isArray(messages) && messages.map((msg) => (
+            {tab === 'messages' && Array.isArray(visibleMessages) && visibleMessages.map((msg) => (
               <div 
                 key={msg.id} 
                 className={`glass p-5 flex items-start gap-4 transition-all hover:bg-white/5 cursor-pointer ${!msg.read ? 'border-cyan-400/30' : ''}`}
@@ -520,23 +731,47 @@ export default function AdminDashboard() {
                 </div>
               </div>
             ))}
-            {tab === 'messages' && messages.length === 0 && <div className="glass p-8 text-center text-gray-500">No messages yet</div>}
+            {tab === 'messages' && visibleMessages.length === 0 && <div className="glass p-8 text-center text-gray-500">{searchTerm ? 'No messages match your search' : 'No messages yet'}</div>}
 
             {/* SETTINGS TAB */}
             {tab === 'settings' && (
               <div className="glass p-6 space-y-6">
-                <h3 className="text-lg font-bold text-white mb-4">Edit Public Content</h3>
-                {Object.keys(settingForm).filter(k => k !== 'profile_photo').map((key) => (
-                  <div key={key}>
-                    <label className="block text-xs text-gray-500 mono mb-1">{key.replace('_', ' ').toUpperCase()}</label>
-                    {settingForm[key]?.length > 100 || key.includes('bio') || key.includes('description') ? (
-                      <textarea value={settingForm[key]} onChange={(e) => setSettingForm({ ...settingForm, [key]: e.target.value })}
-                        className="w-full bg-white/5 border border-white/10 rounded text-sm text-gray-200 p-3 h-32 focus:border-cyan-400/50 outline-none" />
-                    ) : (
-                      <input value={settingForm[key]} onChange={(e) => setSettingForm({ ...settingForm, [key]: e.target.value })}
-                        className="w-full bg-white/5 border border-white/10 rounded text-sm text-gray-200 p-3 focus:border-cyan-400/50 outline-none" />
-                    )}
+                <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+                  <div>
+                    <h3 className="text-lg font-bold text-white">Edit Public Content</h3>
+                    <p className="text-sm text-gray-400 mt-1">Settings are grouped so core homepage copy and contact data are easier to maintain.</p>
                   </div>
+                  <div className="text-xs text-gray-500 mono">
+                    {Object.keys(settingForm).filter((key) => String(settingForm[key] || '').trim()).length} / {Object.keys(settingForm).length} filled
+                  </div>
+                </div>
+
+                {([
+                  ['Hero Content', groupedSettings.hero],
+                  ['Contact Details', groupedSettings.contact],
+                  ['Social Links', groupedSettings.social],
+                  ['Other Settings', otherSettingKeys],
+                ] as [string, string[]][]).map(([label, keys]) => (
+                  Array.isArray(keys) && keys.length > 0 ? (
+                    <div key={label} className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-sm font-semibold text-white">{label}</h4>
+                        <span className="text-[10px] text-gray-500 mono uppercase tracking-widest">{keys.length} fields</span>
+                      </div>
+                      {keys.map((key) => (
+                        <div key={key}>
+                          <label className="block text-xs text-gray-500 mono mb-1">{key.replaceAll('_', ' ').toUpperCase()}</label>
+                          {settingForm[key]?.length > 100 || key.includes('bio') || key.includes('description') ? (
+                            <textarea value={settingForm[key]} onChange={(e) => setSettingForm({ ...settingForm, [key]: e.target.value })}
+                              className="w-full bg-white/5 border border-white/10 rounded text-sm text-gray-200 p-3 h-32 focus:border-cyan-400/50 outline-none" />
+                          ) : (
+                            <input value={settingForm[key]} onChange={(e) => setSettingForm({ ...settingForm, [key]: e.target.value })}
+                              className="w-full bg-white/5 border border-white/10 rounded text-sm text-gray-200 p-3 focus:border-cyan-400/50 outline-none" />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : null
                 ))}
                 
                 {/* Profile Photo Upload */}
@@ -592,11 +827,12 @@ export default function AdminDashboard() {
                 {activeBlogId === null ? (
                   <>
                     <button onClick={handleCreateBlog} className="btn-gradient px-4 py-2 rounded-lg text-sm mb-4 inline-flex items-center gap-2"><FiPlus/> New Blog</button>
-                    {Array.isArray(blogs) && blogs.map((b) => (
+                    {Array.isArray(visibleBlogs) && visibleBlogs.map((b) => (
                     <div key={b.id} onClick={() => setActiveBlogId(b.id)}>
                       <BlogCard blog={b} onUpdate={(data) => updateBlog(b.id, data).then(refreshData)} onDelete={() => deleteBlog(b.id).then(refreshData)} onUpload={handleFileUpload} setBlogs={setBlogs} compact getSafeUrl={getSafeUrl} />
                     </div>
                     ))}
+                    {visibleBlogs.length === 0 && <div className="glass p-8 text-center text-gray-500">{searchTerm ? 'No blog posts match your filters' : 'No blog posts yet'}</div>}
                   </>
                 ) : (
                   <div className="fixed inset-0 z-40 bg-black/80 backdrop-blur-sm overflow-auto">
@@ -625,7 +861,7 @@ export default function AdminDashboard() {
             )}
 
             {/* COMMENTS TAB */}
-            {tab === 'comments' && Array.isArray(comments) && comments.map((c) => (
+            {tab === 'comments' && Array.isArray(visibleComments) && visibleComments.map((c) => (
               <div key={c.id} className={`glass p-4 flex gap-4 ${!c.approved ? 'border-yellow-400/30' : ''}`}>
                 <div className="flex-1">
                   <div className="text-xs text-purple-400 mono mb-1">On: {c.blog?.title}</div>
@@ -638,15 +874,16 @@ export default function AdminDashboard() {
                 </div>
               </div>
             ))}
-            {tab === 'comments' && comments.length === 0 && <div className="glass p-8 text-center text-gray-500">No comments yet</div>}
+            {tab === 'comments' && visibleComments.length === 0 && <div className="glass p-8 text-center text-gray-500">{searchTerm ? 'No comments match your filters' : 'No comments yet'}</div>}
 
             {/* PROJECTS TAB */}
             {tab === 'projects' && (
               <>
                 <button onClick={handleCreateProject} className="btn-gradient px-4 py-2 rounded-lg text-sm mb-4 inline-flex items-center gap-2"><FiPlus/> New Project</button>
-                {Array.isArray(projects) && projects.map((p) => (
+                {Array.isArray(visibleProjects) && visibleProjects.map((p) => (
                   <ProjectCard key={p.id} project={p} onUpdate={(data) => updateProject(p.id, data).then(refreshData)} onDelete={() => deleteProject(p.id).then(refreshData)} onUpload={handleFileUpload} setProjects={setProjects} getSafeUrl={getSafeUrl} />
                 ))}
+                {visibleProjects.length === 0 && <div className="glass p-8 text-center text-gray-500">{searchTerm ? 'No projects match your filters' : 'No projects yet'}</div>}
               </>
             )}
 
@@ -655,7 +892,7 @@ export default function AdminDashboard() {
               <>
                 <button onClick={handleCreateSkill} className="btn-gradient px-4 py-2 rounded-lg text-sm mb-4 inline-flex items-center gap-2"><FiPlus/> New Skill</button>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {Array.isArray(skills) && skills.map((s) => (
+                  {Array.isArray(visibleSkills) && visibleSkills.map((s) => (
                     <div key={s.id} className="glass p-5 transition-all hover:bg-white/5 border-white/5 group relative overflow-hidden">
                       <div className="flex justify-between items-start mb-6">
                         <div className="flex-1 space-y-4">
@@ -680,6 +917,28 @@ export default function AdminDashboard() {
                                 onBlur={() => handleUpdateSkill(s.id, { category: s.category })}
                               />
                             </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <label className="block text-[10px] text-gray-500 mono uppercase mb-1 tracking-widest">Icon</label>
+                                <input
+                                  className="w-full bg-white/5 border border-white/10 rounded-lg text-xs text-gray-300 p-2.5 outline-none focus:border-cyan-400/30"
+                                  value={s.icon || ''}
+                                  placeholder="e.g. react"
+                                  onChange={(e) => setSkills(prev => prev.map(x => x.id === s.id ? { ...x, icon: e.target.value } : x))}
+                                  onBlur={() => handleUpdateSkill(s.id, { icon: s.icon || '' })}
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] text-gray-500 mono uppercase mb-1 tracking-widest">Order</label>
+                                <input
+                                  type="number"
+                                  className="w-full bg-white/5 border border-white/10 rounded-lg text-xs text-gray-300 p-2.5 outline-none focus:border-cyan-400/30"
+                                  value={s.order ?? 0}
+                                  onChange={(e) => setSkills(prev => prev.map(x => x.id === s.id ? { ...x, order: Number(e.target.value) } : x))}
+                                  onBlur={() => handleUpdateSkill(s.id, { order: s.order ?? 0 })}
+                                />
+                              </div>
+                            </div>
                           </div>
                         </div>
                         <button onClick={() => deleteSkill(s.id).then(refreshData)} className="p-2 text-gray-500 hover:text-red-400 transition-colors ml-2"><FiTrash2 size={16}/></button>
@@ -702,13 +961,10 @@ export default function AdminDashboard() {
                         </div>
                       </div>
 
-                      {/* Subtle category badge label preview */}
-                      <div className="absolute top-4 right-12 opacity-20 pointer-events-none group-hover:opacity-40 transition-opacity">
-                        <span className="text-[32px] font-black text-white/5 italic select-none uppercase">{s.category.slice(0, 3)}</span>
-                      </div>
                     </div>
                   ))}
                 </div>
+                {visibleSkills.length === 0 && <div className="glass p-8 text-center text-gray-500">{searchTerm ? 'No skills match your search' : 'No skills yet'}</div>}
               </>
             )}
 
@@ -909,7 +1165,7 @@ export default function AdminDashboard() {
                 )}
 
                 <div className="space-y-4">
-                  {Array.isArray(experiences) && experiences.map((e) => (
+                  {Array.isArray(visibleExperiences) && visibleExperiences.map((e) => (
                     <div key={e.id} className={`glass p-4 flex justify-between items-start border-l-4 transition-all ${e.current ? 'border-l-green-400' : 'border-l-gray-600'}`}>
                       <div className="w-full pr-4 flex flex-col gap-2">
                         <div className="flex items-center justify-between">
@@ -948,10 +1204,20 @@ export default function AdminDashboard() {
                           <input className="bg-transparent text-xs text-gray-500 outline-none w-full sm:w-32" placeholder="Location" value={e.location || ''} 
                             onChange={(ev) => setExperiences(prev => prev.map(x => x.id === e.id ? { ...x, location: ev.target.value } : x))} 
                             onBlur={(ev) => apiUpdateExperience(e.id, { location: ev.target.value })} />
+                          <input className="bg-transparent text-xs text-gray-500 outline-none w-full sm:w-20" type="number" placeholder="Order" value={e.order ?? 0}
+                            onChange={(ev) => setExperiences(prev => prev.map(x => x.id === e.id ? { ...x, order: Number(ev.target.value) } : x))}
+                            onBlur={(ev) => apiUpdateExperience(e.id, { order: Number(ev.target.value) })} />
                         </div>
                         <textarea className="bg-transparent text-gray-400 text-sm whitespace-pre-wrap outline-none w-full h-20 resize-none" value={e.description} 
                           onChange={(ev) => setExperiences(prev => prev.map(x => x.id === e.id ? { ...x, description: ev.target.value } : x))} 
                           onBlur={(ev) => apiUpdateExperience(e.id, { description: ev.target.value })} />
+                        <input
+                          className="bg-white/5 border border-white/10 rounded-lg text-xs text-gray-300 p-2.5 outline-none focus:border-cyan-400/30"
+                          value={(e.tech_stack || []).join(', ')}
+                          placeholder="Tech stack, comma separated"
+                          onChange={(ev) => setExperiences(prev => prev.map(x => x.id === e.id ? { ...x, tech_stack: ev.target.value.split(',').map((item: string) => item.trim()).filter(Boolean) } : x))}
+                          onBlur={(ev) => apiUpdateExperience(e.id, { tech_stack: ev.target.value.split(',').map((item: string) => item.trim()).filter(Boolean) })}
+                        />
                         
                         {/* Certificate Upload & Preview */}
                         <div className="flex items-center gap-3 mt-1 pt-2 border-t border-white/5">
@@ -1007,6 +1273,7 @@ export default function AdminDashboard() {
                     </div>
                   ))}
                 </div>
+                {visibleExperiences.length === 0 && <div className="glass p-8 text-center text-gray-500">{searchTerm ? 'No entries match your search' : 'No education or certification entries yet'}</div>}
               </>
             )}
 
@@ -1156,6 +1423,20 @@ function BlogCard({ blog: b, onUpdate, onDelete, onUpload, setBlogs, getSafeUrl,
   // const [title, setTitle] = useState(b.title); // Removed local state
   // const [content, setContent] = useState(b.content || ''); // Removed local state
   // useEffect(() => { setTitle(b.title); setContent(b.content || ''); }, [b.title, b.content]); // Removed local state effect
+  const derivedSlug = b.slug || slugify(b.title);
+  const wordCount = countWords(b.content);
+  const readingTime = estimateReadingTime(b.content);
+
+  const applyBlogPatch = (patch: Record<string, any>) => {
+    setBlogs(prev => prev.map(x => x.id === b.id ? { ...x, ...patch } : x));
+    return onUpdate(patch);
+  };
+
+  const insertSnippet = async (snippet: string) => {
+    const nextContent = appendSnippet(b.content || '', snippet);
+    setBlogs(prev => prev.map(x => x.id === b.id ? { ...x, content: nextContent } : x));
+    await onUpdate({ content: nextContent });
+  };
 
   return (
     <div className={`glass p-5 border-l-4 border-l-purple-500 ${compact ? 'cursor-pointer hover:border-l-purple-400' : ''}`}>
@@ -1168,6 +1449,7 @@ function BlogCard({ blog: b, onUpdate, onDelete, onUpload, setBlogs, getSafeUrl,
           readOnly={compact}
         />
         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+          {compact && <span className={`text-[10px] px-2.5 py-1 rounded-full border ${b.status === 'published' ? 'text-green-300 border-green-400/20 bg-green-400/10' : 'text-yellow-200 border-yellow-400/20 bg-yellow-400/10'}`}>{b.coming_soon ? 'Coming Soon' : b.status}</span>}
           {compact && (
             <button
               onClick={async (e) => {
@@ -1193,7 +1475,7 @@ function BlogCard({ blog: b, onUpdate, onDelete, onUpload, setBlogs, getSafeUrl,
             <>
               <button
                 onClick={async () => {
-                  await onUpdate({ status: 'draft', coming_soon: false });
+                  await applyBlogPatch({ status: 'draft', coming_soon: false });
                   toast.success('Draft saved');
                   onClose?.();
                 }}
@@ -1207,7 +1489,7 @@ function BlogCard({ blog: b, onUpdate, onDelete, onUpload, setBlogs, getSafeUrl,
                     toast.error('Title and content are required to post.');
                     return;
                   }
-                  await onUpdate({ status: 'published', coming_soon: false });
+                  await applyBlogPatch({ status: 'published', coming_soon: false });
                   toast.success('Blog posted');
                   onClose?.();
                 }}
@@ -1220,14 +1502,68 @@ function BlogCard({ blog: b, onUpdate, onDelete, onUpload, setBlogs, getSafeUrl,
           )}
         </div>
       </div>
+      {compact && (
+        <div className="flex flex-wrap gap-2 text-[10px] text-gray-500 mono mb-3">
+          <span className="rounded-full border border-white/10 px-2 py-1">/{derivedSlug || 'missing-slug'}</span>
+          <span className="rounded-full border border-white/10 px-2 py-1">{wordCount} words</span>
+          <span className="rounded-full border border-white/10 px-2 py-1">{readingTime} min read</span>
+          <span className="rounded-full border border-white/10 px-2 py-1">{b.comments?.length || 0} comments</span>
+        </div>
+      )}
       {!compact && (
-        <textarea
-          className="w-full bg-white/5 rounded p-3 text-sm text-gray-300 mb-2 h-16 focus:border-cyan-400/50 border border-white/10 outline-none"
-          value={b.excerpt ?? ''}
-          onChange={(e) => setBlogs(prev => prev.map(x => x.id === b.id ? { ...x, excerpt: e.target.value } : x))}
-          onBlur={(e) => onUpdate({ excerpt: e.target.value })}
-          placeholder="Short excerpt..."
-        />
+        <>
+          <div className="grid grid-cols-1 xl:grid-cols-4 gap-3 mb-3">
+            <div className="xl:col-span-2">
+              <label className="block text-[10px] text-gray-500 mono uppercase mb-1 tracking-widest">Excerpt</label>
+              <textarea
+                className="w-full bg-white/5 rounded p-3 text-sm text-gray-300 h-24 focus:border-cyan-400/50 border border-white/10 outline-none"
+                value={b.excerpt ?? ''}
+                onChange={(e) => setBlogs(prev => prev.map(x => x.id === b.id ? { ...x, excerpt: e.target.value } : x))}
+                onBlur={(e) => onUpdate({ excerpt: e.target.value })}
+                placeholder="Short excerpt..."
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] text-gray-500 mono uppercase mb-1 tracking-widest">Slug</label>
+              <div className="flex gap-2">
+                <input
+                  className="w-full bg-white/5 rounded p-3 text-sm text-gray-300 border border-white/10 outline-none focus:border-cyan-400/50"
+                  value={derivedSlug}
+                  onChange={(e) => setBlogs(prev => prev.map(x => x.id === b.id ? { ...x, slug: slugify(e.target.value) } : x))}
+                  onBlur={(e) => onUpdate({ slug: slugify(e.target.value) })}
+                />
+                <button onClick={() => copyText(getBlogPublicUrl(derivedSlug), 'Public URL')} className="px-3 rounded-lg border border-white/10 text-gray-300 hover:text-white"><FiCopy size={14} /></button>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                <div className="text-[10px] text-gray-500 mono uppercase tracking-widest">Words</div>
+                <div className="text-lg font-bold text-white">{wordCount}</div>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                <div className="text-[10px] text-gray-500 mono uppercase tracking-widest">Read Time</div>
+                <div className="text-lg font-bold text-white">{readingTime}m</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2 mb-3">
+            <button onClick={() => applyBlogPatch({ status: b.status === 'published' ? 'draft' : 'published', coming_soon: false })} className="px-3 py-2 rounded-lg text-xs border border-white/10 text-gray-200 hover:text-white">
+              {b.status === 'published' ? 'Move To Draft' : 'Mark Published'}
+            </button>
+            <button onClick={() => applyBlogPatch({ coming_soon: !b.coming_soon, status: b.coming_soon ? b.status : 'draft' })} className={`px-3 py-2 rounded-lg text-xs border ${b.coming_soon ? 'border-yellow-400/20 text-yellow-300 bg-yellow-400/10' : 'border-white/10 text-gray-300'}`}>
+              {b.coming_soon ? 'Disable Coming Soon' : 'Enable Coming Soon'}
+            </button>
+            <button onClick={() => insertSnippet('## New section')} className="px-3 py-2 rounded-lg text-xs border border-white/10 text-gray-300 hover:text-white">Heading</button>
+            <button onClick={() => insertSnippet('- Key point')} className="px-3 py-2 rounded-lg text-xs border border-white/10 text-gray-300 hover:text-white">List</button>
+            <button onClick={() => insertSnippet('> Important callout')} className="px-3 py-2 rounded-lg text-xs border border-white/10 text-gray-300 hover:text-white">Quote</button>
+            <button onClick={() => insertSnippet('```ts\n// example\n```')} className="px-3 py-2 rounded-lg text-xs border border-white/10 text-gray-300 hover:text-white">Code Block</button>
+            <button onClick={() => insertSnippet('[Read more](https://example.com)')} className="px-3 py-2 rounded-lg text-xs border border-white/10 text-gray-300 hover:text-white">Link</button>
+            <button onClick={() => window.open(getBlogPublicUrl(derivedSlug), '_blank')} className="px-3 py-2 rounded-lg text-xs border border-white/10 text-gray-300 hover:text-white inline-flex items-center gap-1">
+              <FiExternalLink size={12} /> Open Post
+            </button>
+          </div>
+        </>
       )}
       <div className="flex justify-between items-end mb-2">
         <textarea
@@ -1241,7 +1577,13 @@ function BlogCard({ blog: b, onUpdate, onDelete, onUpload, setBlogs, getSafeUrl,
         {/* Auto format removed */}
       </div>
       {!compact && (
-        <div className="flex gap-4 items-center mt-2">
+        <div className="flex flex-col gap-3 mt-2">
+          <div className="rounded-xl border border-white/10 bg-white/5 p-3 flex flex-wrap gap-3 text-xs text-gray-300">
+            <span className="inline-flex items-center gap-1"><FiHash size={12} /> Slug: <span className="text-white">{derivedSlug || 'pending'}</span></span>
+            <span className="inline-flex items-center gap-1"><FiClock size={12} /> {readingTime} min read</span>
+            <span className="inline-flex items-center gap-1"><FiLink size={12} /> {b.cover_image ? 'Cover ready' : 'No cover image'}</span>
+          </div>
+          <div className="flex gap-4 items-center flex-wrap">
           {b.cover_image && <img src={getSafeUrl(b.cover_image)} className="h-10 rounded" alt="cover"/>}
           <label className="btn-gradient px-3 py-1.5 rounded text-xs cursor-pointer flex items-center gap-1"><FiImage/> Cover Image
             <input type="file" hidden accept="image/*" onChange={async (e) => { 
@@ -1265,6 +1607,12 @@ function BlogCard({ blog: b, onUpdate, onDelete, onUpload, setBlogs, getSafeUrl,
               }
             }} />
           </label>
+          {b.cover_image && (
+            <button onClick={() => applyBlogPatch({ cover_image: null })} className="px-3 py-1.5 rounded text-xs border border-white/10 text-gray-300 hover:text-white">
+              Remove Cover
+            </button>
+          )}
+          </div>
         </div>
       )}
     </div>
@@ -1298,6 +1646,48 @@ function ProjectCard({ project: p, onUpdate, onDelete, onUpload, setProjects, ge
           <button onClick={onDelete} className="text-red-400 ml-2"><FiTrash2 size={16}/></button>
         </div>
       </div>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
+        <div>
+          <label className="block text-[10px] text-gray-500 mono uppercase mb-1 tracking-widest">Category</label>
+          <input
+            className="w-full bg-white/5 border border-white/10 rounded-lg text-sm text-gray-300 p-2.5 outline-none focus:border-cyan-400/30"
+            value={p.category ?? ''}
+            onChange={(e) => setProjects(prev => prev.map(x => x.id === p.id ? { ...x, category: e.target.value } : x))}
+            onBlur={(e) => onUpdate({ category: e.target.value })}
+            placeholder="Web app, Mobile, AI..."
+          />
+        </div>
+        <div>
+          <label className="block text-[10px] text-gray-500 mono uppercase mb-1 tracking-widest">Display Order</label>
+          <input
+            type="number"
+            className="w-full bg-white/5 border border-white/10 rounded-lg text-sm text-gray-300 p-2.5 outline-none focus:border-cyan-400/30"
+            value={p.order ?? 0}
+            onChange={(e) => setProjects(prev => prev.map(x => x.id === p.id ? { ...x, order: Number(e.target.value) } : x))}
+            onBlur={(e) => onUpdate({ order: Number(e.target.value) })}
+          />
+        </div>
+        <div>
+          <label className="block text-[10px] text-gray-500 mono uppercase mb-1 tracking-widest">Live URL</label>
+          <input
+            className="w-full bg-white/5 border border-white/10 rounded-lg text-sm text-gray-300 p-2.5 outline-none focus:border-cyan-400/30"
+            value={p.live_url ?? ''}
+            onChange={(e) => setProjects(prev => prev.map(x => x.id === p.id ? { ...x, live_url: e.target.value } : x))}
+            onBlur={(e) => onUpdate({ live_url: e.target.value })}
+            placeholder="https://..."
+          />
+        </div>
+        <div>
+          <label className="block text-[10px] text-gray-500 mono uppercase mb-1 tracking-widest">GitHub URL</label>
+          <input
+            className="w-full bg-white/5 border border-white/10 rounded-lg text-sm text-gray-300 p-2.5 outline-none focus:border-cyan-400/30"
+            value={p.github_url ?? ''}
+            onChange={(e) => setProjects(prev => prev.map(x => x.id === p.id ? { ...x, github_url: e.target.value } : x))}
+            onBlur={(e) => onUpdate({ github_url: e.target.value })}
+            placeholder="https://github.com/..."
+          />
+        </div>
+      </div>
       <div className="flex justify-between items-end mb-2 border-b border-white/5 pb-2 mt-2">
         <textarea
           className="flex-1 bg-transparent text-gray-400 text-sm h-16 outline-none resize-none"
@@ -1308,6 +1698,13 @@ function ProjectCard({ project: p, onUpdate, onDelete, onUpload, setProjects, ge
         />
         {/* Auto format removed */}
       </div>
+      <input
+        className="w-full bg-white/5 border border-white/10 rounded-lg text-sm text-gray-300 p-2.5 outline-none focus:border-cyan-400/30"
+        value={(p.tech_stack || []).join(', ')}
+        onChange={(e) => setProjects(prev => prev.map(x => x.id === p.id ? { ...x, tech_stack: e.target.value.split(',').map((item: string) => item.trim()).filter(Boolean) } : x))}
+        onBlur={(e) => onUpdate({ tech_stack: e.target.value.split(',').map((item: string) => item.trim()).filter(Boolean) })}
+        placeholder="Tech stack, comma separated"
+      />
       
       <div className="flex flex-col gap-3 mt-3 pt-3 border-t border-white/5">
         {/* Main Cover & Video */}
@@ -1322,6 +1719,9 @@ function ProjectCard({ project: p, onUpdate, onDelete, onUpload, setProjects, ge
                 }
             }} />
           </label>
+          {p.image_url && (
+            <button onClick={() => onUpdate({ image_url: null })} className="text-xs text-gray-400 hover:text-white">Remove Image</button>
+          )}
           {p.video_url && <div className="text-xs text-green-400 flex items-center gap-1"><FiVideo/> Video attached</div>}
           <label className="text-xs text-purple-400 cursor-pointer flex items-center gap-1"><FiVideo/> Main Video
             <input type="file" hidden accept="video/*" onChange={async (e) => { 
@@ -1332,6 +1732,9 @@ function ProjectCard({ project: p, onUpdate, onDelete, onUpload, setProjects, ge
                 }
             }} />
           </label>
+          {p.video_url && (
+            <button onClick={() => onUpdate({ video_url: null })} className="text-xs text-gray-400 hover:text-white">Remove Video</button>
+          )}
         </div>
         
         {/* Gallery Images */}
