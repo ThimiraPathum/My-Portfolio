@@ -11,6 +11,7 @@ class FileUploadController extends Controller
     public function upload(Request $request)
     {
         try {
+            $disk = config('filesystems.default', 'public');
             $type = $request->input('type', 'image');
             $uploadedFile = $request->file('file');
             $contentLength = (int) $request->server('CONTENT_LENGTH', 0);
@@ -28,6 +29,7 @@ class FileUploadController extends Controller
                 'content_length' => $contentLength,
                 'post_max_size' => ini_get('post_max_size'),
                 'upload_max_filesize' => ini_get('upload_max_filesize'),
+                'disk' => $disk,
             ]);
 
             if ($contentLength > 0 && $postMaxSizeBytes > 0 && $contentLength > $postMaxSizeBytes) {
@@ -99,16 +101,16 @@ class FileUploadController extends Controller
             if ($type === 'video') $folder = 'videos';
             if ($type === 'document') $folder = 'documents';
             
-            // Use 'public' disk. Ensure storage:link is run on the server if possible.
-            $path = $file->store("uploads/{$folder}", 'public');
+            $path = $file->store("uploads/{$folder}", $disk);
 
             if (!$path) {
                 throw new \Exception('Disk storage failed - check directory permissions');
             }
 
             return response()->json([
-                'url'  => Storage::disk('public')->url($path),
+                'url'  => $this->buildFileUrl($disk, $path),
                 'path' => $path,
+                'disk' => $disk,
             ]);
 
         } catch (\Exception $e) {
@@ -128,8 +130,17 @@ class FileUploadController extends Controller
     public function delete(Request $request)
     {
         $request->validate(['path' => 'required|string']);
-        Storage::disk('public')->delete($request->path);
+        Storage::disk(config('filesystems.default', 'public'))->delete($request->path);
         return response()->json(['message' => 'File deleted']);
+    }
+
+    private function buildFileUrl(string $disk, string $path): string
+    {
+        if ($disk === 'public') {
+            return '/storage/' . ltrim($path, '/');
+        }
+
+        return Storage::disk($disk)->url($path);
     }
 
     private function toBytes(string $value): int

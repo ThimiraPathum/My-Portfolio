@@ -312,14 +312,20 @@ export default function AdminDashboard() {
       const response = await uploadFile(uploadCandidate, type as any, (progress) => {
         setUploadProgress(progress);
       });
-      const url = response.data.url;
-      
-      // Cache buster for immediate preview visibility
-      const timestampUrl = `${url}${url.includes('?') ? '&' : '?'}t=${Date.now()}`;
+      const url =
+        typeof response.data?.url === 'string' && response.data.url.trim() !== ''
+          ? response.data.url
+          : typeof response.data?.path === 'string' && response.data.path.trim() !== ''
+            ? `/storage/${response.data.path.replace(/^\/+/, '')}`
+            : null;
+
+      if (!url) {
+        throw new Error('Upload succeeded but no file URL was returned.');
+      }
       
       toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} uploaded successfully!`, { id: 'upload' });
       setUploadProgress(null);
-      return timestampUrl;
+      return url;
     } catch (error: any) {
       console.error('[Upload Error]:', error.response?.data || error.message);
       const rawServerMsg =
