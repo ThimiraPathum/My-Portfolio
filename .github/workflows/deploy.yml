@@ -248,19 +248,17 @@ jobs:
                 exit 1
               fi
               
-              # ========== INSTALL DEPENDENCIES ==========
-              echo -e "${YELLOW}   📥 Installing Composer dependencies...${NC}"
+             # ========== INSTALL DEPENDENCIES (SAFE LIVE SYNC) ==========
+              echo -e "${YELLOW}   📥 Updating Composer dependencies in-place...${NC}"
               cd "${PROJECT_PATH}/backend"
               
-              # Remove vendor folder to ensure clean install
-              sudo rm -rf vendor/
-              
-              # Install inside Docker container
+              # CRITICAL FIX: Never run 'rm -rf vendor/' here. It breaks the live Docker volume mount.
+              # Instead, let composer safely update the existing files inside the container.
               sudo docker exec backend-api bash -c "cd /app && composer install --no-dev --optimize-autoloader --no-interaction" || {
                 echo -e "${RED}❌ Composer install failed${NC}"
                 exit 1
               }
-              echo -e "${GREEN}   ✅ Dependencies installed${NC}"
+              echo -e "${GREEN}   ✅ Dependencies synchronized flawlessly${NC}"
               
               # ========== DATABASE MIGRATIONS (SAFE - keeps existing data) ==========
               echo -e "${YELLOW}   🔄 Running database migrations...${NC}"
