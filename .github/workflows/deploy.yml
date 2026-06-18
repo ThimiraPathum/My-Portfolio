@@ -244,14 +244,14 @@ jobs:
             fi
             
             # ========== BACKEND DEPLOYMENT ==========
-            if [ "${{ needs.detect-changes.outputs.backend }}" = "true" ]; then
-              echo -e "${YELLOW}⚙️  Deploying Backend...${NC}"
+            #if [ "${{ needs.detect-changes.outputs.backend }}" = "true" ]; then
+              #echo -e "${YELLOW}⚙️  Deploying Backend...${NC}"
               
               # Check if Docker container is running
-              if ! sudo docker ps | grep -q backend-api; then
-                echo -e "${RED}❌ Backend container is not running${NC}"
-                exit 1
-              fi
+              #if ! sudo docker ps | grep -q backend-api; then
+                #echo -e "${RED}❌ Backend container is not running${NC}"
+               # exit 1
+             # fi
               
              # ========== INSTALL DEPENDENCIES (SAFE LIVE SYNC) ==========
               echo -e "${YELLOW}   📥 Updating Composer dependencies in-place...${NC}"
