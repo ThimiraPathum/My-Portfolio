@@ -183,15 +183,12 @@ jobs:
             echo -e "${BLUE}╚════════════════════════════════════════════════════╝${NC}"
             
             # ========== SYNC SOURCE CODE ==========
-           
-echo -e "${YELLOW}📥 Syncing Source Code from GitHub...${NC}"
-cd "${PROJECT_PATH}" || exit 1
-pwd
-ls -la .git
-git pull origin main --ff-only || {
-  echo -e "${RED}❌ Git pull failed${NC}"
-  exit 1
-  }
+            echo -e "${YELLOW}📥 Syncing Source Code from GitHub...${NC}"
+            /usr/bin/git -C "${PROJECT_PATH}" pull origin main --ff-only || {
+              echo -e "${RED}❌ Git pull failed${NC}"
+              exit 1
+            }
+            echo -e "${GREEN}✅ Source code synchronized${NC}"
             
             # ========== FRONTEND DEPLOYMENT ==========
             if [ "${{ needs.detect-changes.outputs.frontend }}" = "true" ]; then
@@ -232,10 +229,9 @@ git pull origin main --ff-only || {
               
               # ========== INSTALL DEPENDENCIES ==========
               echo -e "${YELLOW}   📥 Installing Composer dependencies...${NC}"
-              cd "${PROJECT_PATH}/backend"
               
               # Remove vendor folder to ensure clean install
-              sudo rm -rf vendor/
+              sudo rm -rf "${PROJECT_PATH}/backend/vendor"
               
               # Install inside Docker container
               sudo docker exec backend-api bash -c "cd /app && composer install --no-dev --optimize-autoloader --no-interaction" || {
