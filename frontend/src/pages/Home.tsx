@@ -14,7 +14,7 @@ export default function Home() {
   // Fallbacks if settings not loaded yet
   const greeting = settings.home_greeting || 'Hello, I am';
   const name = settings.home_name || 'Thimira Pathum';
-  const rolesText = settings.home_roles || 'Software Engineering,Web Development,Networking,System Design,ICT Undergraduate,DEV_OPS';
+  const rolesText = settings.home_roles || 'Networking,System Design,ICT Undergraduate,DEV_OPS';
   const roles = rolesText.split(',').map((r) => r.trim());
   const tagline = settings.home_tag || 'Building beyond limits with code and creativity.';
   const description = settings.home_description || 'Building modern digital solutions through software engineering, networking, and innovation. Passionate about systems that are purposeful, efficient, and future-ready.';
