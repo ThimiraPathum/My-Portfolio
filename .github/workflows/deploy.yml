@@ -30,6 +30,10 @@ jobs:
             sudo cp -r dist/* /var/www/html/
 
             # 4. --- BACKEND AUTOMATION ---
+            cd ~/My-Portfolio
+            sudo docker build -t portfolio-backend .
+            sudo docker rm -f backend-api || true
+            sudo docker run -d -p 8000:80 --name backend-api portfolio-backend
 
             # 5. --- ENVIRONMENT & PERMISSIONS SYNC ---
             # Inject host .env file straight back into the container
