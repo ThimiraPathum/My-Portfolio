@@ -272,6 +272,7 @@ jobs:
                 exit 1
               }
               echo -e "${GREEN}   ✅ Migrations completed (existing data protected)${NC}"
+              #test
               
               # ========== SMART SEEDING (only if database is empty) ==========
               echo -e "${YELLOW}   🌱 Checking if database seeding is needed...${NC}"
