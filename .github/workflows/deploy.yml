@@ -202,9 +202,14 @@ jobs:
             # Clean old backups (keep last 7 days)
             sudo find "${PROJECT_PATH}/backups" -type d -mtime +$BACKUP_RETENTION_DAYS -exec rm -rf {} + 2>/dev/null || true
             
+            
             # ========== SYNC SOURCE CODE ==========
             echo -e "${YELLOW}📥 Syncing Source Code from GitHub...${NC}"
             cd "${PROJECT_PATH}"
+            
+            # FORCE GIT TO TRUST THIS DIRECTORY EXPLICITLY
+            git config --global --add safe.directory "${PROJECT_PATH}"
+            
             git pull origin main --ff-only || {
               echo -e "${RED}❌ Git pull failed${NC}"
               exit 1
