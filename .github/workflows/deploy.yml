@@ -205,7 +205,7 @@ jobs:
             # ========== SYNC SOURCE CODE ==========
             echo -e "${YELLOW}📥 Syncing Source Code from GitHub...${NC}"
             cd "${PROJECT_PATH}"
-            sudo git pull origin main --ff-only || {
+            git pull origin main --ff-only || {
               echo -e "${RED}❌ Git pull failed${NC}"
               exit 1
             }
