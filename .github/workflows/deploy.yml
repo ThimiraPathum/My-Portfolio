@@ -1,4 +1,4 @@
-name: Production Deployment 🚀
+name: Smart Production Deployment 🚀
 
 on:
   push:
@@ -6,8 +6,30 @@ on:
       - main
 
 jobs:
-  # GitHub compiles your React code for free on its own fast servers
+  # STAGE 1: Detect exactly what folders changed in this push
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+      backend: ${{ steps.filter.outputs.backend }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check file paths
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            frontend:
+              - 'frontend/**'
+            backend:
+              - 'backend/**'
+
+  # STAGE 2: Only compile React if files inside the frontend folder changed
   frontend-build:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -33,21 +55,26 @@ jobs:
           name: frontend-dist
           path: frontend/dist/
 
-  # Your Azure server just downloads the assets and pulls the code changes
+  # STAGE 3: Deliver the updates to Azure conditionally
   deploy:
-    needs: frontend-build
+    needs: [detect-changes, frontend-build]
+    # Run if the push contains changes to frontend OR backend, even if frontend-build skipped
+    if: always() && (needs.detect-changes.outputs.frontend == 'true' || needs.detect-changes.outputs.backend == 'true')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Download the pre-built asset ONLY if the frontend changed
       - name: Download Frontend Dist Asset
+        if: needs.detect-changes.outputs.frontend == 'true'
         uses: actions/download-artifact@v4
         with:
           name: frontend-dist
           path: main-dist
 
       - name: Copy Frontend Assets via SCP
+        if: needs.detect-changes.outputs.frontend == 'true'
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.REMOTE_HOST }}
@@ -57,26 +84,30 @@ jobs:
           target: "/tmp/frontend-delivery"
           strip_components: 1
 
-      - name: Run Lightning Fast Deployment Over SSH
+      - name: Execute Lightspeed Update Over SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # 1. Update the codebase (Instantly updates backend files inside Docker via the volume link)
+            # 1. Pull the codebase updates (Instantly updates backend files on host)
             cd ~/My-Portfolio
             git pull
 
-            # 2. Deploy pre-built frontend files straight to Nginx
-            sudo rm -rf /var/www/html/*
-            sudo cp -r /tmp/frontend-delivery/* /var/www/html/
-            sudo rm -rf /tmp/frontend-delivery
+            # 2. Only touch Nginx files if frontend modifications exist
+            if [ "${{ needs.detect-changes.outputs.frontend }}" = "true" ]; then
+              sudo rm -rf /var/www/html/*
+              sudo cp -r /tmp/frontend-delivery/* /var/www/html/
+              sudo rm -rf /tmp/frontend-delivery
+              echo "✅ Frontend assets successfully swapped out!"
+            fi
 
-            # 3. Refresh Laravel internal caches so it registers your backend code modifications
-            sudo docker exec backend-api php artisan config:clear
-            sudo docker exec backend-api php artisan route:clear
-            sudo docker exec backend-api php artisan view:clear
-            
-            # 4. Keep folder permissions synchronized for image uploads
-            sudo docker exec backend-api chown -R www-data:www-data /app/storage /app/bootstrap/cache /var/data || true
+            # 3. Only run backend cache clears if backend modifications exist
+            if [ "${{ needs.detect-changes.outputs.backend }}" = "true" ]; then
+              sudo docker exec backend-api php artisan config:clear
+              sudo docker exec backend-api php artisan route:clear
+              sudo docker exec backend-api php artisan view:clear
+              sudo docker exec backend-api chown -R www-data:www-data /app/storage /app/bootstrap/cache /var/data || true
+              echo "✅ Backend framework optimization completed!"
+            fi
