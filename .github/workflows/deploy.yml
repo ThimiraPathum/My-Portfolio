@@ -183,13 +183,15 @@ jobs:
             echo -e "${BLUE}╚════════════════════════════════════════════════════╝${NC}"
             
             # ========== SYNC SOURCE CODE ==========
-            echo -e "${YELLOW}📥 Syncing Source Code from GitHub...${NC}"
-            cd "${PROJECT_PATH}"
-            git pull origin main --ff-only || {
-              echo -e "${RED}❌ Git pull failed${NC}"
-              exit 1
-            }
-            echo -e "${GREEN}✅ Source code synchronized${NC}"
+           
+echo -e "${YELLOW}📥 Syncing Source Code from GitHub...${NC}"
+cd "${PROJECT_PATH}" || exit 1
+pwd
+ls -la .git
+git pull origin main --ff-only || {
+  echo -e "${RED}❌ Git pull failed${NC}"
+  exit 1
+  }
             
             # ========== FRONTEND DEPLOYMENT ==========
             if [ "${{ needs.detect-changes.outputs.frontend }}" = "true" ]; then
