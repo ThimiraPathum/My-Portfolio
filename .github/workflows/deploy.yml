@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  # STAGE 1: Build the frontend on GitHub's powerful free servers
+  # GitHub compiles your React code for free on its own fast servers
   frontend-build:
     runs-on: ubuntu-latest
     steps:
@@ -33,7 +33,7 @@ jobs:
           name: frontend-dist
           path: frontend/dist/
 
-  # STAGE 2: Deliver the pre-built files and update Docker on Azure
+  # Your Azure server just downloads the assets and pulls the code changes
   deploy:
     needs: frontend-build
     runs-on: ubuntu-latest
@@ -47,7 +47,6 @@ jobs:
           name: frontend-dist
           path: main-dist
 
-      # Securely transfer the pre-built frontend folder directly to a temp folder on the VM
       - name: Copy Frontend Assets via SCP
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -58,29 +57,26 @@ jobs:
           target: "/tmp/frontend-delivery"
           strip_components: 1
 
-      # Run remaining internal container updates over SSH
-      - name: Run Remote SSH Operations
+      - name: Run Lightning Fast Deployment Over SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # 1. Update backend repo codebase
+            # 1. Update the codebase (Instantly updates backend files inside Docker via the volume link)
             cd ~/My-Portfolio
             git pull
 
-            # 2. Deploy pre-built frontend assets to Nginx folder instantly
+            # 2. Deploy pre-built frontend files straight to Nginx
             sudo rm -rf /var/www/html/*
             sudo cp -r /tmp/frontend-delivery/* /var/www/html/
             sudo rm -rf /tmp/frontend-delivery
 
-            # 3. Handle Docker updates
-            sudo docker build -t portfolio-backend .
-            sudo docker rm -f backend-api || true
-            sudo docker run -d -p 8000:80 --name backend-api portfolio-backend
-
-            # 4. Sync configuration data & folder rights
-            sudo docker cp ~/My-Portfolio/backend/.env backend-api:/app/.env
+            # 3. Refresh Laravel internal caches so it registers your backend code modifications
             sudo docker exec backend-api php artisan config:clear
+            sudo docker exec backend-api php artisan route:clear
+            sudo docker exec backend-api php artisan view:clear
+            
+            # 4. Keep folder permissions synchronized for image uploads
             sudo docker exec backend-api chown -R www-data:www-data /app/storage /app/bootstrap/cache /var/data || true
