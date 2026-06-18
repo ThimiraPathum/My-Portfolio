@@ -8,8 +8,8 @@ const socials = [
   {
     icon: FiMail,
     label: 'Email',
-    value: 'kasthuriarachchipathum@gmail.com',
-    href: 'mailto:kasthuriarachchipathum@gmail.com',
+    value: 'info@thimira.me',
+    href: 'mailto:info@thimira.me',
   },
   {
     icon: FiLinkedin,

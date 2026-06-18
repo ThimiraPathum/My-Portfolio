@@ -1,0 +1,46 @@
+name: Production Deployment 🚀
+
+on:
+  push:
+    branches:
+      - main  # Change this to 'master' if your default Git branch is named master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Execute Remote SSH Commands to Deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # 1. Navigate to your project folder
+            cd ~/My-Portfolio
+
+            # 2. Pull the fresh changes down from GitHub
+            git pull
+
+            # 3. --- FRONTEND AUTOMATION ---
+            cd frontend
+            npm run build
+            sudo rm -rf /var/www/html/*
+            sudo cp -r dist/* /var/www/html/
+
+            # 4. --- BACKEND AUTOMATION ---
+            cd ~/My-Portfolio
+            sudo docker build -t portfolio-backend .
+            sudo docker rm -f backend-api || true
+            sudo docker run -d -p 8000:80 --name backend-api portfolio-backend
+
+            # 5. --- ENVIRONMENT & PERMISSIONS SYNC ---
+            # Inject host .env file straight back into the container
+            sudo docker cp ~/My-Portfolio/backend/.env backend-api:/app/.env
+            
+            # Clear internal cache configurations
+            sudo docker exec backend-api php artisan config:clear
+            
+            # Reset folder permissions so file uploads work
+            sudo docker exec backend-api chown -R www-data:www-data /app/storage /app/bootstrap/cache /var/data || true
