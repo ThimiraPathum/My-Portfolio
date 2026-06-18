@@ -196,7 +196,7 @@ jobs:
             echo -e "${BLUE}╚════════════════════════════════════════════════════╝${NC}"
             
             # ========== BACKUP BEFORE CHANGES ==========
-            echo -e "${YELLOW}📦 Creating Pre-Deployment Backups...${NC}"
+            #echo -e "${YELLOW}📦 Creating Pre-Deployment Backups...${NC}"
             BACKUP_DIR="${PROJECT_PATH}/backups/backup_$(date '+%Y%m%d_%H%M%S')"
             mkdir -p "$BACKUP_DIR"
             
