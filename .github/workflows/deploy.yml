@@ -3,44 +3,84 @@ name: Production Deployment 🚀
 on:
   push:
     branches:
-      - main  # Change this to 'master' if your default Git branch is named master
+      - main
 
 jobs:
-  deploy:
+  # STAGE 1: Build the frontend on GitHub's powerful free servers
+  frontend-build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Execute Remote SSH Commands to Deploy
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Dependencies & Build Frontend
+        run: |
+          cd frontend
+          npm ci
+          echo "VITE_API_URL=/api" > .env.production
+          npm run build
+
+      - name: Upload Compiled Frontend Dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist/
+
+  # STAGE 2: Deliver the pre-built files and update Docker on Azure
+  deploy:
+    needs: frontend-build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Frontend Dist Asset
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: main-dist
+
+      # Securely transfer the pre-built frontend folder directly to a temp folder on the VM
+      - name: Copy Frontend Assets via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "main-dist/*"
+          target: "/tmp/frontend-delivery"
+          strip_components: 1
+
+      # Run remaining internal container updates over SSH
+      - name: Run Remote SSH Operations
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # 1. Navigate to your project folder
+            # 1. Update backend repo codebase
             cd ~/My-Portfolio
-
-            # 2. Pull the fresh changes down from GitHub
             git pull
 
-            # 3. --- FRONTEND AUTOMATION ---
-            cd frontend
-            npm run build
+            # 2. Deploy pre-built frontend assets to Nginx folder instantly
             sudo rm -rf /var/www/html/*
-            sudo cp -r dist/* /var/www/html/
+            sudo cp -r /tmp/frontend-delivery/* /var/www/html/
+            sudo rm -rf /tmp/frontend-delivery
 
-            # 4. --- BACKEND AUTOMATION ---
-            cd ~/My-Portfolio
+            # 3. Handle Docker updates
             sudo docker build -t portfolio-backend .
             sudo docker rm -f backend-api || true
             sudo docker run -d -p 8000:80 --name backend-api portfolio-backend
 
-            # 5. --- ENVIRONMENT & PERMISSIONS SYNC ---
-            # Inject host .env file straight back into the container
+            # 4. Sync configuration data & folder rights
             sudo docker cp ~/My-Portfolio/backend/.env backend-api:/app/.env
-            
-            # Clear internal cache configurations
             sudo docker exec backend-api php artisan config:clear
-            
-            # Reset folder permissions so file uploads work
             sudo docker exec backend-api chown -R www-data:www-data /app/storage /app/bootstrap/cache /var/data || true
