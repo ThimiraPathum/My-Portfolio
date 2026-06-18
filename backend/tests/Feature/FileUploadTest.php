@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -21,7 +20,7 @@ class FileUploadTest extends TestCase
         $user = User::factory()->create(['role' => 'admin']);
         $token = auth('api')->login($user);
 
-        $file = UploadedFile::fake()->image('avatar.jpg');
+        $file = UploadedFile::fake()->create('avatar.jpg', 100, 'image/jpeg');
 
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
