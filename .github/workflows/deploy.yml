@@ -8,7 +8,6 @@ on:
 env:
   DEPLOYMENT_USER: azureuser
   PROJECT_PATH: /home/azureuser/My-Portfolio
-  BACKUP_RETENTION_DAYS: 7
 
 jobs:
   # ==========================================
@@ -183,33 +182,9 @@ jobs:
             echo -e "${BLUE}║     Timestamp: $(date '+%Y-%m-%d %H:%M:%S')            ║${NC}"
             echo -e "${BLUE}╚════════════════════════════════════════════════════╝${NC}"
             
-            # ========== BACKUP BEFORE CHANGES ==========
-            echo -e "${YELLOW}📦 Creating Pre-Deployment Backups...${NC}"
-            BACKUP_DIR="${PROJECT_PATH}/backups/backup_$(date '+%Y%m%d_%H%M%S')"
-            sudo mkdir -p "$BACKUP_DIR"
-            sudo chown -R $DEPLOYMENT_USER:$DEPLOYMENT_USER "${PROJECT_PATH}/backups"
-            
-            if [ -d "/var/www/html" ]; then
-              sudo cp -r /var/www/html "$BACKUP_DIR/frontend" 2>/dev/null || true
-              echo -e "${GREEN}✅ Frontend backup created${NC}"
-            fi
-            
-            if [ -d "${PROJECT_PATH}/backend/storage" ]; then
-              sudo cp -r "${PROJECT_PATH}/backend/storage" "$BACKUP_DIR/storage" 2>/dev/null || true
-              echo -e "${GREEN}✅ Storage backup created${NC}"
-            fi
-            
-            # Clean old backups (keep last 7 days)
-            sudo find "${PROJECT_PATH}/backups" -type d -mtime +$BACKUP_RETENTION_DAYS -exec rm -rf {} + 2>/dev/null || true
-            
-            
             # ========== SYNC SOURCE CODE ==========
             echo -e "${YELLOW}📥 Syncing Source Code from GitHub...${NC}"
             cd "${PROJECT_PATH}"
-            
-            # FORCE GIT TO TRUST THIS DIRECTORY EXPLICITLY
-            git config --global --add safe.directory "${PROJECT_PATH}"
-            
             git pull origin main --ff-only || {
               echo -e "${RED}❌ Git pull failed${NC}"
               exit 1
@@ -244,26 +219,28 @@ jobs:
             fi
             
             # ========== BACKEND DEPLOYMENT ==========
-            #if [ "${{ needs.detect-changes.outputs.backend }}" = "true" ]; then
-              #echo -e "${YELLOW}⚙️  Deploying Backend...${NC}"
+            if [ "${{ needs.detect-changes.outputs.backend }}" = "true" ]; then
+              echo -e "${YELLOW}⚙️  Deploying Backend...${NC}"
               
               # Check if Docker container is running
-              #if ! sudo docker ps | grep -q backend-api; then
-                #echo -e "${RED}❌ Backend container is not running${NC}"
-               # exit 1
-             # fi
+              if ! sudo docker ps | grep -q backend-api; then
+                echo -e "${RED}❌ Backend container is not running${NC}"
+                exit 1
+              fi
               
-             # ========== INSTALL DEPENDENCIES (SAFE LIVE SYNC) ==========
-              echo -e "${YELLOW}   📥 Updating Composer dependencies in-place...${NC}"
+              # ========== INSTALL DEPENDENCIES ==========
+              echo -e "${YELLOW}   📥 Installing Composer dependencies...${NC}"
               cd "${PROJECT_PATH}/backend"
               
-              # CRITICAL FIX: Never run 'rm -rf vendor/' here. It breaks the live Docker volume mount.
-              # Instead, let composer safely update the existing files inside the container.
+              # Remove vendor folder to ensure clean install
+              sudo rm -rf vendor/
+              
+              # Install inside Docker container
               sudo docker exec backend-api bash -c "cd /app && composer install --no-dev --optimize-autoloader --no-interaction" || {
                 echo -e "${RED}❌ Composer install failed${NC}"
                 exit 1
               }
-              echo -e "${GREEN}   ✅ Dependencies synchronized flawlessly${NC}"
+              echo -e "${GREEN}   ✅ Dependencies installed${NC}"
               
               # ========== DATABASE MIGRATIONS (SAFE - keeps existing data) ==========
               echo -e "${YELLOW}   🔄 Running database migrations...${NC}"
@@ -272,7 +249,6 @@ jobs:
                 exit 1
               }
               echo -e "${GREEN}   ✅ Migrations completed (existing data protected)${NC}"
-              #test
               
               # ========== SMART SEEDING (only if database is empty) ==========
               echo -e "${YELLOW}   🌱 Checking if database seeding is needed...${NC}"
@@ -340,9 +316,6 @@ jobs:
             echo -e "${GREEN}║        ✅ DEPLOYMENT COMPLETED SUCCESSFULLY        ║${NC}"
             echo -e "${BLUE}║     Timestamp: $(date '+%Y-%m-%d %H:%M:%S')            ║${NC}"
             echo -e "${BLUE}╚════════════════════════════════════════════════════╝${NC}"
-            
-            # Log deployment status
-            echo "✅ Deployment completed at $(date)" >> "${PROJECT_PATH}/deployment.log"
 
       # ========== POST-DEPLOYMENT VERIFICATION ==========
       - name: ✅ Verify Deployment Status
@@ -356,9 +329,6 @@ jobs:
             echo ""
             echo "Docker containers status:"
             sudo docker ps -a --format "table {{.Names}}\t{{.Status}}"
-            echo ""
-            echo "Disk space usage:"
-            df -h | grep -E "/$|/home"
 
   # ==========================================
   # STAGE 5: DEPLOYMENT NOTIFICATION
