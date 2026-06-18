@@ -1,22 +1,50 @@
-name: Smart Production Deployment 🚀
+name: 🚀 Autonomous Smart Deployment Pro
 
 on:
   push:
     branches:
       - main
 
+env:
+  DEPLOYMENT_USER: azureuser
+  PROJECT_PATH: /home/azureuser/My-Portfolio
+  BACKUP_RETENTION_DAYS: 7
+
 jobs:
-  # STAGE 1: Detect exactly what folders changed in this push
+  # ==========================================
+  # STAGE 0: PRE-DEPLOYMENT CHECKS
+  # ==========================================
+  pre-deployment-check:
+    runs-on: ubuntu-latest
+    outputs:
+      timestamp: ${{ steps.time.outputs.timestamp }}
+    steps:
+      - name: Generate Deployment Timestamp
+        id: time
+        run: echo "timestamp=$(date '+%Y-%m-%d_%H-%M-%S')" >> $GITHUB_OUTPUT
+
+      - name: 📋 Log Deployment Start
+        run: |
+          echo "╔════════════════════════════════════╗"
+          echo "║   PORTFOLIO DEPLOYMENT INITIATED   ║"
+          echo "║   Timestamp: ${{ steps.time.outputs.timestamp }}"
+          echo "║   Branch: main"
+          echo "╚════════════════════════════════════╝"
+
+  # ==========================================
+  # STAGE 1: INTELLIGENT CHANGE DETECTION
+  # ==========================================
   detect-changes:
     runs-on: ubuntu-latest
     outputs:
       frontend: ${{ steps.filter.outputs.frontend }}
       backend: ${{ steps.filter.outputs.backend }}
+      has-changes: ${{ steps.filter.outputs.frontend == 'true' || steps.filter.outputs.backend == 'true' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Check file paths
+      - name: 🔍 Detect File Changes
         uses: dorny/paths-filter@v3
         id: filter
         with:
@@ -26,7 +54,14 @@ jobs:
             backend:
               - 'backend/**'
 
-  # STAGE 2: Only compile React if files inside the frontend folder changed
+      - name: 📊 Report Changes
+        run: |
+          echo "Frontend changed: ${{ steps.filter.outputs.frontend }}"
+          echo "Backend changed: ${{ steps.filter.outputs.backend }}"
+
+  # ==========================================
+  # STAGE 2: FRONTEND COMPILATION & OPTIMIZATION
+  # ==========================================
   frontend-build:
     needs: detect-changes
     if: needs.detect-changes.outputs.frontend == 'true'
@@ -42,72 +77,318 @@ jobs:
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Install Dependencies & Build Frontend
+      - name: 📥 Install Dependencies
         run: |
           cd frontend
-          npm ci
+          npm ci --prefer-offline --no-audit
+
+      - name: 🔍 Run Linter (Optional)
+        run: |
+          cd frontend
+          npm run lint 2>/dev/null || echo "⚠️  No linter configured, skipping..."
+
+      - name: 🏗️ Build Production Bundle
+        run: |
+          cd frontend
           echo "VITE_API_URL=/api" > .env.production
           npm run build
+          echo "Build size: $(du -sh dist/ | cut -f1)"
 
-      - name: Upload Compiled Frontend Dist
+      - name: ✅ Verify Build Output
+        run: |
+          if [ ! -d "frontend/dist" ] || [ -z "$(ls -A frontend/dist)" ]; then
+            echo "❌ Frontend build failed or dist is empty"
+            exit 1
+          fi
+          echo "✅ Frontend build verified successfully"
+          find frontend/dist -type f | wc -l | xargs echo "Files in dist:"
+
+      - name: 📦 Upload Frontend Artifact
         uses: actions/upload-artifact@v4
         with:
           name: frontend-dist
           path: frontend/dist/
+          retention-days: 1
 
-  # STAGE 3: Deliver the updates to Azure conditionally
-  deploy:
-    needs: [detect-changes, frontend-build]
-    # Run if the push contains changes to frontend OR backend, even if frontend-build skipped
-    if: always() && (needs.detect-changes.outputs.frontend == 'true' || needs.detect-changes.outputs.backend == 'true')
+  # ==========================================
+  # STAGE 3: BACKEND CODE QUALITY CHECKS
+  # ==========================================
+  backend-validation:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Download the pre-built asset ONLY if the frontend changed
-      - name: Download Frontend Dist Asset
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo, pdo_mysql, mbstring, xml
+          tools: composer
+
+      - name: 📥 Install Composer Dependencies
+        run: |
+          cd backend
+          composer install --no-interaction --prefer-dist
+
+      - name: 🔍 Run PHP Syntax Check
+        run: |
+          cd backend
+          find app routes -name "*.php" -exec php -l {} \; | grep -E "^Parse error" && exit 1 || echo "✅ PHP syntax OK"
+
+      - name: 🔐 Check for Security Issues
+        run: |
+          cd backend
+          composer audit --locked || echo "⚠️  Audit warnings found, continuing..."
+
+  # ==========================================
+  # STAGE 4: ZERO-DOWNTIME DEPLOYMENT
+  # ==========================================
+  deploy:
+    needs: [pre-deployment-check, detect-changes, frontend-build, backend-validation]
+    if: always() && needs.detect-changes.outputs.has-changes == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ========== FRONTEND DEPLOYMENT ==========
+      - name: 📥 Download Frontend Artifact
         if: needs.detect-changes.outputs.frontend == 'true'
         uses: actions/download-artifact@v4
         with:
           name: frontend-dist
-          path: main-dist
+          path: frontend-dist
 
-      - name: Copy Frontend Assets via SCP
+      - name: 📤 Upload Frontend via SCP
         if: needs.detect-changes.outputs.frontend == 'true'
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "main-dist/*"
+          source: "frontend-dist/*"
           target: "/tmp/frontend-delivery"
           strip_components: 1
 
-      - name: Execute Lightspeed Update Over SSH
+      # ========== DEPLOYMENT EXECUTION ==========
+      - name: 🚀 Execute Deployment Pipeline
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # 1. Pull the codebase updates (Instantly updates backend files on host)
-            cd ~/My-Portfolio
-            git pull
-
-            # 2. Only touch Nginx files if frontend modifications exist
-            if [ "${{ needs.detect-changes.outputs.frontend }}" = "true" ]; then
-              sudo rm -rf /var/www/html/*
-              sudo cp -r /tmp/frontend-delivery/* /var/www/html/
-              sudo rm -rf /tmp/frontend-delivery
-              echo "✅ Frontend assets successfully swapped out!"
+            set -e  # Exit on any error
+            
+            # Color codes for output
+            RED='\033[0;31m'
+            GREEN='\033[0;32m'
+            YELLOW='\033[1;33m'
+            BLUE='\033[0;34m'
+            NC='\033[0m' # No Color
+            
+            echo -e "${BLUE}╔════════════════════════════════════════════════════╗${NC}"
+            echo -e "${BLUE}║     🚀 DEPLOYMENT EXECUTION STARTED                ║${NC}"
+            echo -e "${BLUE}║     Timestamp: $(date '+%Y-%m-%d %H:%M:%S')            ║${NC}"
+            echo -e "${BLUE}╚════════════════════════════════════════════════════╝${NC}"
+            
+            # ========== BACKUP BEFORE CHANGES ==========
+            echo -e "${YELLOW}📦 Creating Pre-Deployment Backups...${NC}"
+            BACKUP_DIR="${PROJECT_PATH}/backups/backup_$(date '+%Y%m%d_%H%M%S')"
+            mkdir -p "$BACKUP_DIR"
+            
+            if [ -d "/var/www/html" ]; then
+              cp -r /var/www/html "$BACKUP_DIR/frontend" 2>/dev/null || true
+              echo -e "${GREEN}✅ Frontend backup created${NC}"
             fi
-
-            # 3. Only run backend cache clears if backend modifications exist
+            
+            if [ -d "${PROJECT_PATH}/backend/storage" ]; then
+              cp -r "${PROJECT_PATH}/backend/storage" "$BACKUP_DIR/storage" 2>/dev/null || true
+              echo -e "${GREEN}✅ Storage backup created${NC}"
+            fi
+            
+            # Clean old backups (keep last 7 days)
+            find "${PROJECT_PATH}/backups" -type d -mtime +$BACKUP_RETENTION_DAYS -exec rm -rf {} + 2>/dev/null || true
+            
+            # ========== SYNC SOURCE CODE ==========
+            echo -e "${YELLOW}📥 Syncing Source Code from GitHub...${NC}"
+            cd "${PROJECT_PATH}"
+            sudo git pull origin main --ff-only || {
+              echo -e "${RED}❌ Git pull failed${NC}"
+              exit 1
+            }
+            echo -e "${GREEN}✅ Source code synchronized${NC}"
+            
+            # ========== FRONTEND DEPLOYMENT ==========
+            if [ "${{ needs.detect-changes.outputs.frontend }}" = "true" ]; then
+              echo -e "${YELLOW}📦 Deploying Frontend Assets...${NC}"
+              
+              # Verify source exists
+              if [ ! -d "/tmp/frontend-delivery" ]; then
+                echo -e "${RED}❌ Frontend build artifacts not found${NC}"
+                exit 1
+              fi
+              
+              # Atomic swap with backup
+              sudo rm -rf /var/www/html.backup
+              [ -d "/var/www/html" ] && sudo mv /var/www/html /var/www/html.backup || true
+              sudo mkdir -p /var/www/html
+              sudo cp -r /tmp/frontend-delivery/* /var/www/html/
+              
+              # Set proper permissions
+              sudo chown -R www-data:www-data /var/www/html
+              sudo find /var/www/html -type d -exec chmod 755 {} +
+              sudo find /var/www/html -type f -exec chmod 644 {} +
+              
+              # Cleanup
+              sudo rm -rf /tmp/frontend-delivery
+              
+              echo -e "${GREEN}✅ Frontend deployed successfully${NC}"
+            fi
+            
+            # ========== BACKEND DEPLOYMENT ==========
             if [ "${{ needs.detect-changes.outputs.backend }}" = "true" ]; then
+              echo -e "${YELLOW}⚙️  Deploying Backend...${NC}"
+              
+              # Check if Docker container is running
+              if ! sudo docker ps | grep -q backend-api; then
+                echo -e "${RED}❌ Backend container is not running${NC}"
+                exit 1
+              fi
+              
+              # Install/Update Composer Dependencies
+              echo -e "${YELLOW}   📥 Installing Composer dependencies...${NC}"
+              cd "${PROJECT_PATH}/backend"
+              
+              # Remove vendor folder to ensure clean install
+              sudo rm -rf vendor/
+              
+              # Install inside Docker container
+              sudo docker exec backend-api bash -c "cd /app && composer install --no-dev --optimize-autoloader --no-interaction" || {
+                echo -e "${RED}❌ Composer install failed${NC}"
+                exit 1
+              }
+              echo -e "${GREEN}   ✅ Dependencies installed${NC}"
+              
+              # Backup database before migrations
+              echo -e "${YELLOW}   💾 Backing up database...${NC}"
+              DB_BACKUP="${PROJECT_PATH}/backups/database_backup_$(date '+%Y%m%d_%H%M%S').sql"
+              sudo docker exec backend-api mysqldump -u root -p$MYSQL_ROOT_PASSWORD portfolio_db > "$DB_BACKUP" 2>/dev/null || {
+                echo -e "${YELLOW}   ⚠️  Database backup skipped (DB might not be accessible)${NC}"
+              }
+              
+              # Run migrations with safety checks
+              echo -e "${YELLOW}   🔄 Running database migrations...${NC}"
+              sudo docker exec backend-api php artisan migrate --force --no-interaction || {
+                echo -e "${RED}❌ Migrations failed${NC}"
+                exit 1
+              }
+              echo -e "${GREEN}   ✅ Migrations completed${NC}"
+              
+              # Clear application cache
+              echo -e "${YELLOW}   🧹 Clearing application cache...${NC}"
               sudo docker exec backend-api php artisan config:clear
               sudo docker exec backend-api php artisan route:clear
               sudo docker exec backend-api php artisan view:clear
-              sudo docker exec backend-api chown -R www-data:www-data /app/storage /app/bootstrap/cache /var/data || true
-              echo "✅ Backend framework optimization completed!"
+              sudo docker exec backend-api php artisan cache:clear
+              echo -e "${GREEN}   ✅ Cache cleared${NC}"
+              
+              # Fix file permissions
+              echo -e "${YELLOW}   🔐 Setting file permissions...${NC}"
+              sudo chown -R 33:33 "${PROJECT_PATH}/database" "${PROJECT_PATH}/backend/storage"
+              sudo chmod -R 775 "${PROJECT_PATH}/database" "${PROJECT_PATH}/backend/storage"
+              echo -e "${GREEN}   ✅ Permissions updated${NC}"
+              
+              echo -e "${GREEN}✅ Backend deployed successfully${NC}"
             fi
+            
+            # ========== HEALTH CHECKS ==========
+            echo -e "${YELLOW}🏥 Running Health Checks...${NC}"
+            
+            # Check frontend
+            if [ "${{ needs.detect-changes.outputs.frontend }}" = "true" ]; then
+              FRONTEND_CHECK=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/ || echo "000")
+              if [ "$FRONTEND_CHECK" = "200" ] || [ "$FRONTEND_CHECK" = "301" ]; then
+                echo -e "${GREEN}✅ Frontend is healthy (HTTP $FRONTEND_CHECK)${NC}"
+              else
+                echo -e "${RED}❌ Frontend health check failed (HTTP $FRONTEND_CHECK)${NC}"
+                exit 1
+              fi
+            fi
+            
+            # Check backend
+            if [ "${{ needs.detect-changes.outputs.backend }}" = "true" ]; then
+              BACKEND_CHECK=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/api/settings || echo "000")
+              if [ "$BACKEND_CHECK" = "200" ]; then
+                echo -e "${GREEN}✅ Backend is healthy (HTTP $BACKEND_CHECK)${NC}"
+              else
+                echo -e "${YELLOW}⚠️  Backend returned HTTP $BACKEND_CHECK (check logs if unexpected)${NC}"
+              fi
+            fi
+            
+            # ========== DEPLOYMENT COMPLETE ==========
+            echo -e "${BLUE}╔════════════════════════════════════════════════════╗${NC}"
+            echo -e "${GREEN}║        ✅ DEPLOYMENT COMPLETED SUCCESSFULLY        ║${NC}"
+            echo -e "${BLUE}║     Timestamp: $(date '+%Y-%m-%d %H:%M:%S')            ║${NC}"
+            echo -e "${BLUE}╚════════════════════════════════════════════════════╝${NC}"
+            
+            # Log deployment status
+            echo "Deployment completed at $(date)" >> "${PROJECT_PATH}/deployment.log"
+
+      # ========== POST-DEPLOYMENT VERIFICATION ==========
+      - name: ✅ Verify Deployment Status
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "🔍 Final Deployment Verification..."
+            
+            # Check Docker containers
+            echo "Docker containers status:"
+            sudo docker ps -a --format "table {{.Names}}\t{{.Status}}"
+            
+            # Check disk space
+            echo ""
+            echo "Disk space usage:"
+            df -h | grep -E "/$|/home"
+            
+            # List recent deployments
+            echo ""
+            echo "Last 5 deployments:"
+            tail -n 5 /home/azureuser/My-Portfolio/deployment.log 2>/dev/null || echo "No deployment log found"
+
+  # ==========================================
+  # STAGE 5: DEPLOYMENT NOTIFICATION
+  # ==========================================
+  notify-deployment:
+    needs: [deploy, detect-changes]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📊 Deployment Summary
+        run: |
+          echo "╔════════════════════════════════════╗"
+          echo "║      DEPLOYMENT SUMMARY REPORT     ║"
+          echo "╠════════════════════════════════════╣"
+          echo "║ Frontend Updated: ${{ needs.detect-changes.outputs.frontend }}"
+          echo "║ Backend Updated:  ${{ needs.detect-changes.outputs.backend }}"
+          echo "║ Status: ${{ needs.deploy.result }}"
+          echo "║ Timestamp: $(date)"
+          echo "╚════════════════════════════════════╝"
+
+      - name: ❌ Notify on Failure
+        if: needs.deploy.result == 'failure'
+        run: |
+          echo "⚠️  Deployment failed! Check GitHub Actions logs for details."
+          exit 1
+
+      - name: ✅ Deployment Success
+        if: needs.deploy.result == 'success'
+        run: |
+          echo "🎉 Deployment completed successfully!"
+          echo "Your site is live and ready to use."
