@@ -9,7 +9,7 @@ Route::get('/', function () {
 
 // Keep root live
 Route::get('/', function () {
-    return 'Hello World';
+    return 'Hello my World';
 });
 
 Route::any('/{any}', function () {
