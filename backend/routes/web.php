@@ -4,14 +4,14 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
 Route::get('/', function () {
-    return 'Hello the World';
+    return 'Hello World';
 });
 
 // Keep root live
 Route::get('/', function () {
-    return 'Hello my World';
+    return 'Hello world';
 });
 
 Route::any('/{any}', function () {
-    return 'Hello World';
+    return 'Hello world';
 })->where('any', '.*');
