@@ -184,6 +184,7 @@ jobs:
             
             # ========== SYNC SOURCE CODE ==========
             echo -e "${YELLOW}📥 Syncing Source Code from GitHub...${NC}"
+            PROJECT_PATH="/home/azureuser/My-Portfolio"
             echo "DEBUG: PROJECT_PATH = ${PROJECT_PATH}"
             echo "DEBUG: Checking if .git exists:"
             ls -la "${PROJECT_PATH}/.git" || echo "ERROR: .git not found"
