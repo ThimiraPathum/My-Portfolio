@@ -109,12 +109,12 @@ export default function Navbar() {
         {/* Logo */}
         <button
           onClick={() => handleNavClick('/')}
-          className="flex items-center gap-1 group cursor-pointer bg-transparent border-0 p-0"
+          className="flex items-center group cursor-pointer bg-transparent border-0 p-0"
         >
           <img
             src="/logo.png"
             alt="Logo"
-            className="h-17 w-17 object-contain bg-white p-0.5 shadow-sm rounded-full transition-opacity group-hover:opacity-90"
+            className="h-17 w-17 object-contain rounded-full transition-opacity group-hover:opacity-90 -mr-2"
           />
           <span
             className="font-medium text-base sm:text-lg tracking-tight underline underline-offset-4 decoration-1 truncate max-w-[140px] sm:max-w-none"

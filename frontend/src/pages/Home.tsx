@@ -47,7 +47,7 @@ export default function Home() {
                 transition={{ duration: 0.6 }}
                 className="flex-shrink-0"
               >
-                <div className="w-32 h-32 sm:w-40 sm:h-40">
+                <div className="w-44 h-44 sm:w-52 sm:h-52">
                   <img
                     src={settings.profile_photo ? getSafeUrl(settings.profile_photo) : '/profile.jpg'}
                     alt={name}
