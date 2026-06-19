@@ -1,0 +1,99 @@
+/* ==========================================================================
+   TIMELINE STYLES & INTERACTION CLASSROOM
+   ========================================================================== */
+
+/* Timeline Spine Layout */
+.timeline-spine-container {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: rgba(230, 215, 195, 0.3);
+  z-index: 10;
+}
+
+/* Timeline vertical line fill animation on scroll */
+.timeline-spine-fill {
+  width: 100%;
+  height: 0%;
+  background: linear-gradient(180deg, 
+    #D4AF37 0%, 
+    #E8741D 50%, 
+    #CD5C5C 100%
+  );
+  box-shadow: 0 0 12px rgba(232, 116, 29, 0.4);
+  transition: height 0.1s ease-out;
+}
+
+/* Glassmorphism for milestone cards */
+.milestone-card {
+  background: rgba(250, 244, 239, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(232, 116, 29, 0.1);
+  box-shadow: 
+    0 4px 20px rgba(26, 20, 16, 0.05),
+    inset 0 0 0 1px rgba(250, 244, 239, 0.4);
+  border-radius: 16px;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+}
+
+.milestone-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(232, 116, 29, 0.25);
+  background: rgba(250, 244, 239, 0.8);
+  box-shadow: 
+    0 20px 40px rgba(26, 20, 16, 0.08),
+    0 0 30px rgba(232, 116, 29, 0.05);
+}
+
+/* Glow effects on timeline nodes */
+.node-glow {
+  box-shadow: 
+    0 0 15px rgba(232, 116, 29, 0.4),
+    0 0 30px rgba(212, 175, 55, 0.2);
+}
+
+/* Floating timeline indicator container (fixed right) */
+.timeline-indicator-fixed {
+  position: fixed;
+  right: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  pointer-events: none;
+}
+
+@media (max-width: 1024px) {
+  .timeline-indicator-fixed {
+    display: none; /* Hide progress indicator on smaller viewports */
+  }
+}
+
+/* Breathing animation for timeline nodes */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(232, 116, 29, 0.3);
+    transform: scale(1) translate(-50%, -50%);
+  }
+  50% {
+    box-shadow: 0 0 24px rgba(232, 116, 29, 0.6);
+    transform: scale(1.15) translate(-50%, -50%);
+  }
+}
+
+.pulse-node {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+/* Subtle pattern overlay for timeline background */
+.timeline-pattern {
+  background-image: 
+    radial-gradient(rgba(232, 116, 29, 0.03) 1px, transparent 1px),
+    radial-gradient(rgba(212, 175, 55, 0.02) 1.5px, transparent 1.5px);
+  background-size: 40px 40px, 80px 80px;
+}

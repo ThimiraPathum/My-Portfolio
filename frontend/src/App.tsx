@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext';
 import { SettingsProvider } from './context/SettingsContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import ScrollToTop from './components/ScrollToTop';
 import ProtectedRoute from './components/ProtectedRoute';
 import CodeBackground from './components/CodeBackground';
 import Home from './pages/Home';
@@ -19,9 +20,12 @@ import ForgotPassword from './pages/admin/ForgotPassword';
 import ResetPassword from './pages/admin/ResetPassword';
 import ProjectDetail from './pages/ProjectDetail';
 import AdminDashboard from './pages/admin/Dashboard';
+import { useLenis } from './hooks/useLenis';
 import './index.css';
 
 export default function App() {
+  useLenis();
+
   return (
     <AuthProvider>
       <SettingsProvider>
@@ -30,15 +34,17 @@ export default function App() {
           position="top-right"
           toastOptions={{
             style: {
-              background: '#111827',
-              color: '#f1f5f9',
-              border: '1px solid rgba(255,255,255,0.06)',
+              background: '#FAF4EF',
+              color: '#1A1410',
+              border: '1px solid rgba(212, 175, 55, 0.2)',
               fontFamily: 'Inter, sans-serif',
               fontSize: '14px',
+              boxShadow: '0 4px 12px rgba(212, 175, 55, 0.1)',
             },
           }}
         />
 
+        <ScrollToTop />
         <Routes>
           {/* Admin routes (no main layout) */}
           <Route path="/admin/login" element={<AdminLogin />} />

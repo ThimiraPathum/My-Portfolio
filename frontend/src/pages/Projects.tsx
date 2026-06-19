@@ -43,15 +43,15 @@ export default function Projects() {
   const filtered = filter === 'All' ? projects : projects.filter((p) => p.category === filter);
 
   return (
-    <main className="pt-24 pb-20 px-4 sm:px-6 min-h-screen">
+    <section className="pt-24 pb-20 px-4 sm:px-6 min-h-screen">
       <div className="max-w-6xl mx-auto">
         {/* Heading */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-12">
-          <div className="mono text-xs text-cyan-400 mb-3 tracking-widest">{'>'} projects.load()</div>
+          <div className="mono text-xs mb-3 tracking-widest" style={{ color: 'var(--accent-primary)' }}>{'>'} projects.load()</div>
           <h1 className="section-heading mb-4">
             My <span className="gradient-text">Projects</span>
           </h1>
-          <div className="h-px w-24 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full mb-8" />
+          <div className="h-px w-24 rounded-full mb-8" style={{ background: 'linear-gradient(to right, var(--accent-secondary), var(--accent-primary))' }} />
 
           {/* Filter tabs */}
           <div className="flex flex-wrap gap-2">
@@ -59,11 +59,12 @@ export default function Projects() {
               <button
                 key={cat}
                 onClick={() => setFilter(cat)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-all duration-200 flex items-center gap-1.5 ${
-                  filter === cat
-                    ? 'bg-cyan-400/15 text-cyan-400 border border-cyan-400/30'
-                    : 'border border-white/10 text-gray-400 hover:border-white/20 hover:text-white'
-                }`}
+                className="px-4 py-2 rounded-lg text-sm font-medium capitalize transition-all duration-200 flex items-center gap-1.5"
+                style={{
+                  background: filter === cat ? 'rgba(232, 116, 29, 0.1)' : 'transparent',
+                  color: filter === cat ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                  border: `1px solid ${filter === cat ? 'rgba(232, 116, 29, 0.3)' : 'var(--border)'}`,
+                }}
               >
                 {cat === 'All' && <FiFilter size={12} />}
                 {categoryLabels[cat] ?? cat}
@@ -90,15 +91,21 @@ export default function Projects() {
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ delay: i * 0.08 }}
                   className="glass glass-hover p-0 group flex flex-col overflow-hidden"
+                  style={{ border: '1px solid rgba(232, 116, 29, 0.12)' }}
                 >
                   <NavLink to={`/project/${project.id}`} className="flex-1 flex flex-col">
-                    {/* Project Image — show main image OR first gallery image as fallback */}
+                    {/* Project Image */}
                     {(project.image_url || (project.gallery && project.gallery.length > 0)) && (
-                      <div className="w-full h-48 border-b border-white/5 overflow-hidden bg-black/50">
+                      <div className="w-full h-48 overflow-hidden relative" style={{ borderBottom: '1px solid var(--border)' }}>
                         <img 
                           src={getSafeUrl(project.image_url || project.gallery![0])} 
                           alt={project.title} 
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500"
+                          style={{ borderRadius: '12px 12px 0 0' }}
+                        />
+                        {/* Warm gradient overlay on hover */}
+                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                          style={{ background: 'linear-gradient(to top, rgba(212, 175, 55, 0.08), transparent)' }}
                         />
                       </div>
                     )}
@@ -109,33 +116,44 @@ export default function Projects() {
                         <div className="flex-1 min-w-0 pr-3">
                           <div className="flex flex-wrap gap-2 mb-2">
                             {project.featured && (
-                              <span className="mono text-[10px] text-yellow-400 bg-yellow-400/10 border border-yellow-400/20 px-2 py-0.5 rounded">
+                              <span className="mono text-[10px] px-2 py-0.5 rounded"
+                                style={{ color: 'var(--accent-secondary)', background: 'rgba(212, 175, 55, 0.1)', border: '1px solid rgba(212, 175, 55, 0.2)' }}>
                                 ★ Featured
                               </span>
                             )}
                             {project.coming_soon && (
-                              <span className="mono text-[10px] text-orange-400 bg-orange-400/10 border border-orange-400/20 px-2 py-0.5 rounded">
-                                Coming Soon
+                              <span className="mono text-[10px] px-2 py-0.5 rounded"
+                                style={{ color: 'var(--accent-amber)', background: 'rgba(255, 165, 0, 0.1)', border: '1px solid rgba(255, 165, 0, 0.2)' }}>
+                                In Progress
                               </span>
                             )}
-                            <span className="mono text-[10px] text-gray-600 capitalize border border-white/5 px-2 py-0.5 rounded">
+                            <span className="mono text-[10px] capitalize px-2 py-0.5 rounded"
+                              style={{ color: 'var(--text-secondary)', border: '1px solid var(--border)' }}>
                               {categoryLabels[project.category] ?? project.category}
                             </span>
                           </div>
-                          <h3 className="text-base font-semibold text-white group-hover:text-cyan-400 transition-colors leading-snug">
+                          <h3 className="text-base font-semibold leading-snug transition-colors" style={{ color: 'var(--text-primary)' }}>
                             {project.title}
                           </h3>
                         </div>
                         <div onClick={(e) => e.preventDefault()} className="flex gap-2 flex-shrink-0 relative z-10">
                           {project.github_url && (
                             <a href={project.github_url} target="_blank" rel="noreferrer"
-                              className="p-2 rounded-lg border border-white/5 text-gray-500 hover:text-cyan-400 hover:border-cyan-400/20 transition-all">
+                              className="p-2 rounded-lg transition-all"
+                              style={{ border: '1px solid var(--border)', color: 'var(--text-secondary)' }}
+                              onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--accent-primary)'; e.currentTarget.style.borderColor = 'rgba(232, 116, 29, 0.3)'; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
+                            >
                               <FiGithub size={14} />
                             </a>
                           )}
                           {project.live_url && (
                             <a href={project.live_url} target="_blank" rel="noreferrer"
-                              className="p-2 rounded-lg border border-white/5 text-gray-500 hover:text-cyan-400 hover:border-cyan-400/20 transition-all">
+                              className="p-2 rounded-lg transition-all"
+                              style={{ border: '1px solid var(--border)', color: 'var(--text-secondary)' }}
+                              onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--accent-primary)'; e.currentTarget.style.borderColor = 'rgba(232, 116, 29, 0.3)'; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
+                            >
                               <FiExternalLink size={14} />
                             </a>
                           )}
@@ -143,7 +161,7 @@ export default function Projects() {
                       </div>
 
                       {/* Description */}
-                      <p className="text-gray-400 text-sm leading-relaxed flex-1 mb-5 line-clamp-4">
+                      <p className="text-sm leading-relaxed flex-1 mb-5 line-clamp-4" style={{ color: 'var(--text-secondary)' }}>
                         {project.description}
                       </p>
 
@@ -164,11 +182,11 @@ export default function Projects() {
         )}
 
         {!loading && filtered.length === 0 && (
-          <div className="text-center py-20 text-gray-600 mono text-sm">
-            No projects in this category.
+          <div className="text-center py-20 mono text-sm" style={{ color: 'var(--text-secondary)' }}>
+            No projects in this category yet, check back soon!
           </div>
         )}
       </div>
-    </main>
+    </section>
   );
 }

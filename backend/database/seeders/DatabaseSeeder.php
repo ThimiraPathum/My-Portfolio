@@ -58,6 +58,9 @@ class DatabaseSeeder extends Seeder
                 'featured' => true,
                 'coming_soon' => false,
                 'order' => 1,
+                'timeline_order' => 3,
+                'milestone_year' => '2024',
+                'visual_layout' => 'left-text',
                 'gallery' => [],
             ],
             [
@@ -70,6 +73,9 @@ class DatabaseSeeder extends Seeder
                 'featured' => true,
                 'coming_soon' => false,
                 'order' => 2,
+                'timeline_order' => 4,
+                'milestone_year' => '2024-2025',
+                'visual_layout' => 'right-text',
                 'gallery' => [],
             ],
             [
@@ -82,6 +88,9 @@ class DatabaseSeeder extends Seeder
                 'featured' => false,
                 'coming_soon' => true,
                 'order' => 3,
+                'timeline_order' => 5,
+                'milestone_year' => '2025',
+                'visual_layout' => 'left-text',
                 'gallery' => [],
             ],
         ];
@@ -176,6 +185,10 @@ class DatabaseSeeder extends Seeder
                 'current' => false,
                 'tech_stack' => ['Laravel', 'React', 'MySQL', 'Docker'],
                 'order' => 1,
+                'timeline_order' => 1,
+                'milestone_year' => '2020-2022',
+                'featured' => false,
+                'visual_layout' => 'right-text',
                 'certificate_url' => null,
             ],
             [
@@ -188,6 +201,10 @@ class DatabaseSeeder extends Seeder
                 'current' => false,
                 'tech_stack' => ['AWS', 'IAM', 'Networking'],
                 'order' => 2,
+                'timeline_order' => 2,
+                'milestone_year' => '2023',
+                'featured' => false,
+                'visual_layout' => 'left-text',
                 'certificate_url' => null,
             ],
             [
@@ -200,6 +217,10 @@ class DatabaseSeeder extends Seeder
                 'current' => true,
                 'tech_stack' => ['OpenAI API', 'TypeScript', 'Prompt Engineering'],
                 'order' => 3,
+                'timeline_order' => 6,
+                'milestone_year' => '2025-2026',
+                'featured' => true,
+                'visual_layout' => 'right-text',
                 'certificate_url' => null,
             ],
         ];

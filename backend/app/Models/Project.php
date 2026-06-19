@@ -9,6 +9,7 @@ class Project extends Model
     protected $fillable = [
         'title', 'description', 'image_url', 'gallery', 'video_url', 'tech_stack',
         'github_url', 'live_url', 'category', 'featured', 'coming_soon', 'order',
+        'timeline_order', 'milestone_year', 'visual_layout',
     ];
 
     protected $casts = [

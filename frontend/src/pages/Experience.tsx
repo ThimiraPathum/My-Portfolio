@@ -41,15 +41,15 @@ export default function Experience() {
   }, []);
 
   return (
-    <main className="pt-24 pb-20 px-4 sm:px-6 min-h-screen">
+    <section className="pt-24 pb-20 px-4 sm:px-6 min-h-screen">
       <div className="max-w-4xl mx-auto">
         {/* Heading */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-12">
-          <div className="mono text-xs text-cyan-400 mb-3 tracking-widest">{'>'} education.timeline()</div>
+          <div className="mono text-xs mb-3 tracking-widest" style={{ color: 'var(--accent-primary)' }}>{'>'} education.timeline()</div>
           <h1 className="section-heading mb-4">
             Education &amp; <span className="gradient-text">Certifications</span>
           </h1>
-          <div className="h-px w-24 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full" />
+          <div className="h-px w-24 rounded-full" style={{ background: 'linear-gradient(to right, var(--accent-secondary), var(--accent-primary))' }} />
         </motion.div>
 
         {loading ? (
@@ -60,8 +60,10 @@ export default function Experience() {
           </div>
         ) : (
           <div className="relative">
-            {/* Timeline center line */}
-            <div className="absolute left-6 top-4 bottom-4 w-px bg-gradient-to-b from-cyan-400/40 via-blue-500/20 to-transparent" />
+            {/* Timeline center line — gold to orange gradient */}
+            <div className="absolute left-6 top-4 bottom-4 w-px"
+              style={{ background: 'linear-gradient(180deg, var(--accent-secondary), var(--accent-primary), transparent)' }}
+            />
 
             <div className="space-y-6 pl-16">
               {experiences.map((exp, i) => (
@@ -72,23 +74,30 @@ export default function Experience() {
                   transition={{ delay: i * 0.15, duration: 0.5 }}
                   className="relative"
                 >
-                  {/* Timeline dot */}
-                  <div className="absolute -left-[42px] top-5 w-3 h-3 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 border-2 border-[#030712] shadow-[0_0_10px_rgba(34,211,238,0.5)]" />
+                  {/* Timeline dot — gold/orange gradient */}
+                  <div className="absolute -left-[42px] top-5 w-3 h-3 rounded-full"
+                    style={{
+                      background: 'linear-gradient(135deg, var(--accent-secondary), var(--accent-primary))',
+                      border: '2px solid var(--bg-primary)',
+                      boxShadow: '0 0 10px rgba(232, 116, 29, 0.4)',
+                    }}
+                  />
 
                   <div className="glass glass-hover p-6">
                     <div className="flex flex-wrap gap-3 items-start justify-between mb-3">
                       <div>
-                        <h3 className="text-lg font-semibold text-white">{exp.role}</h3>
-                        <p className="text-cyan-400 text-sm font-medium">{exp.company}</p>
+                        <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>{exp.role}</h3>
+                        <p className="text-sm font-medium" style={{ color: 'var(--accent-primary)' }}>{exp.company}</p>
                       </div>
                       {exp.current && (
-                        <span className="px-2.5 py-1 rounded-full bg-green-400/10 text-green-400 text-[11px] mono border border-green-400/20">
+                        <span className="px-2.5 py-1 rounded-full text-[11px] mono"
+                          style={{ background: 'rgba(107, 165, 118, 0.1)', color: 'var(--success)', border: '1px solid rgba(107, 165, 118, 0.2)' }}>
                           ● Current
                         </span>
                       )}
                     </div>
 
-                    <div className="flex flex-wrap gap-4 text-xs text-gray-500 mono mb-4">
+                    <div className="flex flex-wrap gap-4 text-xs mono mb-4" style={{ color: 'var(--text-secondary)' }}>
                       <span className="flex items-center gap-1">
                         <FiCalendar size={12} />
                         {formatDate(exp.start_date)} — {exp.current ? 'Present' : exp.end_date ? formatDate(exp.end_date) : ''}
@@ -102,13 +111,14 @@ export default function Experience() {
                     </div>
 
                     <div className="relative group">
-                      <p className={`text-gray-400 text-sm leading-relaxed ${expandedId !== exp.id ? 'line-clamp-3' : ''}`}>
+                      <p className={`text-sm leading-relaxed ${expandedId !== exp.id ? 'line-clamp-3' : ''}`} style={{ color: 'var(--text-secondary)' }}>
                         {exp.description}
                       </p>
                       {exp.description.length > 150 && (
                         <button 
                           onClick={() => setExpandedId(expandedId === exp.id ? null : exp.id)}
-                          className="text-cyan-400 text-[10px] mono mt-1 hover:text-cyan-300 transition-colors uppercase tracking-widest"
+                          className="text-[10px] mono mt-1 transition-colors uppercase tracking-widest"
+                          style={{ color: 'var(--accent-primary)' }}
                         >
                           {expandedId === exp.id ? '— Show Less' : '+ View More'}
                         </button>
@@ -126,10 +136,10 @@ export default function Experience() {
                     )}
 
                     {exp.certificate_url && (
-                      <div className="mt-6 pt-5 border-t border-white/5">
+                      <div className="mt-6 pt-5" style={{ borderTop: '1px solid var(--border)' }}>
                         <div className="flex flex-col gap-4 items-center">
-                          <label className="text-[10px] text-gray-500 mono uppercase tracking-widest flex items-center justify-center gap-2 w-full">
-                            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_5px_rgba(34,211,238,0.5)]" />
+                          <label className="text-[10px] mono uppercase tracking-widest flex items-center justify-center gap-2 w-full" style={{ color: 'var(--text-secondary)' }}>
+                            <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--accent-secondary)', boxShadow: '0 0 5px rgba(212, 175, 55, 0.5)' }} />
                             Credentials & Proof
                           </label>
                           
@@ -140,23 +150,33 @@ export default function Experience() {
                             return isPdf ? (
                               <button 
                                 onClick={() => setSelectedCert({ url: fullUrl, title: exp.role || exp.company, isPdf: true })}
-                                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-red-500/10 to-orange-500/10 text-red-400 text-xs font-bold hover:brightness-125 transition-all border border-red-500/20 group cursor-pointer"
+                                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all group cursor-pointer"
+                                style={{
+                                  background: 'linear-gradient(135deg, rgba(232, 116, 29, 0.08), rgba(212, 175, 55, 0.08))',
+                                  color: 'var(--accent-primary)',
+                                  border: '1px solid rgba(232, 116, 29, 0.2)',
+                                }}
                               >
                                 <FiMessageSquare size={16} className="group-hover:scale-110 transition-transform" /> 
                                 View Certification PDF
                               </button>
                             ) : (
                               <div 
-                                className="relative group max-w-sm cursor-pointer overflow-hidden rounded-xl border border-white/10 hover:border-cyan-400/30 transition-all shadow-xl"
+                                className="relative group max-w-sm cursor-pointer overflow-hidden transition-all"
+                                style={{ borderRadius: '12px', border: '1px solid var(--border)' }}
                                 onClick={() => setSelectedCert({ url: fullUrl, title: exp.role || exp.company, isPdf: false })}
                               >
                                 <img 
                                   src={fullUrl} 
-                                  className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-500" 
+                                  className="w-full h-auto object-cover group-hover:scale-[1.03] transition-transform duration-500" 
                                   alt="Certification"
                                 />
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                  <span className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-full text-white text-[10px] mono uppercase border border-white/20">Expand View</span>
+                                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                                  style={{ background: 'rgba(26, 20, 16, 0.4)' }}>
+                                  <span className="px-4 py-2 rounded-full text-[10px] mono uppercase"
+                                    style={{ background: 'rgba(250, 244, 239, 0.15)', backdropFilter: 'blur(8px)', color: 'var(--bg-primary)', border: '1px solid rgba(250, 244, 239, 0.2)' }}>
+                                    Expand View
+                                  </span>
                                 </div>
                               </div>
                             );
@@ -179,33 +199,37 @@ export default function Experience() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8 bg-[#030712]/90 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8"
+            style={{ background: 'rgba(26, 20, 16, 0.85)', backdropFilter: 'blur(4px)' }}
             onClick={() => setSelectedCert(null)}
           >
             <motion.div 
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="relative w-full max-w-5xl max-h-full glass border-white/10 overflow-hidden flex flex-col shadow-2xl"
+              className="relative w-full max-w-5xl max-h-full glass overflow-hidden flex flex-col"
+              style={{ boxShadow: 'var(--shadow-lg)' }}
               onClick={(e) => e.stopPropagation()}
             >
               {/* Modal Header */}
-              <div className="flex items-center justify-between p-4 border-b border-white/5 bg-white/5">
+              <div className="flex items-center justify-between p-4" style={{ borderBottom: '1px solid var(--border)', background: 'rgba(232, 116, 29, 0.03)' }}>
                 <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.5)]" />
-                  <h2 className="text-white font-semibold text-sm sm:text-base">{selectedCert.title}</h2>
+                  <div className="w-2 h-2 rounded-full" style={{ background: 'var(--accent-secondary)', boxShadow: '0 0 8px rgba(212, 175, 55, 0.5)' }} />
+                  <h2 className="font-semibold text-sm sm:text-base" style={{ color: 'var(--text-primary)' }}>{selectedCert.title}</h2>
                 </div>
                 <div className="flex items-center gap-2">
                   <button 
                     onClick={() => window.open(selectedCert.url, '_blank')}
-                    className="p-2 text-gray-400 hover:text-cyan-400 transition-colors"
+                    className="p-2 transition-colors"
+                    style={{ color: 'var(--text-secondary)' }}
                     title="Open in new tab"
                   >
                     <FiExternalLink size={20} />
                   </button>
                   <button 
                     onClick={() => setSelectedCert(null)}
-                    className="p-2 text-gray-400 hover:text-white transition-colors"
+                    className="p-2 transition-colors"
+                    style={{ color: 'var(--text-secondary)' }}
                   >
                     <FiX size={24} />
                   </button>
@@ -213,30 +237,32 @@ export default function Experience() {
               </div>
 
               {/* Modal Content */}
-              <div className="flex-1 overflow-auto p-4 flex items-center justify-center bg-black/20">
+              <div className="flex-1 overflow-auto p-4 flex items-center justify-center" style={{ background: 'rgba(230, 215, 195, 0.3)' }}>
                 {selectedCert.isPdf ? (
                   <iframe 
                     src={`${selectedCert.url}#toolbar=0`} 
-                    className="w-full aspect-[1/1.41] max-h-[70vh] rounded-lg border border-white/5 shadow-2xl"
+                    className="w-full aspect-[1/1.41] max-h-[70vh] rounded-lg"
+                    style={{ border: '1px solid var(--border)', boxShadow: 'var(--shadow-lg)' }}
                     title="Certificate PDF"
                   />
                 ) : (
                   <img 
                     src={selectedCert.url} 
-                    className="max-w-full max-h-[75vh] object-contain rounded-lg shadow-2xl" 
+                    className="max-w-full max-h-[75vh] object-contain rounded-lg" 
+                    style={{ boxShadow: 'var(--shadow-lg)' }}
                     alt="Certificate Detail"
                   />
                 )}
               </div>
 
               {/* Modal Footer */}
-              <div className="p-4 bg-white/5 border-t border-white/5 text-center">
-                <p className="text-[10px] text-gray-500 mono uppercase tracking-[0.2em]">Verified Certification & Professional Credential</p>
+              <div className="p-4 text-center" style={{ background: 'rgba(232, 116, 29, 0.03)', borderTop: '1px solid var(--border)' }}>
+                <p className="text-[10px] mono uppercase tracking-[0.2em]" style={{ color: 'var(--text-secondary)' }}>Verified Certification & Professional Credential</p>
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-    </main>
+    </section>
   );
 }

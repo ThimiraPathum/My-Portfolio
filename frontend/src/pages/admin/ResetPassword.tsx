@@ -55,14 +55,14 @@ export default function ResetPassword() {
 
   if (success) {
     return (
-      <main className="min-h-screen flex items-center justify-center px-4 sm:px-6 grid-bg">
+      <main className="min-h-screen flex items-center justify-center px-4 sm:px-6 grid-bg" style={{ background: 'var(--bg-primary)' }}>
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-md text-center glass p-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/10 mb-6 mx-auto">
-            <FiCheckCircle className="text-green-400" size={32} />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-6 mx-auto" style={{ background: 'rgba(107, 165, 118, 0.1)' }}>
+            <FiCheckCircle style={{ color: 'var(--success)' }} size={32} />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-2">Password Reset Successful</h2>
-          <p className="text-gray-400 text-sm mb-6">Your password has been successfully updated. You can now log in using your new password.</p>
-          <NavLink to="/admin/login" className="btn-gradient w-full py-3.5 rounded-xl text-sm font-semibold inline-block">
+          <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>Password Reset Successful</h2>
+          <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>Your password has been successfully updated. You can now log in using your new password.</p>
+          <NavLink to="/admin/login" className="btn-gradient w-full py-3.5 rounded-lg text-sm font-semibold inline-block">
             Proceed to Login
           </NavLink>
         </motion.div>
@@ -71,8 +71,8 @@ export default function ResetPassword() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-4 sm:px-6 grid-bg">
-      <div className="absolute top-1/3 right-1/2 translate-x-1/2 w-96 h-96 rounded-full bg-cyan-500/5 blur-3xl pointer-events-none" />
+    <main className="min-h-screen flex items-center justify-center px-4 sm:px-6 grid-bg" style={{ background: 'var(--bg-primary)' }}>
+      <div className="absolute top-1/3 right-1/2 translate-x-1/2 w-96 h-96 rounded-full blur-3xl pointer-events-none" style={{ background: 'rgba(212, 175, 55, 0.05)' }} />
 
       <motion.div
         initial={{ opacity: 0, y: 30 }}
@@ -81,24 +81,26 @@ export default function ResetPassword() {
         className="w-full max-w-md"
       >
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-cyan-400/10 border border-cyan-400/20 mb-4">
-            <FiLock className="text-cyan-400" size={24} />
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4"
+            style={{ background: 'rgba(232, 116, 29, 0.08)', border: '1px solid rgba(232, 116, 29, 0.2)' }}>
+            <FiLock style={{ color: 'var(--accent-secondary)' }} size={24} />
           </div>
-          <h1 className="text-2xl font-bold text-white">Create New Password</h1>
-          <p className="text-gray-500 text-sm mt-1 mono">{email}</p>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>Create New Password</h1>
+          <p className="text-sm mt-1 mono" style={{ color: 'var(--text-secondary)' }}>{email}</p>
         </div>
 
         <div className="glass p-6 sm:p-8">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-xs text-gray-500 mono mb-1.5">New Password</label>
+              <label className="block text-xs mono mb-1.5" style={{ color: 'var(--text-secondary)' }}>New Password</label>
               <div className="relative">
-                <FiLock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-600" size={15} />
+                <FiLock className="absolute left-3.5 top-1/2 -translate-y-1/2" size={15} style={{ color: 'var(--text-secondary)' }} />
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-white/3 border border-white/8 rounded-xl pl-10 pr-4 py-3 text-sm text-gray-200 placeholder-gray-600 focus:border-cyan-400/40 focus:bg-white/5 outline-none transition-all"
+                  className="w-full rounded-xl pl-10 pr-4 py-3 text-sm outline-none transition-all"
+                  style={{ background: 'var(--bg-primary)', border: '1px solid rgba(232, 116, 29, 0.2)', color: 'var(--text-primary)' }}
                   placeholder="Minimum 8 characters"
                   autoFocus
                 />
@@ -106,14 +108,15 @@ export default function ResetPassword() {
             </div>
 
             <div>
-              <label className="block text-xs text-gray-500 mono mb-1.5">Confirm New Password</label>
+              <label className="block text-xs mono mb-1.5" style={{ color: 'var(--text-secondary)' }}>Confirm New Password</label>
               <div className="relative">
-                <FiLock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-600" size={15} />
+                <FiLock className="absolute left-3.5 top-1/2 -translate-y-1/2" size={15} style={{ color: 'var(--text-secondary)' }} />
                 <input
                   type="password"
                   value={passwordConfirm}
                   onChange={(e) => setPasswordConfirm(e.target.value)}
-                  className="w-full bg-white/3 border border-white/8 rounded-xl pl-10 pr-4 py-3 text-sm text-gray-200 placeholder-gray-600 focus:border-cyan-400/40 focus:bg-white/5 outline-none transition-all"
+                  className="w-full rounded-xl pl-10 pr-4 py-3 text-sm outline-none transition-all"
+                  style={{ background: 'var(--bg-primary)', border: '1px solid rgba(232, 116, 29, 0.2)', color: 'var(--text-primary)' }}
                   placeholder="Repeat new password"
                 />
               </div>
@@ -122,7 +125,7 @@ export default function ResetPassword() {
             <button
               type="submit"
               disabled={loading}
-              className="btn-gradient w-full py-3.5 rounded-xl text-sm font-semibold disabled:opacity-50"
+              className="btn-gradient w-full py-3.5 rounded-lg text-sm font-semibold disabled:opacity-50"
             >
               {loading ? 'Resetting...' : 'Reset Password'}
             </button>

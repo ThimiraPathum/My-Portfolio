@@ -17,6 +17,10 @@ class Experience extends Model
         'tech_stack',
         'order',
         'certificate_url',
+        'timeline_order',
+        'milestone_year',
+        'featured',
+        'visual_layout',
     ];
 
     protected $casts = [
@@ -24,5 +28,6 @@ class Experience extends Model
         'current' => 'boolean',
         'start_date' => 'date',
         'end_date' => 'date',
+        'featured' => 'boolean',
     ];
 }

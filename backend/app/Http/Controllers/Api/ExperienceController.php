@@ -16,16 +16,20 @@ class ExperienceController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'company'        => 'required|string|max:255',
-            'role'           => 'required|string|max:255',
-            'description'    => 'nullable|string',
-            'location'       => 'nullable|string',
-            'start_date'     => 'nullable|date',
-            'end_date'       => 'nullable|date',
-            'current'        => 'boolean',
-            'tech_stack'     => 'nullable|array',
-            'order'          => 'integer',
-            'certificate_url'=> 'nullable|string',
+            'company'         => 'required|string|max:255',
+            'role'            => 'required|string|max:255',
+            'description'     => 'nullable|string',
+            'location'        => 'nullable|string',
+            'start_date'      => 'nullable|date',
+            'end_date'        => 'nullable|date',
+            'current'         => 'boolean',
+            'tech_stack'      => 'nullable|array',
+            'order'           => 'integer',
+            'certificate_url' => 'nullable|string',
+            'timeline_order'  => 'integer|nullable',
+            'milestone_year'  => 'string|nullable|max:50',
+            'featured'        => 'boolean',
+            'visual_layout'   => 'string|nullable|in:left-text,right-text,auto',
         ]);
 
         return response()->json(Experience::create($validated), 201);
@@ -35,16 +39,20 @@ class ExperienceController extends Controller
     {
         $exp = Experience::findOrFail($id);
         $validated = $request->validate([
-            'company'        => 'sometimes|string|max:255',
-            'role'           => 'sometimes|string|max:255',
-            'description'    => 'nullable|string',
-            'location'       => 'nullable|string',
-            'start_date'     => 'nullable|date',
-            'end_date'       => 'nullable|date',
-            'current'        => 'boolean',
-            'tech_stack'     => 'nullable|array',
-            'order'          => 'integer',
-            'certificate_url'=> 'nullable|string',
+            'company'         => 'sometimes|string|max:255',
+            'role'            => 'sometimes|string|max:255',
+            'description'     => 'nullable|string',
+            'location'        => 'nullable|string',
+            'start_date'      => 'nullable|date',
+            'end_date'        => 'nullable|date',
+            'current'         => 'boolean',
+            'tech_stack'      => 'nullable|array',
+            'order'           => 'integer',
+            'certificate_url' => 'nullable|string',
+            'timeline_order'  => 'integer|nullable',
+            'milestone_year'  => 'string|nullable|max:50',
+            'featured'        => 'boolean',
+            'visual_layout'   => 'string|nullable|in:left-text,right-text,auto',
         ]);
         $exp->update($validated);
         return response()->json($exp);

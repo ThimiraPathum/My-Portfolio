@@ -50,20 +50,23 @@ export default function Contact() {
     }
   };
 
-  const inputClass =
-    'w-full bg-white/3 border border-white/8 rounded-xl px-4 py-3 text-sm text-gray-200 placeholder-gray-600 transition-all focus:border-cyan-400/40 focus:bg-white/5 outline-none';
+  const inputStyle = {
+    background: 'var(--bg-primary)',
+    border: '1px solid rgba(232, 116, 29, 0.2)',
+    color: 'var(--text-primary)',
+  };
 
   return (
-    <main className="pt-24 pb-20 px-4 sm:px-6 min-h-screen">
+    <section className="pt-24 pb-20 px-4 sm:px-6 min-h-screen">
       <div className="max-w-5xl mx-auto">
         {/* Heading */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-12">
-          <div className="mono text-xs text-cyan-400 mb-3 tracking-widest">{'>'} contact.init()</div>
+          <div className="mono text-xs mb-3 tracking-widest" style={{ color: 'var(--accent-primary)' }}>{'>'} contact.init()</div>
           <h1 className="section-heading mb-4">
             Get In <span className="gradient-text">Touch</span>
           </h1>
-          <div className="h-px w-24 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full" />
-          <p className="text-gray-500 text-sm mt-4 max-w-xl">
+          <div className="h-px w-24 rounded-full" style={{ background: 'linear-gradient(to right, var(--accent-secondary), var(--accent-primary))' }} />
+          <p className="text-sm mt-4 max-w-xl" style={{ color: 'var(--text-secondary)' }}>
             Interested in collaboration, project ideas, or technology conversations?
             Let's connect and build something meaningful.
           </p>
@@ -77,33 +80,33 @@ export default function Contact() {
             transition={{ delay: 0.1 }}
             className="lg:col-span-3 glass p-8"
           >
-            <h3 className="text-base font-semibold text-white mb-6">Send a Message</h3>
+            <h3 className="text-base font-semibold mb-6" style={{ color: 'var(--text-primary)' }}>Send a Message</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs text-gray-500 mono mb-1.5">Your Name</label>
+                  <label className="block text-xs mono mb-1.5" style={{ color: 'var(--text-secondary)' }}>Your Name</label>
                   <input type="text" name="name" value={form.name} onChange={handleChange}
-                    placeholder="John Smith" className={inputClass} />
+                    placeholder="John Smith" className="w-full rounded-xl px-4 py-3 text-sm outline-none transition-all" style={inputStyle} />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-500 mono mb-1.5">Your Email</label>
+                  <label className="block text-xs mono mb-1.5" style={{ color: 'var(--text-secondary)' }}>Your Email</label>
                   <input type="email" name="email" value={form.email} onChange={handleChange}
-                    placeholder="john@email.com" className={inputClass} />
+                    placeholder="john@email.com" className="w-full rounded-xl px-4 py-3 text-sm outline-none transition-all" style={inputStyle} />
                 </div>
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mono mb-1.5">Subject</label>
+                <label className="block text-xs mono mb-1.5" style={{ color: 'var(--text-secondary)' }}>Subject</label>
                 <input type="text" name="subject" value={form.subject} onChange={handleChange}
-                  placeholder="Project Collaboration" className={inputClass} />
+                  placeholder="Project Collaboration" className="w-full rounded-xl px-4 py-3 text-sm outline-none transition-all" style={inputStyle} />
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mono mb-1.5">Message</label>
+                <label className="block text-xs mono mb-1.5" style={{ color: 'var(--text-secondary)' }}>Message</label>
                 <textarea name="message" value={form.message} onChange={handleChange}
-                  rows={5} placeholder="Tell me about your idea..."
-                  className={inputClass + ' resize-none'} />
+                  rows={5} placeholder="Tell me what's on your mind..."
+                  className="w-full rounded-xl px-4 py-3 text-sm outline-none resize-none transition-all" style={inputStyle} />
               </div>
               <button type="submit" disabled={loading}
-                className="btn-gradient w-full py-3.5 rounded-xl flex items-center justify-center gap-2 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
+                className="btn-gradient w-full py-3.5 rounded-lg flex items-center justify-center gap-2 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
                 {loading ? 'Sending...' : <><FiSend size={14} /> Send Message</>}
               </button>
             </form>
@@ -117,17 +120,27 @@ export default function Contact() {
             className="lg:col-span-2 space-y-4"
           >
             <div className="glass p-6">
-              <h4 className="text-sm font-semibold text-white mb-4">Connect With Me</h4>
+              <h4 className="text-sm font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>Connect With Me</h4>
               <div className="space-y-3">
                 {socials.map(({ icon: Icon, label, value, href }) => (
                   <a key={label} href={href} target="_blank" rel="noreferrer"
-                    className="flex items-center gap-3 p-3.5 rounded-xl border border-white/5 hover:border-cyan-400/20 hover:bg-cyan-400/5 transition-all group">
-                    <div className="p-2 rounded-lg bg-white/5 group-hover:bg-cyan-400/10 transition-colors">
-                      <Icon className="text-cyan-400" size={16} />
+                    className="flex items-center gap-3 p-3.5 rounded-xl transition-all group"
+                    style={{ border: '1px solid var(--border)' }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = 'rgba(232, 116, 29, 0.3)';
+                      e.currentTarget.style.background = 'rgba(232, 116, 29, 0.04)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--border)';
+                      e.currentTarget.style.background = 'transparent';
+                    }}
+                  >
+                    <div className="p-2 rounded-lg transition-colors" style={{ background: 'rgba(232, 116, 29, 0.06)' }}>
+                      <Icon style={{ color: 'var(--accent-primary)' }} size={16} />
                     </div>
                     <div className="min-w-0">
-                      <div className="text-[11px] text-gray-600 mono">{label}</div>
-                      <div className="text-xs text-gray-300 truncate">{value}</div>
+                      <div className="text-[11px] mono" style={{ color: 'var(--text-secondary)' }}>{label}</div>
+                      <div className="text-xs truncate" style={{ color: 'var(--text-primary)' }}>{value}</div>
                     </div>
                   </a>
                 ))}
@@ -135,13 +148,13 @@ export default function Contact() {
             </div>
 
             <div className="glass p-5 text-center">
-              <div className="mono text-xs text-cyan-400/40 mb-2">{'>'} availability</div>
-              <div className="text-sm text-gray-300">Open to collaborations</div>
-              <div className="text-xs text-gray-600 mono mt-1">& project conversations</div>
+              <div className="mono text-xs mb-2" style={{ color: 'var(--accent-secondary)', opacity: 0.6 }}>{'>'} availability</div>
+              <div className="text-sm" style={{ color: 'var(--text-primary)' }}>Open to collaborations</div>
+              <div className="text-xs mono mt-1" style={{ color: 'var(--text-secondary)' }}>&amp; project conversations</div>
             </div>
           </motion.div>
         </div>
       </div>
-    </main>
+    </section>
   );
 }

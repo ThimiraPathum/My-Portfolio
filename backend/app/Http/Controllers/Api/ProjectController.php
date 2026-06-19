@@ -20,18 +20,21 @@ class ProjectController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'title'        => 'required|string|max:255',
-            'description'  => 'nullable|string',
-            'image_url'    => 'nullable|string',
-            'gallery'      => 'nullable|array',
-            'video_url'    => 'nullable|string',
-            'tech_stack'   => 'nullable|array',
-            'github_url'   => 'nullable|string',
-            'live_url'     => 'nullable|string',
-            'category'     => 'nullable|string',
-            'featured'     => 'boolean',
-            'coming_soon'  => 'boolean',
-            'order'        => 'integer',
+            'title'          => 'required|string|max:255',
+            'description'    => 'nullable|string',
+            'image_url'      => 'nullable|string',
+            'gallery'        => 'nullable|array',
+            'video_url'      => 'nullable|string',
+            'tech_stack'     => 'nullable|array',
+            'github_url'     => 'nullable|string',
+            'live_url'       => 'nullable|string',
+            'category'       => 'nullable|string',
+            'featured'       => 'boolean',
+            'coming_soon'    => 'boolean',
+            'order'          => 'integer',
+            'timeline_order' => 'integer|nullable',
+            'milestone_year' => 'string|nullable|max:50',
+            'visual_layout'  => 'string|nullable|in:left-text,right-text,auto',
         ]);
 
         $project = Project::create($validated);

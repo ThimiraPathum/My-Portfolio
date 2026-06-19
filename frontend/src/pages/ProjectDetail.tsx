@@ -10,12 +10,6 @@ export default function ProjectDetail() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // We already have getProject by ID in the backend, but we can just use the getProjects list or create a getProject API method.
-    // Wait, the API index has `export const getProjects = () => api.get('/projects');`.
-    // Let's just fetch all and find it, or we could add `getProject(id)` to api/index.ts.
-    // Since it's quick, let's fetch all and filter for now to avoid altering api.ts if we don't have to,
-    // actually, let's use the API if we added it, but I don't think I added getProject(id) to frontend api/index.ts.
-    // I will fetch all and find the one.
     getProjects()
       .then(({ data }) => {
         const found = data.find((p: any) => p.id.toString() === id);
@@ -28,7 +22,7 @@ export default function ProjectDetail() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center pt-20">
-        <div className="w-8 h-8 rounded-full border-2 border-cyan-400 border-t-transparent animate-spin" />
+        <div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: 'var(--accent-primary)', borderTopColor: 'transparent' }} />
       </div>
     );
   }
@@ -36,8 +30,8 @@ export default function ProjectDetail() {
   if (!project) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center pt-20">
-        <h1 className="text-2xl font-bold text-white mb-4">Project not found</h1>
-        <NavLink to="/projects" className="text-cyan-400">← Back to Projects</NavLink>
+        <h1 className="text-2xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>Project not found</h1>
+        <NavLink to="/projects" style={{ color: 'var(--accent-primary)' }}>← Back to Projects</NavLink>
       </div>
     );
   }
@@ -45,24 +39,30 @@ export default function ProjectDetail() {
   return (
     <main className="pt-24 pb-20 px-6 min-h-screen grid-bg">
       <div className="max-w-4xl mx-auto">
-        <NavLink to="/projects" className="inline-flex items-center gap-2 text-cyan-400 text-sm mono mb-8 hover:text-cyan-300">
+        <NavLink to="/projects" className="inline-flex items-center gap-2 text-sm mono mb-8 transition-colors"
+          style={{ color: 'var(--accent-primary)' }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--accent-tertiary)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--accent-primary)'; }}
+        >
           <FiArrowLeft /> Back to Projects
         </NavLink>
 
         <motion.article initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <header className="mb-10 text-center">
             {project.coming_soon && (
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-400/10 text-yellow-400 text-xs mono mb-4 border border-yellow-400/20">
-                <FiClock size={12} /> Coming Soon
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs mono mb-4"
+                style={{ background: 'rgba(255, 165, 0, 0.1)', color: 'var(--accent-amber)', border: '1px solid rgba(255, 165, 0, 0.2)' }}>
+                <FiClock size={12} /> In Progress
               </div>
             )}
-            <h1 className="text-4xl md:text-5xl font-extrabold text-white leading-tight mb-6">
+            <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-6" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>
               {project.title}
             </h1>
             
             <div className="flex flex-wrap items-center justify-center gap-4 mb-8">
               {project.tech_stack?.map((tech: string) => (
-                <span key={tech} className="px-3 py-1 rounded-full bg-cyan-400/10 text-cyan-400 text-sm border border-cyan-400/20">
+                <span key={tech} className="px-3 py-1 rounded-full text-sm"
+                  style={{ background: 'rgba(232, 116, 29, 0.08)', color: 'var(--accent-primary)', border: '1px solid rgba(232, 116, 29, 0.2)' }}>
                   {tech}
                 </span>
               ))}
@@ -70,12 +70,14 @@ export default function ProjectDetail() {
 
             <div className="flex justify-center gap-4 mb-10">
               {project.github_url && (
-                <a href={project.github_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white hover:bg-white/10 transition">
+                <a href={project.github_url} target="_blank" rel="noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg transition"
+                  style={{ background: 'rgba(232, 116, 29, 0.05)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}>
                   <FiGithub /> Source Code
                 </a>
               )}
               {project.live_url && (
-                <a href={project.live_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-lg btn-gradient text-white transition">
+                <a href={project.live_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-lg btn-gradient transition">
                   <FiExternalLink /> Live Demo
                 </a>
               )}
@@ -85,13 +87,13 @@ export default function ProjectDetail() {
           {/* Media Section */}
           <div className="space-y-8 mb-12">
             {project.image_url && (
-              <div className="w-full rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-black/50">
-                <img src={getSafeUrl(project.image_url)} alt={project.title} className="w-full h-auto max-h-[600px] object-contain" />
+              <div className="w-full overflow-hidden" style={{ borderRadius: '16px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-md)' }}>
+                <img src={getSafeUrl(project.image_url)} alt={project.title} className="w-full h-auto max-h-[600px] object-contain" style={{ background: 'var(--bg-secondary)' }} />
               </div>
             )}
             
             {project.video_url && (
-              <div className="w-full rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-black/50">
+              <div className="w-full overflow-hidden" style={{ borderRadius: '16px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-md)' }}>
                 <video 
                   src={getSafeUrl(project.video_url)} 
                   controls 
@@ -104,25 +106,28 @@ export default function ProjectDetail() {
             )}
             
             {project.gallery && Array.isArray(project.gallery) && project.gallery.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {project.gallery.map((img: string, i: number) => (
-                  <div key={i} className="rounded-xl overflow-hidden border border-white/10 glass">
-                    <img src={getSafeUrl(img)} alt={`Gallery ${i}`} className="w-full h-48 object-cover hover:scale-105 transition-transform duration-500" />
+                  <div key={i} className="overflow-hidden group" style={{ borderRadius: '12px', border: '1px solid var(--border)' }}>
+                    <img src={getSafeUrl(img)} alt={`Gallery ${i}`} className="w-full h-48 object-cover group-hover:scale-[1.03] transition-transform duration-500" />
                   </div>
                 ))}
               </div>
             )}
             
             {!project.image_url && !project.video_url && (!project.gallery || project.gallery.length === 0) && (
-              <div className="w-full aspect-video rounded-2xl border border-dashed border-white/20 flex flex-col items-center justify-center text-gray-500 bg-white/5">
+              <div className="w-full aspect-video flex flex-col items-center justify-center" 
+                style={{ borderRadius: '16px', border: '2px dashed var(--border)', background: 'rgba(232, 116, 29, 0.03)', color: 'var(--text-secondary)' }}>
                 <div className="mono text-sm mb-2">No media uploaded yet</div>
               </div>
             )}
           </div>
 
-          <div className="prose prose-invert prose-cyan max-w-none text-gray-300 leading-relaxed marker:text-cyan-400 whitespace-pre-wrap font-sans text-lg glass p-8">
-            <h2 className="text-xl font-bold text-white mb-4 mt-0 border-b border-white/10 pb-2">About the Project</h2>
-            {project.description}
+          <div className="glass p-8" style={{ lineHeight: '1.7' }}>
+            <h2 className="text-xl font-bold mb-4 mt-0 pb-2" style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border)', fontFamily: 'var(--font-display)' }}>About the Project</h2>
+            <div className="whitespace-pre-wrap text-lg" style={{ color: 'var(--text-secondary)' }}>
+              {project.description}
+            </div>
           </div>
         </motion.article>
       </div>

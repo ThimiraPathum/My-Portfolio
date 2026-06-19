@@ -153,7 +153,11 @@ export default function AdminDashboard() {
     end_date: '', 
     current: true,
     tech_stack: [] as string[],
-    certificate_url: null as string | null
+    certificate_url: null as string | null,
+    timeline_order: 0,
+    milestone_year: '',
+    featured: false,
+    visual_layout: 'auto'
   });
   
   // Settings form
@@ -983,7 +987,8 @@ export default function AdminDashboard() {
                     setEditingExpId(null);
                     setNewExpData({ 
                       company: '', description: '', role: '', location: '', 
-                      start_date: '', end_date: '', current: true, tech_stack: [], certificate_url: null 
+                      start_date: '', end_date: '', current: true, tech_stack: [], certificate_url: null,
+                      timeline_order: 0, milestone_year: '', featured: false, visual_layout: 'auto'
                     });
                   }} 
                   className={`btn-gradient px-4 py-2 rounded-lg text-sm mb-4 inline-flex items-center gap-2 transition-all ${showAddExpForm && !editingExpId ? 'bg-red-500/20 text-red-400 border-red-500/30' : ''}`}
@@ -1051,16 +1056,62 @@ export default function AdminDashboard() {
                         </div>
                       </div>
 
-                      <div className="flex flex-col md:flex-row gap-6 items-start">
-                        <div className="flex items-center gap-2 pt-6">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-[10px] text-[var(--text-secondary)] mono mb-1 uppercase tracking-widest">Milestone Year (Label)</label>
                           <input 
-                            type="checkbox" 
-                            id="is_current"
-                            className="accent-cyan-400 w-4 h-4 cursor-pointer"
-                            checked={newExpData.current}
-                            onChange={(e) => setNewExpData({ ...newExpData, current: e.target.checked })}
+                            type="text" 
+                            placeholder="e.g. 2020-2022 or 2024"
+                            className="w-full bg-[rgba(232,116,29,0.04)] border border-[var(--border)] rounded-lg text-sm text-[var(--text-primary)] p-3 outline-none focus:border-[var(--accent-primary)]/50"
+                            value={newExpData.milestone_year || ''}
+                            onChange={(e) => setNewExpData({ ...newExpData, milestone_year: e.target.value })}
                           />
-                          <label htmlFor="is_current" className="text-xs text-gray-300 cursor-pointer">Currently enrolled / active</label>
+                        </div>
+                        <div>
+                          <label className="block text-[10px] text-[var(--text-secondary)] mono mb-1 uppercase tracking-widest">Timeline Order</label>
+                          <input 
+                            type="number" 
+                            className="w-full bg-[rgba(232,116,29,0.04)] border border-[var(--border)] rounded-lg text-sm text-[var(--text-primary)] p-2.5 outline-none focus:border-[var(--accent-primary)]/50"
+                            value={newExpData.timeline_order ?? 0}
+                            onChange={(e) => setNewExpData({ ...newExpData, timeline_order: Number(e.target.value) })}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] text-[var(--text-secondary)] mono mb-1 uppercase tracking-widest">Visual Layout</label>
+                          <select 
+                            className="w-full bg-[rgba(232,116,29,0.04)] border border-[var(--border)] rounded-lg text-sm text-[var(--text-primary)] p-2.5 outline-none focus:border-[var(--accent-primary)]/50"
+                            value={newExpData.visual_layout || 'auto'}
+                            onChange={(e) => setNewExpData({ ...newExpData, visual_layout: e.target.value })}
+                          >
+                            <option value="auto">Auto (Alternate)</option>
+                            <option value="left-text">Text Left / Image Right</option>
+                            <option value="right-text">Image Left / Text Right</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col md:flex-row gap-6 items-start">
+                        <div className="flex items-center gap-4 pt-6">
+                          <div className="flex items-center gap-2">
+                            <input 
+                              type="checkbox" 
+                              id="is_current"
+                              className="accent-[var(--accent-primary)] w-4 h-4 cursor-pointer"
+                              checked={newExpData.current}
+                              onChange={(e) => setNewExpData({ ...newExpData, current: e.target.checked })}
+                            />
+                            <label htmlFor="is_current" className="text-xs text-[var(--text-primary)] cursor-pointer">Currently enrolled / active</label>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <input 
+                              type="checkbox" 
+                              id="is_featured"
+                              className="accent-[var(--accent-primary)] w-4 h-4 cursor-pointer"
+                              checked={newExpData.featured || false}
+                              onChange={(e) => setNewExpData({ ...newExpData, featured: e.target.checked })}
+                            />
+                            <label htmlFor="is_featured" className="text-xs text-[var(--text-primary)] cursor-pointer font-semibold">Featured Milestone</label>
+                          </div>
                         </div>
                         <div className="flex-1 w-full">
                           <label className="block text-[10px] text-gray-500 mono mb-1 uppercase tracking-widest">Tech Stack / Skills (comma separated)</label>
@@ -1154,7 +1205,8 @@ export default function AdminDashboard() {
                               }
                               setNewExpData({ 
                                 company: '', description: '', role: '', location: '', 
-                                start_date: '', end_date: '', current: true, tech_stack: [], certificate_url: null 
+                                start_date: '', end_date: '', current: true, tech_stack: [], certificate_url: null,
+                                timeline_order: 0, milestone_year: '', featured: false, visual_layout: 'auto'
                               });
                               setShowAddExpForm(false);
                               setEditingExpId(null);
@@ -1184,16 +1236,20 @@ export default function AdminDashboard() {
                               onClick={() => {
                                 setEditingExpId(e.id);
                                 setNewExpData({
-                                  company: e.company,
-                                  description: e.description,
-                                  role: e.role,
-                                  location: e.location || '',
-                                  start_date: e.start_date?.split('T')[0] || '',
-                                  end_date: e.end_date?.split('T')[0] || '',
-                                  current: e.current,
-                                  tech_stack: e.tech_stack || [],
-                                  certificate_url: e.certificate_url
-                                });
+                                    company: e.company,
+                                    description: e.description,
+                                    role: e.role,
+                                    location: e.location || '',
+                                    start_date: e.start_date?.split('T')[0] || '',
+                                    end_date: e.end_date?.split('T')[0] || '',
+                                    current: e.current,
+                                    tech_stack: e.tech_stack || [],
+                                    certificate_url: e.certificate_url,
+                                    timeline_order: e.timeline_order ?? 0,
+                                    milestone_year: e.milestone_year || '',
+                                    featured: e.featured || false,
+                                    visual_layout: e.visual_layout || 'auto'
+                                  });
                                 setShowAddExpForm(true);
                                 window.scrollTo({ top: 0, behavior: 'smooth' });
                               }}
