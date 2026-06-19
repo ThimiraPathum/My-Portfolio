@@ -105,7 +105,7 @@ export default function Navbar() {
         borderBottomColor: scrolled ? 'rgba(212, 175, 55, 0.2)' : 'transparent',
       }}
     >
-      <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between overflow-hidden">
         {/* Logo */}
         <button
           onClick={() => handleNavClick('/')}
@@ -117,7 +117,7 @@ export default function Navbar() {
             className="h-17 w-17 object-contain rounded-full transition-opacity group-hover:opacity-90"
           />
           <span
-            className="font-semibold text-lg tracking-tight underline underline-offset-4 decoration-1"
+            className="font-semibold text-sm sm:text-base tracking-tight underline underline-offset-4 decoration-1 truncate max-w-[140px] sm:max-w-none"
             style={{
               background: 'linear-gradient(135deg, #D4AF37 0%, #E8741D 60%, #b8860b 100%)',
               WebkitBackgroundClip: 'text',

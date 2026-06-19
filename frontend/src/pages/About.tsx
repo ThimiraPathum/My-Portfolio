@@ -45,7 +45,7 @@ I thrive at the intersection of infrastructure and development — combining my 
 I am passionate about building resilient systems that bridge the gap between clean code and reliable production environments.`;
 
   return (
-    <section className="pt-24 pb-24 px-4 sm:px-6 min-h-screen">
+    <section className="pt-20 pb-16 px-4 sm:px-6">
       <div className="max-w-6xl mx-auto">
 
         {/* Section header */}
@@ -138,19 +138,18 @@ I am passionate about building resilient systems that bridge the gap between cle
             </div>
           </motion.div>
 
-          {/* Right — Expertise cards */}
           <motion.div
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: '-50px' }}
-            className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+            className="grid grid-cols-2 gap-3"
           >
             {expertise.map((item) => (
               <motion.div
                 key={item.title}
                 variants={itemVariants}
-                className="p-5 rounded-2xl flex flex-col gap-3 transition-all duration-300"
+                className="p-4 rounded-2xl flex flex-col gap-2.5 transition-all duration-300"
                 style={{
                   background: 'transparent',
                   border: '1px solid rgba(212, 175, 55, 0.14)',
@@ -165,16 +164,16 @@ I am passionate about building resilient systems that bridge the gap between cle
                 }}
               >
                 <div
-                  className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                  className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
                   style={{ background: 'rgba(232, 116, 29, 0.08)' }}
                 >
-                  <item.icon size={17} style={{ color: 'var(--accent-primary)' }} />
+                  <item.icon size={15} style={{ color: 'var(--accent-primary)' }} />
                 </div>
                 <div>
-                  <div className="text-sm font-semibold mb-1.5" style={{ color: 'var(--text-primary)' }}>
+                  <div className="text-xs font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>
                     {item.title}
                   </div>
-                  <div className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)', lineHeight: '1.7' }}>
+                  <div className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
                     {item.desc}
                   </div>
                 </div>
@@ -182,44 +181,6 @@ I am passionate about building resilient systems that bridge the gap between cle
             ))}
           </motion.div>
         </div>
-
-        {/* Bottom highlight bar */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-50px' }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="grid grid-cols-2 sm:grid-cols-4 gap-4"
-        >
-          {[
-            { value: 'DevOps', label: 'Focus Area' },
-            { value: 'MLOps', label: 'Specialization' },
-            { value: 'Linux', label: 'Architecture' },
-            { value: 'Award', label: 'Industrial Background' },
-          ].map((stat) => (
-            <div
-              key={stat.label}
-              className="p-4 rounded-2xl text-center"
-              style={{
-                background: 'rgba(212, 175, 55, 0.04)',
-                border: '1px solid rgba(212, 175, 55, 0.12)',
-              }}
-            >
-              <div
-                className="text-lg font-bold mb-1"
-                style={{
-                  background: 'linear-gradient(135deg, #D4AF37, #E8741D)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                }}
-              >
-                {stat.value}
-              </div>
-              <div className="mono text-xs" style={{ color: 'var(--text-secondary)' }}>{stat.label}</div>
-            </div>
-          ))}
-        </motion.div>
 
       </div>
     </section>
