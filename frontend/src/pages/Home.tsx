@@ -68,25 +68,21 @@ export default function Home() {
                   {'>'} hello.world()
                 </div>
                 <h1
-                  className="text-4xl font-bold leading-tight mb-2"
-                  style={{ fontFamily: 'var(--font-display)', letterSpacing: '-0.02em' }}
+                  className="text-5xl font-medium leading-tight mb-2"
+                  style={{ fontFamily: "'Playfair Display', serif", letterSpacing: '-0.02em' }}
                 >
-                  <span
-                    style={{
-                      background: 'linear-gradient(135deg, #1a0a00 0%, #D4AF37 35%, #E8741D 65%, #0d0500 100%)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      backgroundClip: 'text',
-                    }}
-                  >
+                  <span style={{ color: 'var(--text-primary)' }}>
                     {firstName}
-                  </span>{' '}
+                  </span>
+                  <br />
                   <span
                     style={{
-                      background: 'linear-gradient(135deg, #E8741D 0%, #D4AF37 50%, #1a0800 100%)',
+                      fontStyle: 'italic',
+                      background: 'linear-gradient(to right, #C1634D 0%, #7C8A54 33%, #4682B4 66%, #B8A058 100%)',
                       WebkitBackgroundClip: 'text',
                       WebkitTextFillColor: 'transparent',
                       backgroundClip: 'text',
+                      paddingRight: '0.15em',
                     }}
                   >
                     {lastName}
@@ -187,13 +183,23 @@ export default function Home() {
 
               <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}>
                 <h1
-                  className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight tracking-tight"
-                  style={{ fontFamily: 'var(--font-display)', letterSpacing: '-0.02em' }}
+                  className="text-6xl lg:text-[5.5rem] font-medium mb-6 leading-none tracking-tight"
+                  style={{ fontFamily: "'Playfair Display', serif", letterSpacing: '-0.02em' }}
                 >
-                  <span style={{ background: 'linear-gradient(135deg, #1a0a00 0%, #D4AF37 35%, #E8741D 65%, #0d0500 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+                  <span style={{ color: 'var(--text-primary)' }}>
                     {firstName}
-                  </span>{' '}
-                  <span style={{ background: 'linear-gradient(135deg, #E8741D 0%, #D4AF37 50%, #1a0800 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+                  </span>
+                  <br />
+                  <span
+                    style={{
+                      fontStyle: 'italic',
+                      background: 'linear-gradient(to right, #C1634D 0%, #7C8A54 33%, #4682B4 66%, #B8A058 100%)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      backgroundClip: 'text',
+                      paddingRight: '0.15em',
+                    }}
+                  >
                     {lastName}
                   </span>
                 </h1>

@@ -114,16 +114,13 @@ export default function Navbar() {
           <img
             src="/logo.png"
             alt="Logo"
-            className="h-17 w-17 object-contain rounded-full transition-opacity group-hover:opacity-90"
+            className="h-17 w-17 object-contain bg-white p-0.5 shadow-sm rounded-full transition-opacity group-hover:opacity-90"
           />
           <span
-            className="font-semibold text-sm sm:text-base tracking-tight underline underline-offset-4 decoration-1 truncate max-w-[140px] sm:max-w-none"
+            className="font-medium text-base sm:text-lg tracking-tight underline underline-offset-4 decoration-1 truncate max-w-[140px] sm:max-w-none"
             style={{
-              background: 'linear-gradient(135deg, #D4AF37 0%, #E8741D 60%, #b8860b 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              fontFamily: 'var(--font-display)',
+              fontFamily: "'Playfair Display', serif",
+              color: 'var(--text-primary)',
             }}
           >
             Thimira Pathum
