@@ -241,10 +241,21 @@ jobs:
               sudo rm -rf "${PROJECT_PATH}/backend/vendor"
               
               # Install inside Docker container
-              sudo docker exec backend-api bash -c "cd /app && composer install --no-dev --optimize-autoloader --no-interaction" || {
-                echo -e "${RED}❌ Composer install failed${NC}"
-                exit 1
-              }
+              echo "   Installing composer dependencies..."
+              sudo docker exec backend-api composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist || {
+              echo -e "${RED}❌ Composer install failed${NC}"
+              echo "Checking vendor folder:"
+              sudo docker exec backend-api ls -la /app/vendor 2>&1 | head -20
+              exit 1
+                  }           
+
+              #Verify vendor folder exists
+              echo "   Verifying vendor folder..."
+              sudo docker exec backend-api ls -la /app/vendor/autoload.php || {
+              echo -e "${RED}❌ Vendor autoload not found!${NC}"
+              exit 1
+                }           
+              echo -e "${GREEN}   ✅ Vendor folder verified${NC}"
               echo -e "${GREEN}   ✅ Dependencies installed${NC}"
               
               # ========== DATABASE MIGRATIONS (SAFE - keeps existing data) ==========
