@@ -184,9 +184,15 @@ jobs:
             
             # ========== SYNC SOURCE CODE ==========
             echo -e "${YELLOW}📥 Syncing Source Code from GitHub...${NC}"
+            echo "DEBUG: PROJECT_PATH = ${PROJECT_PATH}"
+            echo "DEBUG: Checking if .git exists:"
+            ls -la "${PROJECT_PATH}/.git" || echo "ERROR: .git not found"
+            echo "DEBUG: Current directory before pull:"
+            pwd
+            echo "DEBUG: Trying git pull..."
             /usr/bin/git -C "${PROJECT_PATH}" pull origin main --ff-only || {
-              echo -e "${RED}❌ Git pull failed${NC}"
-              exit 1
+            echo -e "${RED}❌ Git pull failed${NC}"
+            exit 1
             }
             echo -e "${GREEN}✅ Source code synchronized${NC}"
             
