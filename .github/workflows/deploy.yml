@@ -295,9 +295,10 @@ jobs:
               echo -e "${GREEN}   ✅ Cache cleared${NC}"
               
               # ========== FIX FILE PERMISSIONS ==========
-              echo -e "${YELLOW}   🔐 Setting file permissions...${NC}"
-              sudo chown -R 33:33 "${PROJECT_PATH}/database" "${PROJECT_PATH}/backend/storage"
-              sudo chmod -R 775 "${PROJECT_PATH}/database" "${PROJECT_PATH}/backend/storage"
+              # ========== FIX FILE PERMISSIONS ==========
+            echo -e "${YELLOW}   🔐 Setting file permissions...${NC}"
+            sudo chown -R 33:33 "${PROJECT_PATH}/backend/storage" 2>/dev/null || true
+            sudo chmod -R 775 "${PROJECT_PATH}/backend/storage" 2>/dev/null || true
               echo -e "${GREEN}   ✅ Permissions updated${NC}"
               
               echo -e "${GREEN}✅ Backend deployed successfully${NC}"
