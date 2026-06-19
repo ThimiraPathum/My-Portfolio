@@ -50,9 +50,7 @@ export default function Footer() {
                 Thimira Pathum
               </span>
             </div>
-            <p className="text-xs leading-relaxed mb-4" style={{ color: 'var(--text-secondary)' }}>
-              ICT Undergraduate · University of Colombo
-            </p>
+
             <div className="flex items-center gap-2">
               {socials.map(({ icon: Icon, href, label }) => (
                 <motion.a
@@ -144,9 +142,7 @@ export default function Footer() {
               © {new Date().getFullYear()} Thimira Pathum. All rights reserved.
             </span>
           </div>
-          <span className="mono text-xs" style={{ color: 'var(--text-secondary)', opacity: 0.45 }}>
-            University of Colombo · ICT
-          </span>
+
         </div>
 
       </div>

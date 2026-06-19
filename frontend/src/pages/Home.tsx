@@ -54,8 +54,6 @@ export default function Home() {
                     className="w-full h-full object-cover object-top"
                     style={{
                       borderRadius: '50%',
-                      border: '2px solid var(--accent-secondary)',
-                      boxShadow: '0 0 0 4px rgba(212, 175, 55, 0.12), 0 8px 24px rgba(232, 116, 29, 0.18)',
                     }}
                   />
                 </div>
@@ -63,10 +61,7 @@ export default function Home() {
 
               {/* Name + label */}
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="flex flex-col items-center">
-                <div className="mono text-xs mb-2 flex items-center gap-1.5" style={{ color: 'var(--accent-primary)' }}>
-                  <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'var(--success)' }} />
-                  {'>'} hello.world()
-                </div>
+
                 <h1
                   className="text-5xl font-medium leading-tight mb-2"
                   style={{ fontFamily: "'Playfair Display', serif", letterSpacing: '-0.02em' }}
@@ -88,9 +83,7 @@ export default function Home() {
                     {lastName}
                   </span>
                 </h1>
-                <div className="mono text-xs" style={{ color: 'var(--text-secondary)' }}>
-                  ICT · University of Colombo
-                </div>
+
               </motion.div>
             </div>
 
@@ -173,13 +166,7 @@ export default function Home() {
           <div className="hidden md:flex items-center justify-between gap-12">
             {/* Text content */}
             <div className="flex-1 flex flex-col items-start text-left">
-              <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
-                className="mono text-xs mb-4 tracking-widest flex items-center gap-2"
-                style={{ color: 'var(--accent-primary)' }}
-              >
-                <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: 'var(--success)' }} />
-                {'>'} hello.world()
-              </motion.div>
+
 
               <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}>
                 <h1
@@ -272,9 +259,7 @@ export default function Home() {
               transition={{ duration: 0.7, delay: 0.2 }}
               className="flex-shrink-0 relative subtle-float"
             >
-              <div className="hidden lg:block absolute -left-12 top-1/2 -translate-y-1/2 w-[2px] h-32 rounded-full"
-                style={{ background: 'linear-gradient(180deg, var(--accent-secondary), var(--accent-primary), transparent)' }}
-              />
+
               <div className="w-72 h-72 md:w-80 md:h-80 lg:w-96 lg:h-96">
                 <img
                   src={settings.profile_photo ? getSafeUrl(settings.profile_photo) : '/profile.jpg'}
@@ -282,8 +267,6 @@ export default function Home() {
                   className="w-full h-full object-cover object-top"
                   style={{
                     borderRadius: '50%',
-                    border: '3px solid var(--accent-secondary)',
-                    boxShadow: '0 0 0 6px rgba(212, 175, 55, 0.1), 0 12px 36px rgba(232, 116, 29, 0.2)',
                   }}
                 />
               </div>

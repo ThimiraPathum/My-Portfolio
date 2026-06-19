@@ -32,7 +32,7 @@ const itemVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 
 export default function About() {
   const { settings } = useSettings();
 
-  const name = settings.home_name || 'Thimira Pathum';
+
   const email = settings.social_email || 'kasthuriarachchipathum@gmail.com';
 
   const bio = settings.about_bio ||
@@ -73,37 +73,7 @@ I am passionate about building resilient systems that bridge the gap between cle
             viewport={{ once: true, margin: '-50px' }}
             transition={{ duration: 0.6 }}
           >
-            {/* Profile chip */}
-            <div
-              className="flex items-center gap-4 mb-8 p-4 rounded-2xl"
-              style={{
-                background: 'rgba(232, 116, 29, 0.04)',
-                border: '1px solid rgba(232, 116, 29, 0.12)',
-              }}
-            >
-              <div
-                className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0"
-                style={{
-                  background: 'linear-gradient(135deg, var(--accent-secondary), var(--accent-primary))',
-                  color: 'var(--bg-primary)',
-                  fontSize: '16px',
-                }}
-              >
-                {name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}
-              </div>
-              <div>
-                <div className="font-semibold text-sm mb-0.5" style={{ color: 'var(--text-primary)' }}>{name}</div>
-                <div className="mono text-xs" style={{ color: 'var(--accent-primary)', opacity: 0.85 }}>
-                  ICT Undergraduate · University of Colombo
-                </div>
-              </div>
-              {/* Availability pill */}
-              <div className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-full flex-shrink-0"
-                style={{ background: 'rgba(107, 165, 118, 0.1)', border: '1px solid rgba(107, 165, 118, 0.25)' }}>
-                <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#6BA576' }} />
-                <span className="mono text-xs" style={{ color: '#6BA576' }}>Open to work</span>
-              </div>
-            </div>
+
 
             {/* Bio text */}
             <div className="space-y-4 mb-8">
