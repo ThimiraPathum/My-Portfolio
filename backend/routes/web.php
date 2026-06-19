@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
 Route::get('/', function () {
-    return 'Hello World';
+    return 'Hello the World';
 });
 
 // Keep root live
