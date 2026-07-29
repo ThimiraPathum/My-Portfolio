@@ -12,25 +12,19 @@ class AuthController extends Controller
 {
     public function login(Request $request)
     {
-        \Log::info('Login attempt', ['email' => $request->email]);
-        
         $validator = Validator::make($request->all(), [
-            'email'    => 'required|string',
+            'email'    => 'required|email',
             'password' => 'required|string',
         ]);
 
         if ($validator->fails()) {
-            \Log::warning('Login validation failed', ['errors' => $validator->errors()]);
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $credentials = $request->only('email', 'password');
-        if (!$token = Auth::guard('api')->attempt($credentials)) {
-            \Log::error('Login failed: Invalid credentials', ['email' => $request->email]);
+        if (!$token = Auth::guard('api')->attempt($request->only('email', 'password'))) {
             return response()->json(['error' => 'Invalid credentials'], 401);
         }
 
-        \Log::info('Login successful', ['email' => $request->email]);
         return $this->respondWithToken($token);
     }
 

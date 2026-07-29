@@ -18,9 +18,13 @@ class MessageController extends Controller
         $validated = $request->validate([
             'name'    => 'required|string|max:100',
             'email'   => 'required|email',
-            'subject' => 'required|string|max:255',
+            'subject' => 'nullable|string|max:255',
             'message' => 'required|string',
         ]);
+
+        if (empty($validated['subject'])) {
+            $validated['subject'] = 'Portfolio Contact';
+        }
 
         $msg = Message::create($validated);
         return response()->json(['message' => 'Message sent successfully', 'data' => $msg], 201);

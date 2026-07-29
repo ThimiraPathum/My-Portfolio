@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const rawApiUrl = import.meta.env.VITE_API_URL || 
-  (typeof window !== 'undefined' && window.location.hostname === 'localhost' 
+  (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') 
     ? 'http://localhost:8000/api/' 
     : 'https://my-portfolio-api-20fo.onrender.com/api/');
 

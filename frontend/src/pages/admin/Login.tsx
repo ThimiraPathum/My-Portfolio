@@ -21,7 +21,8 @@ export default function AdminLogin() {
       navigate('/admin');
     } catch (err: any) {
       console.error('[Login Error Detail]:', err.response?.data || err.message);
-      toast.error('Invalid credentials. Check your email and password.');
+      const message = err.response?.data?.error || err.response?.data?.message || err.message || 'Login failed';
+      toast.error(message);
     } finally {
       setLoading(false);
     }

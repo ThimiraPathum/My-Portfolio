@@ -55,6 +55,10 @@ export default function Home() {
                     style={{
                       borderRadius: '50%',
                     }}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = '/profile.jpg';
+                    }}
                   />
                 </div>
               </motion.div>
@@ -267,6 +271,10 @@ export default function Home() {
                   className="w-full h-full object-cover object-top"
                   style={{
                     borderRadius: '50%',
+                  }}
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = '/profile.jpg';
                   }}
                 />
               </div>

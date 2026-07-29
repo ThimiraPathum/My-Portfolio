@@ -44,7 +44,25 @@ class ProjectController extends Controller
     public function update(Request $request, $id)
     {
         $project = Project::findOrFail($id);
-        $project->update($request->all());
+        $validated = $request->validate([
+            'title'          => 'sometimes|required|string|max:255',
+            'description'    => 'nullable|string',
+            'image_url'      => 'nullable|string',
+            'gallery'        => 'nullable|array',
+            'video_url'      => 'nullable|string',
+            'tech_stack'     => 'nullable|array',
+            'github_url'     => 'nullable|string',
+            'live_url'       => 'nullable|string',
+            'category'       => 'nullable|string',
+            'featured'       => 'nullable|boolean',
+            'coming_soon'    => 'nullable|boolean',
+            'order'          => 'nullable|integer',
+            'timeline_order' => 'nullable|integer',
+            'milestone_year' => 'nullable|string|max:50',
+            'visual_layout'  => 'nullable|string|in:left-text,right-text,auto',
+        ]);
+
+        $project->update($validated);
         return response()->json($project);
     }
 

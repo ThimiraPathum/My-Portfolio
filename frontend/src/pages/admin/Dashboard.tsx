@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiLogOut, FiTrash2, FiMail, FiCheck, FiCode, FiDatabase, FiSettings, FiEdit2, FiEdit3, FiMessageSquare, FiImage, FiVideo, FiPlus, FiBriefcase, FiX, FiSearch, FiCopy, FiExternalLink, FiLink, FiClock, FiHash } from 'react-icons/fi';
+import { FiLogOut, FiTrash2, FiMail, FiCheck, FiCode, FiDatabase, FiSettings, FiEdit2, FiEdit3, FiMessageSquare, FiImage, FiVideo, FiPlus, FiBriefcase, FiX, FiCopy, FiExternalLink, FiLink, FiClock, FiHash } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
 import { useSettings } from '../../context/SettingsContext';
 import toast from 'react-hot-toast';
@@ -9,7 +9,7 @@ import {
   getProjects, createProject, updateProject, deleteProject,
   getSkills, createSkill, updateSkill as persistSkill, deleteSkill,
   getExperiences, createExperience, updateExperience as persistExperience, deleteExperience,
-  updateSettings,
+  getSettings, updateSettings,
   getAdminBlogs, createBlog, updateBlog, deleteBlog,
   getAllComments, approveComment, deleteComment,
   uploadFile, getSafeUrl
@@ -39,8 +39,7 @@ const copyText = async (value: string, label: string) => {
   }
 };
 
-const appendSnippet = (content: string, snippet: string) =>
-  `${content || ''}${content?.endsWith('\n') ? '' : '\n'}${snippet}\n`;
+
 
 const getBlogPublicUrl = (slug: string | null | undefined) => {
   if (!slug) return '';
@@ -160,14 +159,23 @@ export default function AdminDashboard() {
     visual_layout: 'auto'
   });
   
-  // Settings form
-  const [settingForm, setSettingForm] = useState<Record<string, string>>({});
+  // Settings form with modern homepage key defaults
+  const DEFAULT_SETTINGS: Record<string, string> = {
+    home_name: 'Thimira Pathum',
+    home_greeting: 'Portfolio Journey',
+    home_roles: 'DevOps, MLOps, AI Integration, Linux Systems, Cloud Architecture',
+    home_tag: 'Evolving from basic scripting to designing robust orchestration architectures.',
+    home_description: 'Building modern digital solutions through software engineering, networking, and innovation. Passionate about systems that are purposeful, efficient, and future-ready.',
+    profile_photo: '/profile.jpg',
+    about_bio: 'I am Thimira Pathum, an Information and Communication Technology undergraduate at the University of Colombo whose career is defined by optimizing complex systems.\n\nMy professional roots as an award-winning industrial mechanic instilled a rigorous, hands-on approach to preventive maintenance and troubleshooting. I brought that analytical mindset into software engineering, and it now drives my journey into DevOps and MLOps.\n\nI thrive at the intersection of infrastructure and development — combining my expertise in custom Linux architectures, backend development (Java, Laravel), and networking to automate workflows, streamline deployments, and operationalize machine learning models.\n\nI am passionate about building resilient systems that bridge the gap between clean code and reliable production environments.',
+    social_email: 'pathumt675@gmail.com',
+    social_github: 'https://github.com/THIMIRAPATHUM',
+    social_linkedin: 'https://linkedin.com/in/thimira-pathum',
+  };
+
+  const [settingForm, setSettingForm] = useState<Record<string, string>>(DEFAULT_SETTINGS);
 
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [blogStatusFilter, setBlogStatusFilter] = useState<'all' | 'draft' | 'published' | 'coming_soon'>('all');
-  const [projectFilter, setProjectFilter] = useState<'all' | 'featured' | 'coming_soon'>('all');
-  const [commentFilter, setCommentFilter] = useState<'all' | 'pending' | 'approved'>('all');
 
   const loadTabData = useCallback(async (t: TabType, showSpinner = true) => {
     if (showSpinner) setLoading(true);
@@ -176,6 +184,13 @@ export default function AdminDashboard() {
         case 'messages': {
           const res = await getMessages();
           setMessages(Array.isArray(res.data) ? res.data : []);
+          break;
+        }
+        case 'settings': {
+          const res = await getSettings();
+          if (res.data) {
+            setSettingForm({ ...DEFAULT_SETTINGS, ...res.data });
+          }
           break;
         }
         case 'projects': {
@@ -447,51 +462,13 @@ export default function AdminDashboard() {
   ];
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const query = searchTerm.trim().toLowerCase();
-  const groupedSettings = {
-    hero: Object.keys(settingForm).filter((key) => /hero|headline|tagline|bio|intro|about/i.test(key)),
-    contact: Object.keys(settingForm).filter((key) => /email|phone|contact|location|address/i.test(key)),
-    social: Object.keys(settingForm).filter((key) => /github|linkedin|twitter|x_|instagram|facebook|youtube|behance|dribbble/i.test(key)),
-  };
-  const assignedSettingKeys = new Set([...groupedSettings.hero, ...groupedSettings.contact, ...groupedSettings.social, 'profile_photo']);
-  const otherSettingKeys = Object.keys(settingForm).filter((key) => !assignedSettingKeys.has(key));
 
-  const visibleMessages = messages.filter((msg) => {
-    if (!query) return true;
-    return [msg.name, msg.email, msg.subject, msg.message].some((value) => String(value || '').toLowerCase().includes(query));
-  });
-
-  const visibleBlogs = blogs.filter((blog) => {
-    const matchesSearch = !query || [blog.title, blog.slug, blog.excerpt, blog.content].some((value) => String(value || '').toLowerCase().includes(query));
-    const matchesStatus =
-      blogStatusFilter === 'all' ||
-      (blogStatusFilter === 'coming_soon' ? Boolean(blog.coming_soon) : blog.status === blogStatusFilter);
-    return matchesSearch && matchesStatus;
-  });
-
-  const visibleComments = comments.filter((comment) => {
-    const matchesSearch = !query || [comment.name, comment.email, comment.body, comment.blog?.title].some((value) => String(value || '').toLowerCase().includes(query));
-    const matchesStatus =
-      commentFilter === 'all' ||
-      (commentFilter === 'pending' ? !comment.approved : Boolean(comment.approved));
-    return matchesSearch && matchesStatus;
-  });
-
-  const visibleProjects = projects.filter((project) => {
-    const matchesSearch = !query || [project.title, project.description, project.category, ...(project.tech_stack || [])].some((value) => String(value || '').toLowerCase().includes(query));
-    const matchesFilter =
-      projectFilter === 'all' ||
-      (projectFilter === 'featured' ? Boolean(project.featured) : Boolean(project.coming_soon));
-    return matchesSearch && matchesFilter;
-  });
-
-  const visibleSkills = skills.filter((skill) =>
-    !query || [skill.name, skill.category, skill.icon].some((value) => String(value || '').toLowerCase().includes(query))
-  );
-
-  const visibleExperiences = experiences.filter((experience) =>
-    !query || [experience.company, experience.role, experience.location, experience.description, ...(experience.tech_stack || [])].some((value) => String(value || '').toLowerCase().includes(query))
-  );
+  const visibleMessages = messages;
+  const visibleBlogs = blogs;
+  const visibleComments = comments;
+  const visibleProjects = projects;
+  const visibleSkills = skills;
+  const visibleExperiences = experiences;
 
   return (
     <main className="pt-16 sm:pt-24 pb-20 px-4 sm:px-6 min-h-screen">
@@ -557,136 +534,7 @@ export default function AdminDashboard() {
           ))}
         </div>
 
-        <div className="glass p-4 mb-6 border-white/5">
-          <div className="flex flex-col lg:flex-row lg:items-center gap-3">
-            <div className="flex-1 relative">
-              <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
-              <input
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder={`Search ${tabs.find((item) => item.key === tab)?.label.toLowerCase()}...`}
-                className="w-full bg-white/5 border border-white/10 rounded-lg text-sm text-gray-200 pl-9 pr-3 py-2.5 outline-none focus:border-cyan-400/40"
-              />
-            </div>
-            {tab === 'blogs' && (
-              <div className="flex flex-wrap gap-2">
-                {[
-                  ['all', 'All'],
-                  ['draft', 'Drafts'],
-                  ['published', 'Published'],
-                  ['coming_soon', 'Coming Soon'],
-                ].map(([value, label]) => (
-                  <button
-                    key={value}
-                    onClick={() => setBlogStatusFilter(value as typeof blogStatusFilter)}
-                    className={`px-3 py-2 rounded-lg text-xs border ${
-                      blogStatusFilter === value ? 'border-cyan-400/30 text-cyan-400 bg-cyan-400/10' : 'border-white/10 text-gray-400'
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            )}
-            {tab === 'projects' && (
-              <div className="flex flex-wrap gap-2">
-                {[
-                  ['all', 'All'],
-                  ['featured', 'Featured'],
-                  ['coming_soon', 'Coming Soon'],
-                ].map(([value, label]) => (
-                  <button
-                    key={value}
-                    onClick={() => setProjectFilter(value as typeof projectFilter)}
-                    className={`px-3 py-2 rounded-lg text-xs border ${
-                      projectFilter === value ? 'border-cyan-400/30 text-cyan-400 bg-cyan-400/10' : 'border-white/10 text-gray-400'
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            )}
-            {tab === 'comments' && (
-              <div className="flex flex-wrap gap-2">
-                {[
-                  ['all', 'All'],
-                  ['pending', 'Pending'],
-                  ['approved', 'Approved'],
-                ].map(([value, label]) => (
-                  <button
-                    key={value}
-                    onClick={() => setCommentFilter(value as typeof commentFilter)}
-                    className={`px-3 py-2 rounded-lg text-xs border ${
-                      commentFilter === value ? 'border-cyan-400/30 text-cyan-400 bg-cyan-400/10' : 'border-white/10 text-gray-400'
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
-            <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-              <div className="text-[10px] uppercase tracking-widest text-gray-500 mono">Visible</div>
-              <div className="text-xl font-bold text-white">
-                {{
-                  messages: visibleMessages.length,
-                  settings: Object.keys(settingForm).length,
-                  blogs: visibleBlogs.length,
-                  comments: visibleComments.length,
-                  projects: visibleProjects.length,
-                  skills: visibleSkills.length,
-                  experience: visibleExperiences.length,
-                }[tab]}
-              </div>
-            </div>
-            <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-              <div className="text-[10px] uppercase tracking-widest text-gray-500 mono">Needs Attention</div>
-              <div className="text-xl font-bold text-white">
-                {{
-                  messages: messages.filter((msg) => !msg.read).length,
-                  settings: Object.keys(settingForm).filter((key) => !String(settingForm[key] || '').trim()).length,
-                  blogs: blogs.filter((blog) => blog.status !== 'published' || blog.coming_soon).length,
-                  comments: comments.filter((comment) => !comment.approved).length,
-                  projects: projects.filter((project) => !project.image_url || project.coming_soon).length,
-                  skills: skills.filter((skill) => !skill.category || skill.level < 50).length,
-                  experience: experiences.filter((experience) => !experience.description || !experience.start_date).length,
-                }[tab]}
-              </div>
-            </div>
-            <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-              <div className="text-[10px] uppercase tracking-widest text-gray-500 mono">Published / Live</div>
-              <div className="text-xl font-bold text-white">
-                {{
-                  messages: messages.filter((msg) => msg.read).length,
-                  settings: Object.keys(settingForm).filter((key) => String(settingForm[key] || '').trim()).length,
-                  blogs: blogs.filter((blog) => blog.status === 'published' && !blog.coming_soon).length,
-                  comments: comments.filter((comment) => comment.approved).length,
-                  projects: projects.filter((project) => !project.coming_soon).length,
-                  skills: skills.filter((skill) => skill.level >= 80).length,
-                  experience: experiences.filter((experience) => experience.current).length,
-                }[tab]}
-              </div>
-            </div>
-            <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-              <div className="text-[10px] uppercase tracking-widest text-gray-500 mono">Quick Signal</div>
-              <div className="text-sm font-semibold text-gray-200 mt-1">
-                {{
-                  messages: 'Reply to unread leads',
-                  settings: 'Keep hero and contact complete',
-                  blogs: 'Publish from polished drafts',
-                  comments: 'Moderate pending replies',
-                  projects: 'Feature strongest case studies',
-                  skills: 'Keep categories consistent',
-                  experience: 'Add proof and dates',
-                }[tab]}
-              </div>
-            </div>
-          </div>
-        </div>
 
         {loading ? <div className="space-y-3">{[...Array(3)].map((_, i) => <div key={i} className="glass h-20 animate-pulse" />)}</div> : (
           <motion.div key={tab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
@@ -741,92 +589,206 @@ export default function AdminDashboard() {
                 </div>
               </div>
             ))}
-            {tab === 'messages' && visibleMessages.length === 0 && <div className="glass p-8 text-center text-gray-500">{searchTerm ? 'No messages match your search' : 'No messages yet'}</div>}
+            {tab === 'messages' && visibleMessages.length === 0 && <div className="glass p-8 text-center text-gray-500">No messages yet</div>}
 
             {/* SETTINGS TAB */}
             {tab === 'settings' && (
               <div className="glass p-6 space-y-6">
-                <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-white/10 pb-4">
                   <div>
-                    <h3 className="text-lg font-bold text-white">Edit Public Content</h3>
-                    <p className="text-sm text-gray-400 mt-1">Settings are grouped so core homepage copy and contact data are easier to maintain.</p>
+                    <h3 className="text-xl font-bold text-white">Homepage & Site Content Management</h3>
+                    <p className="text-xs text-gray-400 mt-1">Directly edit all hero details, about me paragraphs, and social links for your portfolio.</p>
                   </div>
-                  <div className="text-xs text-gray-500 mono">
-                    {Object.keys(settingForm).filter((key) => String(settingForm[key] || '').trim()).length} / {Object.keys(settingForm).length} filled
-                  </div>
+                  <button onClick={handleSaveSettings} className="btn-gradient px-6 py-2.5 rounded-lg text-sm font-semibold flex items-center gap-2">
+                    <FiCheck /> Save All Settings
+                  </button>
                 </div>
 
-                {([
-                  ['Hero Content', groupedSettings.hero],
-                  ['Contact Details', groupedSettings.contact],
-                  ['Social Links', groupedSettings.social],
-                  ['Other Settings', otherSettingKeys],
-                ] as [string, string[]][]).map(([label, keys]) => (
-                  Array.isArray(keys) && keys.length > 0 ? (
-                    <div key={label} className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <h4 className="text-sm font-semibold text-white">{label}</h4>
-                        <span className="text-[10px] text-gray-500 mono uppercase tracking-widest">{keys.length} fields</span>
-                      </div>
-                      {keys.map((key) => (
-                        <div key={key}>
-                          <label className="block text-xs text-gray-500 mono mb-1">{key.replaceAll('_', ' ').toUpperCase()}</label>
-                          {settingForm[key]?.length > 100 || key.includes('bio') || key.includes('description') ? (
-                            <textarea value={settingForm[key]} onChange={(e) => setSettingForm({ ...settingForm, [key]: e.target.value })}
-                              className="w-full bg-white/5 border border-white/10 rounded text-sm text-gray-200 p-3 h-32 focus:border-cyan-400/50 outline-none" />
-                          ) : (
-                            <input value={settingForm[key]} onChange={(e) => setSettingForm({ ...settingForm, [key]: e.target.value })}
-                              className="w-full bg-white/5 border border-white/10 rounded text-sm text-gray-200 p-3 focus:border-cyan-400/50 outline-none" />
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ) : null
-                ))}
-                
                 {/* Profile Photo Upload */}
-                <div>
-                  <label className="block text-xs text-gray-500 mono mb-2">PROFILE PHOTO</label>
-                  <div className="flex items-center gap-4">
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4">
+                  <h4 className="text-sm font-semibold text-white flex items-center gap-2">
+                    <FiImage className="text-cyan-400" /> Profile Photo (Hero & About Header)
+                  </h4>
+                  <div className="flex flex-col sm:flex-row items-center gap-6">
                     {(settingForm.profile_photo || settings.profile_photo) ? (
                       <img 
                         src={getSafeUrl(settingForm.profile_photo || settings.profile_photo)} 
                         alt="Profile Preview" 
-                        className="w-16 h-16 rounded-full object-cover border border-white/10"
+                        className="w-24 h-24 rounded-full object-cover border-2 border-cyan-400/40 shadow-lg"
                         onError={(e) => {
                           e.currentTarget.onerror = null;
-                          e.currentTarget.src = '/profile.jpg'; // Local fallback
-                          console.warn('Profile preview failed to load, using fallback');
+                          e.currentTarget.src = '/profile.jpg';
                         }}
                       />
                     ) : (
-                      <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-500">
-                        <FiImage size={24} />
+                      <div className="w-24 h-24 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-500">
+                        <FiImage size={32} />
                       </div>
                     )}
-                    <label className="btn-gradient px-4 py-2 rounded-lg text-sm font-semibold cursor-pointer">
-                      Upload New Photo
-                      <input 
-                        type="file" 
-                        className="hidden" 
-                        accept="image/*"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                             const url = await handleFileUpload(file, 'image');
-                             if (url) {
-                               setSettingForm({ ...settingForm, profile_photo: url });
-                             }
-                          }
-                        }}
-                      />
-                    </label>
+                    <div className="space-y-2 text-center sm:text-left">
+                      <label className="btn-gradient px-5 py-2.5 rounded-lg text-xs font-semibold cursor-pointer inline-flex items-center gap-2">
+                        <FiImage /> Upload New Profile Picture
+                        <input 
+                          type="file" 
+                          className="hidden" 
+                          accept="image/*"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                               const url = await handleFileUpload(file, 'image');
+                               if (url) {
+                                 const updated = { ...settingForm, profile_photo: url };
+                                 setSettingForm(updated);
+                                 try {
+                                   await updateSettings(updated);
+                                   await refreshSettings();
+                                   toast.success('Profile photo updated & saved!');
+                                 } catch {
+                                   toast.error('Failed to save profile photo setting');
+                                 }
+                               }
+                            }
+                          }}
+                        />
+                      </label>
+                      <p className="text-xs text-gray-400">Upload a high quality portrait photo (JPG, PNG, WebP).</p>
+                    </div>
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">Recommended size: 500x500px or larger. Overrides default profile photo on home page.</p>
                 </div>
 
-                <div className="pt-4 border-t border-white/5">
-                  <button onClick={handleSaveSettings} className="btn-gradient px-6 py-2.5 rounded-lg text-sm font-semibold">Save All Settings</button>
+                {/* Hero Section - Matching Photo 1 */}
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4">
+                  <div className="border-b border-white/5 pb-2">
+                    <h4 className="text-sm font-semibold text-white flex items-center gap-2">
+                      <FiCode className="text-cyan-400" /> Hero Section (Photo 1)
+                    </h4>
+                    <p className="text-xs text-gray-400">Edit the primary headline, description, greeting, and typewriter roles.</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs text-gray-400 mono mb-1 uppercase tracking-wider">Full Name (Hero Headline)</label>
+                      <input 
+                        type="text" 
+                        value={settingForm.home_name || ''} 
+                        onChange={(e) => setSettingForm({ ...settingForm, home_name: e.target.value })}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl text-sm text-white p-3 focus:border-cyan-400/50 outline-none"
+                        placeholder="Thimira Pathum"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mono mb-1 uppercase tracking-wider">Greeting Badge Text</label>
+                      <input 
+                        type="text" 
+                        value={settingForm.home_greeting || ''} 
+                        onChange={(e) => setSettingForm({ ...settingForm, home_greeting: e.target.value })}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl text-sm text-white p-3 focus:border-cyan-400/50 outline-none"
+                        placeholder="Portfolio Journey"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs text-gray-400 mono mb-1 uppercase tracking-wider">Typewriter Roles (Comma Separated)</label>
+                      <input 
+                        type="text" 
+                        value={settingForm.home_roles || ''} 
+                        onChange={(e) => setSettingForm({ ...settingForm, home_roles: e.target.value })}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl text-sm text-white p-3 focus:border-cyan-400/50 outline-none"
+                        placeholder="DevOps, MLOps, AI Integration, Linux Systems, Cloud Architecture"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mono mb-1 uppercase tracking-wider">Sub-Tagline</label>
+                      <input 
+                        type="text" 
+                        value={settingForm.home_tag || ''} 
+                        onChange={(e) => setSettingForm({ ...settingForm, home_tag: e.target.value })}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl text-sm text-white p-3 focus:border-cyan-400/50 outline-none"
+                        placeholder="Evolving from basic scripting to designing robust orchestration architectures."
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-gray-400 mono mb-1 uppercase tracking-wider">Hero Description Paragraph (Photo 1 Text)</label>
+                    <textarea 
+                      value={settingForm.home_description || ''} 
+                      onChange={(e) => setSettingForm({ ...settingForm, home_description: e.target.value })}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl text-sm text-white p-3 h-28 focus:border-cyan-400/50 outline-none resize-none"
+                      placeholder="Building modern digital solutions through software engineering, networking, and innovation..."
+                    />
+                  </div>
+                </div>
+
+                {/* About Section - Matching Photo 2 */}
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4">
+                  <div className="border-b border-white/5 pb-2">
+                    <h4 className="text-sm font-semibold text-white flex items-center gap-2">
+                      <FiEdit3 className="text-cyan-400" /> About Me Section (Photo 2)
+                    </h4>
+                    <p className="text-xs text-gray-400">Write your multi-paragraph bio text. Separate paragraphs with a blank line.</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-gray-400 mono mb-1 uppercase tracking-wider">About Me Full Bio (Photo 2 Paragraphs)</label>
+                    <textarea 
+                      value={settingForm.about_bio || ''} 
+                      onChange={(e) => setSettingForm({ ...settingForm, about_bio: e.target.value })}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl text-sm text-white p-3 h-48 focus:border-cyan-400/50 outline-none resize-y"
+                      placeholder="I am Thimira Pathum, an Information and Communication Technology undergraduate..."
+                    />
+                  </div>
+                </div>
+
+                {/* Contact Details & Social Links */}
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4">
+                  <div className="border-b border-white/5 pb-2">
+                    <h4 className="text-sm font-semibold text-white flex items-center gap-2">
+                      <FiMail className="text-cyan-400" /> Contact Email & Social Media
+                    </h4>
+                    <p className="text-xs text-gray-400">Update your email and social profiles for contact links.</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-xs text-gray-400 mono mb-1 uppercase tracking-wider">Contact Email</label>
+                      <input 
+                        type="email" 
+                        value={settingForm.social_email || ''} 
+                        onChange={(e) => setSettingForm({ ...settingForm, social_email: e.target.value })}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl text-sm text-white p-3 focus:border-cyan-400/50 outline-none"
+                        placeholder="pathumt675@gmail.com"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mono mb-1 uppercase tracking-wider">GitHub URL</label>
+                      <input 
+                        type="url" 
+                        value={settingForm.social_github || ''} 
+                        onChange={(e) => setSettingForm({ ...settingForm, social_github: e.target.value })}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl text-sm text-white p-3 focus:border-cyan-400/50 outline-none"
+                        placeholder="https://github.com/THIMIRAPATHUM"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mono mb-1 uppercase tracking-wider">LinkedIn URL</label>
+                      <input 
+                        type="url" 
+                        value={settingForm.social_linkedin || ''} 
+                        onChange={(e) => setSettingForm({ ...settingForm, social_linkedin: e.target.value })}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl text-sm text-white p-3 focus:border-cyan-400/50 outline-none"
+                        placeholder="https://linkedin.com/in/thimira-pathum"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-2 flex justify-end">
+                  <button onClick={handleSaveSettings} className="btn-gradient px-8 py-3 rounded-xl text-sm font-semibold flex items-center gap-2">
+                    <FiCheck /> Save All Settings
+                  </button>
                 </div>
               </div>
             )}
@@ -842,7 +804,7 @@ export default function AdminDashboard() {
                       <BlogCard blog={b} onUpdate={(data) => updateBlog(b.id, data).then(refreshData)} onDelete={() => deleteBlog(b.id).then(refreshData)} onUpload={handleFileUpload} setBlogs={setBlogs} compact getSafeUrl={getSafeUrl} />
                     </div>
                     ))}
-                    {visibleBlogs.length === 0 && <div className="glass p-8 text-center text-gray-500">{searchTerm ? 'No blog posts match your filters' : 'No blog posts yet'}</div>}
+                    {visibleBlogs.length === 0 && <div className="glass p-8 text-center text-gray-500">No blog posts yet</div>}
                   </>
                 ) : (
                   <div className="fixed inset-0 z-40 bg-black/80 backdrop-blur-sm overflow-auto">
@@ -884,7 +846,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
             ))}
-            {tab === 'comments' && visibleComments.length === 0 && <div className="glass p-8 text-center text-gray-500">{searchTerm ? 'No comments match your filters' : 'No comments yet'}</div>}
+            {tab === 'comments' && visibleComments.length === 0 && <div className="glass p-8 text-center text-gray-500">No comments yet</div>}
 
             {/* PROJECTS TAB */}
             {tab === 'projects' && (
@@ -893,7 +855,7 @@ export default function AdminDashboard() {
                 {Array.isArray(visibleProjects) && visibleProjects.map((p) => (
                   <ProjectCard key={p.id} project={p} onUpdate={(data) => updateProject(p.id, data).then(refreshData)} onDelete={() => deleteProject(p.id).then(refreshData)} onUpload={handleFileUpload} setProjects={setProjects} getSafeUrl={getSafeUrl} />
                 ))}
-                {visibleProjects.length === 0 && <div className="glass p-8 text-center text-gray-500">{searchTerm ? 'No projects match your filters' : 'No projects yet'}</div>}
+                {visibleProjects.length === 0 && <div className="glass p-8 text-center text-gray-500">No projects yet</div>}
               </>
             )}
 
@@ -974,7 +936,7 @@ export default function AdminDashboard() {
                     </div>
                   ))}
                 </div>
-                {visibleSkills.length === 0 && <div className="glass p-8 text-center text-gray-500">{searchTerm ? 'No skills match your search' : 'No skills yet'}</div>}
+                {visibleSkills.length === 0 && <div className="glass p-8 text-center text-gray-500">No skills yet</div>}
               </>
             )}
 
@@ -1335,7 +1297,7 @@ export default function AdminDashboard() {
                     </div>
                   ))}
                 </div>
-                {visibleExperiences.length === 0 && <div className="glass p-8 text-center text-gray-500">{searchTerm ? 'No entries match your search' : 'No education or certification entries yet'}</div>}
+                {visibleExperiences.length === 0 && <div className="glass p-8 text-center text-gray-500">No experiences yet</div>}
               </>
             )}
 
@@ -1494,11 +1456,7 @@ function BlogCard({ blog: b, onUpdate, onDelete, onUpload, setBlogs, getSafeUrl,
     return onUpdate(patch);
   };
 
-  const insertSnippet = async (snippet: string) => {
-    const nextContent = appendSnippet(b.content || '', snippet);
-    setBlogs(prev => prev.map(x => x.id === b.id ? { ...x, content: nextContent } : x));
-    await onUpdate({ content: nextContent });
-  };
+
 
   return (
     <div className={`glass p-5 border-l-4 border-l-purple-500 ${compact ? 'cursor-pointer hover:border-l-purple-400' : ''}`}>
@@ -1616,11 +1574,6 @@ function BlogCard({ blog: b, onUpdate, onDelete, onUpload, setBlogs, getSafeUrl,
             <button onClick={() => applyBlogPatch({ coming_soon: !b.coming_soon, status: b.coming_soon ? b.status : 'draft' })} className={`px-3 py-2 rounded-lg text-xs border ${b.coming_soon ? 'border-yellow-400/20 text-yellow-300 bg-yellow-400/10' : 'border-white/10 text-gray-300'}`}>
               {b.coming_soon ? 'Disable Coming Soon' : 'Enable Coming Soon'}
             </button>
-            <button onClick={() => insertSnippet('## New section')} className="px-3 py-2 rounded-lg text-xs border border-white/10 text-gray-300 hover:text-white">Heading</button>
-            <button onClick={() => insertSnippet('- Key point')} className="px-3 py-2 rounded-lg text-xs border border-white/10 text-gray-300 hover:text-white">List</button>
-            <button onClick={() => insertSnippet('> Important callout')} className="px-3 py-2 rounded-lg text-xs border border-white/10 text-gray-300 hover:text-white">Quote</button>
-            <button onClick={() => insertSnippet('```ts\n// example\n```')} className="px-3 py-2 rounded-lg text-xs border border-white/10 text-gray-300 hover:text-white">Code Block</button>
-            <button onClick={() => insertSnippet('[Read more](https://example.com)')} className="px-3 py-2 rounded-lg text-xs border border-white/10 text-gray-300 hover:text-white">Link</button>
             <button onClick={() => window.open(getBlogPublicUrl(derivedSlug), '_blank')} className="px-3 py-2 rounded-lg text-xs border border-white/10 text-gray-300 hover:text-white inline-flex items-center gap-1">
               <FiExternalLink size={12} /> Open Post
             </button>

@@ -19,7 +19,7 @@ Route::get('/projects', [ProjectController::class, 'index']);
 Route::get('/projects/{id}', [ProjectController::class, 'show']);
 Route::get('/skills', [SkillController::class, 'index']);
 Route::get('/blogs', [BlogController::class, 'index']);
-Route::get('/blogs/{id}', [BlogController::class, 'show']);
+Route::get('/blogs/{slug}', [BlogController::class, 'show']);
 Route::get('/experiences', [ExperienceController::class, 'index']);
 Route::post('/messages', [MessageController::class, 'store']);
 Route::get('/settings', [SiteSettingController::class, 'index']);
@@ -29,7 +29,7 @@ Route::post('/blogs/{blogId}/comments', [CommentController::class, 'store']);
 Route::get('/blogs/{blogId}/comments', [CommentController::class, 'index']);
 
 // Auth routes
-Route::post('/auth/login', [AuthController::class, 'login']);
+Route::middleware('throttle:5,15')->post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/forgot-password', [App\Http\Controllers\Api\ResetPasswordController::class, 'sendResetLinkEmail']);
 Route::post('/auth/reset-password', [App\Http\Controllers\Api\ResetPasswordController::class, 'reset']);
@@ -67,6 +67,7 @@ Route::middleware('auth:api')->group(function () {
     Route::delete('/comments/{id}', [CommentController::class, 'destroy']);
 
     Route::post('/settings', [SiteSettingController::class, 'update']);
+    Route::put('/settings/{key}', [SiteSettingController::class, 'updateSingle']);
 
     // File Upload
     Route::post('/upload', [FileUploadController::class, 'upload']);

@@ -54,7 +54,20 @@ class BlogController extends Controller
     public function update(Request $request, $id)
     {
         $blog = Blog::findOrFail($id);
-        $blog->update($request->all());
+        $validated = $request->validate([
+            'title'       => 'sometimes|required|string|max:255',
+            'excerpt'     => 'nullable|string',
+            'content'     => 'nullable|string',
+            'cover_image' => 'nullable|string',
+            'status'      => 'nullable|string|in:draft,published',
+            'coming_soon' => 'nullable|boolean',
+        ]);
+
+        if (isset($validated['title']) && $validated['title'] !== $blog->title) {
+            $validated['slug'] = Str::slug($validated['title']) . '-' . Str::random(5);
+        }
+
+        $blog->update($validated);
         return response()->json($blog);
     }
 
