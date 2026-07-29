@@ -7,7 +7,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
-        "laravel/framework": "^11.0",
+        "laravel/framework": "12.64",
         "laravel/tinker": "^2.10.1",
         "tymon/jwt-auth": "^2.3"
     },
