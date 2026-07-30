@@ -38,14 +38,16 @@ class GenerateBlogPost extends Command
             return Command::FAILURE;
         }
 
+        $isGroqKey = str_starts_with($apiKey, 'gsk_') || (bool) env('GROQ_API_KEY');
+
         $apiUrl = env('AI_API_URL') ?: (
-            env('GROQ_API_KEY')
+            $isGroqKey
                 ? 'https://api.groq.com/openai/v1/chat/completions'
                 : 'https://api.openai.com/v1/chat/completions'
         );
 
         $model = env('AI_MODEL') ?: (
-            env('GROQ_API_KEY') ? 'llama-3.3-70b-versatile' : 'gpt-4o-mini'
+            $isGroqKey ? 'llama-3.3-70b-versatile' : 'gpt-4o-mini'
         );
 
         $customTopic = $this->option('topic');
