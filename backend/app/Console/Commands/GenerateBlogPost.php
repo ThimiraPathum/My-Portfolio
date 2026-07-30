@@ -47,34 +47,31 @@ class GenerateBlogPost extends Command
         );
 
         $model = env('AI_MODEL') ?: (
-            $isGroqKey ? 'llama3-8b-8192' : 'gpt-4o-mini'
+            $isGroqKey ? 'llama-3.3-70b-versatile' : 'gpt-4o-mini'
         );
 
         $customTopic = $this->option('topic');
-        $topicPrompt = $customTopic
-            ? "Topic: {$customTopic}"
-            : "Topic: Pick an exciting, modern topic in Software Engineering, DevOps, MLOps, System Architecture, Linux, or Web Development.";
+        $topic = $customTopic
+            ? $customTopic
+            : "An exciting, modern topic in Software Engineering, DevOps, MLOps, System Architecture, Linux, or Web Development";
 
-        $systemPrompt = "You are an expert technical blog writer and senior software engineer. You write engaging, highly informative tech articles for developers. Return ONLY a valid JSON object with the following keys:\n"
-            . "- \"title\": a catchy, professional technical blog post title\n"
-            . "- \"excerpt\": a 2-3 sentence summary capturing the key takeaway of the article\n"
-            . "- \"content\": a comprehensive, well-structured article written in clean Markdown format including headings (##), code snippets (```), bullet points, and practical insights.\n\n"
-            . "Do not wrap the JSON response in backticks or Markdown block formatting.";
+        $systemPrompt = 'You are an expert tech blog writer. You MUST output ONLY a valid JSON object. Use this exact JSON schema: {"title": "string", "excerpt": "string", "content": "string", "tags": ["string", "string"]}. Ensure all strings are properly escaped (use \n for newlines, \" for quotes inside the content). Do not forget to properly close the "content" string and include the "tags" array at the end.';
 
-        $userPrompt = "Please respond ONLY with valid JSON. Write a fresh, unique technical blog post.\n{$topicPrompt}";
+        $userPrompt = "Write a comprehensive technical blog post about: {$topic}";
 
         try {
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $apiKey,
                 'Content-Type'  => 'application/json',
-            ])->timeout(60)->post($apiUrl, [
-                'model' => $model,
-                'messages' => [
+            ])->timeout(120)->post($apiUrl, [
+                'model'           => $model,
+                'messages'        => [
                     ['role' => 'system', 'content' => $systemPrompt],
                     ['role' => 'user', 'content' => $userPrompt],
                 ],
-                'max_tokens'  => 2000,
-                'temperature' => 0.7,
+                'max_tokens'      => 4000,
+                'temperature'     => 0.7,
+                'response_format' => ['type' => 'json_object'],
             ]);
 
             if ($response->failed()) {

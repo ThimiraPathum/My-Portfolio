@@ -13,8 +13,9 @@ class BlogController extends Controller
     {
         $blogs = Blog::where('status', 'published')
             ->orWhere('coming_soon', true)
-            ->orderBy('created_at', 'desc')
-            ->get(['id','title','slug','excerpt','cover_image','status','coming_soon','created_at']);
+            ->orderByRaw('COALESCE(published_at, created_at) DESC')
+            ->get(['id','title','slug','excerpt','content','cover_image','status','coming_soon','published_at','created_at']);
+
         return response()->json($blogs);
     }
 

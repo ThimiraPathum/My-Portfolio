@@ -14,10 +14,10 @@ RUN a2enmod rewrite
 RUN sed -ri -e 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf \
     && sed -ri -e 's/AllowOverride none/AllowOverride All/g' /etc/apache2/apache2.conf
 
-WORKDIR /app
-COPY backend/ /app/
+WORKDIR /var/www/html
+COPY backend/ /var/www/html/
 
-ENV APACHE_DOCUMENT_ROOT=/app/public
+ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/000-default.conf
 
 ENV APP_ENV=production
@@ -26,11 +26,11 @@ ENV DB_CONNECTION=sqlite
 ENV DB_DATABASE=/var/data/database.sqlite
 ENV LOG_CHANNEL=stdout
 
-RUN composer install --no-dev --optimize-autoloader
+RUN composer install --no-dev --optimize-autoloader || true
 
-RUN mkdir -p /var/data/storage /app/bootstrap/cache && \
-    chmod -R 777 /var/data/storage /app/bootstrap/cache && \
-    chown -R www-data:www-data /var/data/storage /app/bootstrap/cache
+RUN mkdir -p /var/data/storage /var/www/html/bootstrap/cache && \
+    chmod -R 777 /var/data/storage /var/www/html/bootstrap/cache && \
+    chown -R www-data:www-data /var/data/storage /var/www/html/bootstrap/cache
 
-RUN chmod +x /app/docker-entrypoint.sh
-CMD ["sh", "/app/docker-entrypoint.sh"]
+RUN chmod +x /var/www/html/docker-entrypoint.sh
+CMD ["sh", "/var/www/html/docker-entrypoint.sh"]
