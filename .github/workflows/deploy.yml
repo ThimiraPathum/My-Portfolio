@@ -157,7 +157,7 @@ jobs:
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "frontend-dist"
-          target: "/tmp"
+          target: "/tmp" #gg
 
       # ========== DEPLOYMENT EXECUTION ==========
       - name: 🚀 Execute Deployment Pipeline
