@@ -185,16 +185,21 @@ jobs:
             # ========== SYNC SOURCE CODE ==========
             echo -e "${YELLOW}📥 Syncing Source Code from GitHub...${NC}"
             PROJECT_PATH="/home/azureuser/My-Portfolio"
-            echo "DEBUG: PROJECT_PATH = ${PROJECT_PATH}"
-            echo "DEBUG: Checking if .git exists:"
-            ls -la "${PROJECT_PATH}/.git" || echo "ERROR: .git not found"
-            echo "DEBUG: Current directory before pull:"
-            pwd
-            echo "DEBUG: Trying git pull..."
-            /usr/bin/git -C "${PROJECT_PATH}" pull origin main --ff-only || {
-            echo -e "${RED}❌ Git pull failed${NC}"
-            exit 1
-            }
+            BRANCH="${{ github.ref_name }}"
+            REPO_URL="git@github.com:${{ github.repository }}.git"
+
+            if [ -d "${PROJECT_PATH}/.git" ]; then
+              echo "✅ Existing git repo found"
+              /usr/bin/git -C "${PROJECT_PATH}" remote set-url origin "${REPO_URL}" || true
+              /usr/bin/git -C "${PROJECT_PATH}" fetch origin "${BRANCH}" --prune
+              /usr/bin/git -C "${PROJECT_PATH}" checkout "${BRANCH}"
+              /usr/bin/git -C "${PROJECT_PATH}" pull origin "${BRANCH}" --ff-only
+            else
+              echo "⚠️ .git not found. Re-cloning repository..."
+              sudo rm -rf "${PROJECT_PATH}"
+              /usr/bin/git clone --branch "${BRANCH}" --single-branch "${REPO_URL}" "${PROJECT_PATH}"
+            fi
+
             echo -e "${GREEN}✅ Source code synchronized${NC}"
 
             # ========== FRONTEND DEPLOYMENT ==========
