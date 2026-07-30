@@ -47,7 +47,7 @@ class GenerateBlogPost extends Command
         );
 
         $model = env('AI_MODEL') ?: (
-            $isGroqKey ? 'llama-3.3-70b-versatile' : 'gpt-4o-mini'
+            $isGroqKey ? 'llama3-8b-8192' : 'gpt-4o-mini'
         );
 
         $customTopic = $this->option('topic');
@@ -61,7 +61,7 @@ class GenerateBlogPost extends Command
             . "- \"content\": a comprehensive, well-structured article written in clean Markdown format including headings (##), code snippets (```), bullet points, and practical insights.\n\n"
             . "Do not wrap the JSON response in backticks or Markdown block formatting.";
 
-        $userPrompt = "Please write a fresh, unique technical blog post.\n{$topicPrompt}";
+        $userPrompt = "Please respond ONLY with valid JSON. Write a fresh, unique technical blog post.\n{$topicPrompt}";
 
         try {
             $response = Http::withHeaders([
@@ -73,6 +73,7 @@ class GenerateBlogPost extends Command
                     ['role' => 'system', 'content' => $systemPrompt],
                     ['role' => 'user', 'content' => $userPrompt],
                 ],
+                'max_tokens'  => 2000,
                 'temperature' => 0.7,
             ]);
 
