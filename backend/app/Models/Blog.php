@@ -7,11 +7,12 @@ use Illuminate\Support\Str;
 class Blog extends Model
 {
     protected $fillable = [
-        'title', 'slug', 'excerpt', 'content', 'cover_image', 'status', 'coming_soon',
+        'title', 'slug', 'excerpt', 'content', 'cover_image', 'status', 'coming_soon', 'published_at',
     ];
 
     protected $casts = [
-        'coming_soon' => 'boolean',
+        'coming_soon'  => 'boolean',
+        'published_at' => 'datetime',
     ];
 
     protected static function boot()
