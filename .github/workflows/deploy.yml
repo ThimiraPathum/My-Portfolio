@@ -236,7 +236,7 @@ jobs:
               sudo docker-compose version
               sudo docker rm -f frontend-nginx backend-api 2>/dev/null || true
               sudo docker-compose down --remove-orphans || true
-              sudo docker-compose build --no-cache backend-api
+              sudo docker-compose build backend-api
               sudo docker-compose up -d backend-api
               echo -e "${GREEN}✅ Container rebuilt successfully${NC}"
 
