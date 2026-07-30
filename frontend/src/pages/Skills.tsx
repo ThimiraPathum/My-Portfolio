@@ -7,7 +7,6 @@ import {
 } from 'react-icons/si';
 import { VscAzure } from 'react-icons/vsc';
 import { getDerivedSkills as fetchDerivedSkillsApi } from '../api';
-import { getDerivedSkills as getFallbackSkills } from '../lib/skills';
 
 interface DerivedSkillItem {
   name: string;
@@ -67,24 +66,11 @@ export default function Skills() {
   useEffect(() => {
     fetchDerivedSkillsApi()
       .then(({ data }) => {
-        if (Array.isArray(data) && data.length > 0) {
-          setSkills(data);
-        } else {
-          // Fallback to client-side derived skills if no projects exist in API yet
-          const fallback = getFallbackSkills().map((s) => ({
-            name: s.name,
-            used_in: s.usedIn.map((title, idx) => ({ id: idx, title })),
-          }));
-          setSkills(fallback);
-        }
+        setSkills(Array.isArray(data) ? data : []);
       })
       .catch((err) => {
         console.error('Failed to fetch derived skills:', err);
-        const fallback = getFallbackSkills().map((s) => ({
-          name: s.name,
-          used_in: s.usedIn.map((title, idx) => ({ id: idx, title })),
-        }));
-        setSkills(fallback);
+        setSkills([]);
       })
       .finally(() => setLoading(false));
   }, []);
