@@ -38,4 +38,36 @@ class SkillController extends Controller
         Skill::findOrFail($id)->delete();
         return response()->json(['message' => 'Skill deleted']);
     }
+
+    public function derivedFromProjects()
+    {
+        $projects = \App\Models\Project::all(['id', 'title', 'tech_stack']);
+        
+        $skillMap = [];
+        
+        foreach ($projects as $project) {
+            $techs = $project->tech_stack ?? [];
+            foreach ($techs as $tech) {
+                $tech = trim($tech);
+                if (!$tech) continue;
+                
+                if (!isset($skillMap[$tech])) {
+                    $skillMap[$tech] = [
+                        'name' => $tech,
+                        'used_in' => [],
+                    ];
+                }
+                
+                $skillMap[$tech]['used_in'][] = [
+                    'id' => $project->id,
+                    'title' => $project->title,
+                ];
+            }
+        }
+        
+        $skills = array_values($skillMap);
+        usort($skills, fn($a, $b) => count($b['used_in']) - count($a['used_in']));
+        
+        return response()->json($skills);
+    }
 }

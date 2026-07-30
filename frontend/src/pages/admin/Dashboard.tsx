@@ -1634,6 +1634,79 @@ function BlogCard({ blog: b, onUpdate, onDelete, onUpload, setBlogs, getSafeUrl,
   );
 }
 
+function TechStackInput({ 
+  techs = [], 
+  onChange, 
+  onBlur 
+}: { 
+  techs: string[]; 
+  onChange: (newTechs: string[]) => void;
+  onBlur: (newTechs: string[]) => void;
+}) {
+  const [inputValue, setInputValue] = useState('');
+
+  const addTag = (text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    const items = trimmed.split(',').map(s => s.trim()).filter(Boolean);
+    const updated = Array.from(new Set([...techs, ...items]));
+    onChange(updated);
+    onBlur(updated);
+    setInputValue('');
+  };
+
+  const removeTag = (indexToRemove: number) => {
+    const updated = techs.filter((_, idx) => idx !== indexToRemove);
+    onChange(updated);
+    onBlur(updated);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addTag(inputValue);
+    }
+  };
+
+  return (
+    <div className="space-y-2 mt-2">
+      <label className="block text-[10px] text-gray-500 mono uppercase tracking-widest">
+        Technologies & Tools
+      </label>
+      <div className="flex flex-wrap items-center gap-2 bg-white/5 border border-white/10 rounded-xl p-3 focus-within:border-cyan-400/50">
+        {techs.map((tech, idx) => (
+          <span 
+            key={idx} 
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-cyan-400/10 text-cyan-300 border border-cyan-400/20"
+          >
+            {tech}
+            <button 
+              type="button" 
+              onClick={() => removeTag(idx)} 
+              className="text-cyan-400 hover:text-red-400 transition-colors"
+            >
+              <FiX size={12} />
+            </button>
+          </span>
+        ))}
+        <input
+          type="text"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onBlur={() => {
+            if (inputValue.trim()) {
+              addTag(inputValue);
+            }
+          }}
+          placeholder="e.g. React, Docker, Python — press Enter to add"
+          className="flex-1 bg-transparent text-sm text-gray-200 outline-none min-w-[220px]"
+        />
+      </div>
+    </div>
+  );
+}
+
 function ProjectCard({ project: p, onUpdate, onDelete, onUpload, setProjects, getSafeUrl }: {
   project: any;
   onUpdate: (data: any) => Promise<any>;
@@ -1642,10 +1715,6 @@ function ProjectCard({ project: p, onUpdate, onDelete, onUpload, setProjects, ge
   setProjects: React.Dispatch<React.SetStateAction<any[]>>;
   getSafeUrl: (url: string | null) => string;
 }) {
-  // const [title, setTitle] = useState(p.title); // Removed local state
-  // const [desc, setDesc] = useState(p.description || ''); // Removed local state
-  // useEffect(() => { setTitle(p.title); setDesc(p.description || ''); }, [p.title, p.description]); // Removed local state effect
-
   return (
     <div className="glass p-5 border-l-4 border-l-cyan-400">
       <div className="flex flex-col sm:flex-row justify-between gap-3 mb-3 border-b border-white/5 pb-2">
@@ -1711,14 +1780,12 @@ function ProjectCard({ project: p, onUpdate, onDelete, onUpload, setProjects, ge
           onBlur={(e) => onUpdate({ description: e.target.value })}
           placeholder="Project Description..."
         />
-        {/* Auto format removed */}
       </div>
-      <input
-        className="w-full bg-white/5 border border-white/10 rounded-lg text-sm text-gray-300 p-2.5 outline-none focus:border-cyan-400/30"
-        value={(p.tech_stack || []).join(', ')}
-        onChange={(e) => setProjects(prev => prev.map(x => x.id === p.id ? { ...x, tech_stack: e.target.value.split(',').map((item: string) => item.trim()).filter(Boolean) } : x))}
-        onBlur={(e) => onUpdate({ tech_stack: e.target.value.split(',').map((item: string) => item.trim()).filter(Boolean) })}
-        placeholder="Tech stack, comma separated"
+
+      <TechStackInput 
+        techs={p.tech_stack || []} 
+        onChange={(newTechs) => setProjects(prev => prev.map(x => x.id === p.id ? { ...x, tech_stack: newTechs } : x))}
+        onBlur={(newTechs) => onUpdate({ tech_stack: newTechs })}
       />
       
       <div className="flex flex-col gap-3 mt-3 pt-3 border-t border-white/5">

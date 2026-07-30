@@ -18,6 +18,7 @@ Route::get('/health', function () {
 Route::get('/projects', [ProjectController::class, 'index']);
 Route::get('/projects/{id}', [ProjectController::class, 'show']);
 Route::get('/skills', [SkillController::class, 'index']);
+Route::get('/skills/derived', [SkillController::class, 'derivedFromProjects']);
 Route::get('/blogs', [BlogController::class, 'index']);
 Route::get('/blogs/{slug}', [BlogController::class, 'show']);
 Route::get('/experiences', [ExperienceController::class, 'index']);
