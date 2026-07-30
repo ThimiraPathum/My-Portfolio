@@ -183,6 +183,18 @@ jobs:
             echo -e "${BLUE}╚════════════════════════════════════════════════════╝${NC}"
 
             # ========== SYNC SOURCE CODE ==========
+            # Fix SSH trust for github.com
+            mkdir -p ~/.ssh
+            chmod 700 ~/.ssh
+            ssh-keygen -R github.com >/dev/null 2>&1 || true
+            ssh-keyscan -H github.com >> ~/.ssh/known_hosts 2>/dev/null
+            chmod 644 ~/.ssh/known_hosts
+
+            # Sync source code
+            echo -e "${YELLOW}📥 Syncing Source Code from GitHub...${NC}"
+            PROJECT_PATH="/home/azureuser/My-Portfolio"
+            BRANCH="${{ github.ref_name }}"
+            REPO_URL="https://github.com/${{ github.repository }}.git"
             echo -e "${YELLOW}📥 Syncing Source Code from GitHub...${NC}"
             PROJECT_PATH="/home/azureuser/My-Portfolio"
             BRANCH="${{ github.ref_name }}"
