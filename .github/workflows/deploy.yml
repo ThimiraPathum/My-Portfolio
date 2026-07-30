@@ -189,6 +189,7 @@ jobs:
 
             if [ -d "${PROJECT_PATH}/.git" ]; then
               echo "✅ Existing git repo found"
+              sudo chown -R $(whoami):$(whoami) "${PROJECT_PATH}"
               /usr/bin/git -C "${PROJECT_PATH}" remote set-url origin "${REPO_URL}" || true
               /usr/bin/git -C "${PROJECT_PATH}" fetch origin "${BRANCH}" --prune
               /usr/bin/git -C "${PROJECT_PATH}" reset --hard "origin/${BRANCH}"
