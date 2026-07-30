@@ -191,8 +191,9 @@ jobs:
               echo "✅ Existing git repo found"
               /usr/bin/git -C "${PROJECT_PATH}" remote set-url origin "${REPO_URL}" || true
               /usr/bin/git -C "${PROJECT_PATH}" fetch origin "${BRANCH}" --prune
+              /usr/bin/git -C "${PROJECT_PATH}" reset --hard "origin/${BRANCH}"
+              /usr/bin/git -C "${PROJECT_PATH}" clean -fd
               /usr/bin/git -C "${PROJECT_PATH}" checkout "${BRANCH}"
-              /usr/bin/git -C "${PROJECT_PATH}" pull origin "${BRANCH}" --ff-only
             else
               echo "⚠️ .git not found. Re-cloning repository..."
               sudo rm -rf "${PROJECT_PATH}"
@@ -200,7 +201,7 @@ jobs:
             fi
 
             echo -e "${GREEN}✅ Source code synchronized${NC}"
-
+            
             # ========== FRONTEND DEPLOYMENT ==========
             if [ "${{ needs.detect-changes.outputs.frontend }}" = "true" ]; then
               echo -e "${YELLOW}📦 Deploying Frontend Assets...${NC}"
