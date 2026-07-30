@@ -24,6 +24,8 @@ services:
       - LARAVEL_STORAGE_PATH=/var/data/storage
       - LOG_CHANNEL=stdout
       - PORT=80
+      - JWT_SECRET=9d76efb690e79569f21688b28e61b847fd0dd76a78b63a08203863d20cf8d245
+      - APP_KEY=base64:FRS7TFF32X0A/rRtsIV+LkUJwk7avm+mxNv9LNdIAbw=
     depends_on:
       - frontend
     networks:

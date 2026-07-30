@@ -11,6 +11,9 @@ RUN printf "file_uploads=On\nupload_max_filesize=120M\npost_max_size=120M\nmemor
 
 RUN a2enmod rewrite
 
+RUN sed -ri -e 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf \
+    && sed -ri -e 's/AllowOverride none/AllowOverride All/g' /etc/apache2/apache2.conf
+
 WORKDIR /app
 COPY backend/ /app/
 
