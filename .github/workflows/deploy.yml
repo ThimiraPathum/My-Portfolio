@@ -232,11 +232,18 @@ jobs:
               # ========== REBUILD DOCKER CONTAINER ==========
               echo -e "${YELLOW}🔨 Rebuilding Docker container with PHP 8.4...${NC}"
               cd "${PROJECT_PATH}"
-              sudo docker compose version
+              if sudo docker compose version >/dev/null 2>&1; then
+                DOCKER_COMPOSE_CMD="sudo docker compose"
+              elif sudo docker-compose version >/dev/null 2>&1; then
+                DOCKER_COMPOSE_CMD="sudo docker-compose"
+              else
+                echo -e "${RED}❌ Neither 'docker compose' nor 'docker-compose' is available${NC}"
+                exit 1
+              fi
               sudo docker rm -f frontend-nginx backend-api 2>/dev/null || true
-              sudo docker compose down --remove-orphans || true
-              sudo docker compose build --no-cache backend-api
-              sudo docker compose up -d backend-api
+              ${DOCKER_COMPOSE_CMD} down --remove-orphans || true
+              ${DOCKER_COMPOSE_CMD} build --no-cache backend-api
+              ${DOCKER_COMPOSE_CMD} up -d backend-api
               echo -e "${GREEN}✅ Container rebuilt successfully${NC}"
 
               sleep 15
