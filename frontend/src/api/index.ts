@@ -143,7 +143,7 @@ export const createExperience = (data: object) => api.post('experiences', data);
 export const updateExperience = (id: number, data: object) => api.put(`experiences/${id}`, data);
 export const deleteExperience = (id: number) => api.delete(`experiences/${id}`);
 
-// Messages
+// Messagesgg
 export const sendMessage   = (data: object) => api.post('messages', data);
 export const getMessages   = () => api.get('messages');
 export const markRead      = (id: number) => api.put(`messages/${id}/read`);

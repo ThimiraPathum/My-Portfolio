@@ -10,7 +10,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Admin user only - no mock data
+        // Admin user only - no mock datagggggg
         if (env('ADMIN_EMAIL')) {
             User::updateOrCreate(
                 ['email' => env('ADMIN_EMAIL')],
