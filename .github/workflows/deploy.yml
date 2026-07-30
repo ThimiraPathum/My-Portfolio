@@ -156,9 +156,8 @@ jobs:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "frontend-dist/*"
-          target: "/tmp/frontend-delivery"
-          strip_components: 1
+          source: "frontend-dist"
+          target: "/tmp"
 
       # ========== DEPLOYMENT EXECUTION ==========
       - name: 🚀 Execute Deployment Pipeline
@@ -201,7 +200,7 @@ jobs:
             fi
 
             echo -e "${GREEN}✅ Source code synchronized${NC}"
-            
+
             # ========== FRONTEND DEPLOYMENT ==========
             if [ "${{ needs.detect-changes.outputs.frontend }}" = "true" ]; then
               echo -e "${YELLOW}📦 Deploying Frontend Assets...${NC}"
