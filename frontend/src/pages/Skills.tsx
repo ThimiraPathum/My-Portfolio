@@ -81,7 +81,6 @@ export default function Skills() {
     return CATEGORY_MAP[skillName] || 'Other';
   };
 
-  // Sort skills by count (most used first)
   const sortedSkills = [...skills].sort((a, b) => (b.used_in?.length || 0) - (a.used_in?.length || 0));
 
   const filteredSkills = sortedSkills.filter((s) => {
@@ -90,29 +89,31 @@ export default function Skills() {
   });
 
   return (
-    <section className="pt-24 pb-20 px-4 sm:px-6 min-h-screen">
-      <div className="max-w-6xl mx-auto">
-        {/* Heading */}
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-12 text-center">
-          <div className="mono text-xs mb-3 tracking-[0.3em] uppercase" style={{ color: 'var(--accent-primary)' }}>
+    <section id="skills-section" className="pt-24 pb-20 px-4 sm:px-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Section Heading — Strictly Left-Aligned matching rest of portfolio */}
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-12">
+          <div className="mono text-xs mb-3 tracking-widest" style={{ color: 'var(--accent-primary)' }}>
             {'>'} tech.expertise()
           </div>
-          <h1 className="text-4xl sm:text-5xl font-bold mb-4" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>
+          <h2 className="section-heading mb-4">
             Technical <span className="gradient-text">Skills</span>
-          </h1>
-          <p className="max-w-xl mx-auto text-sm sm:text-base leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+          </h2>
+          <div className="h-px w-24 rounded-full mb-6" style={{ background: 'linear-gradient(to right, var(--accent-secondary), var(--accent-primary))' }} />
+
+          <p className="max-w-2xl text-sm sm:text-base leading-relaxed mb-6" style={{ color: 'var(--text-secondary)' }}>
             Auto-derived directly from technology stacks across my live portfolio projects.
           </p>
 
-          {/* Category Filter Tabs */}
-          <div className="mt-8 flex flex-wrap justify-center gap-2">
+          {/* Category Filter Tabs — Flush Left */}
+          <div className="flex flex-wrap gap-2">
             {tabs.map((tabLabel) => {
               const isActive = activeTab === tabLabel;
               return (
                 <button
                   key={tabLabel}
                   onClick={() => setActiveTab(tabLabel)}
-                  className="px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200"
+                  className="px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer"
                   style={{
                     background: isActive ? 'rgba(232, 116, 29, 0.12)' : 'transparent',
                     color: isActive ? 'var(--accent-primary)' : 'var(--text-secondary)',
@@ -167,7 +168,6 @@ export default function Skills() {
                           </h3>
                         </div>
 
-                        {/* Used in X projects Badge */}
                         <span className="mono text-[10px] uppercase font-bold px-2.5 py-1 rounded-full tracking-wider flex-shrink-0"
                           style={{
                             background: 'rgba(232, 116, 29, 0.12)',
@@ -214,7 +214,7 @@ export default function Skills() {
         )}
 
         {!loading && filteredSkills.length === 0 && (
-          <div className="text-center py-16 mono text-sm" style={{ color: 'var(--text-secondary)' }}>
+          <div className="text-left py-12 mono text-sm" style={{ color: 'var(--text-secondary)' }}>
             No skills found for category "{activeTab}".
           </div>
         )}

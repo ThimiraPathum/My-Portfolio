@@ -153,6 +153,7 @@ export default function AdminDashboard() {
     current: true,
     tech_stack: [] as string[],
     certificate_url: null as string | null,
+    credential_link: '' as string | null,
     timeline_order: 0,
     milestone_year: '',
     featured: false,
@@ -949,7 +950,7 @@ export default function AdminDashboard() {
                     setEditingExpId(null);
                     setNewExpData({ 
                       company: '', description: '', role: '', location: '', 
-                      start_date: '', end_date: '', current: true, tech_stack: [], certificate_url: null,
+                      start_date: '', end_date: '', current: true, tech_stack: [], certificate_url: null, credential_link: '',
                       timeline_order: 0, milestone_year: '', featured: false, visual_layout: 'auto'
                     });
                   }} 
@@ -1086,6 +1087,17 @@ export default function AdminDashboard() {
                         </div>
                       </div>
 
+                      <div className="w-full">
+                        <label className="block text-[10px] text-gray-500 mono mb-1 uppercase tracking-widest">Credential Verification Link (URL)</label>
+                        <input 
+                          type="url" 
+                          placeholder="e.g. https://coursera.org/verify/... or https://badgr.com/..."
+                          className="w-full bg-white/5 border border-white/10 rounded-lg text-sm text-gray-200 p-3 outline-none focus:border-cyan-400/50"
+                          value={newExpData.credential_link || ''}
+                          onChange={(e) => setNewExpData({ ...newExpData, credential_link: e.target.value })}
+                        />
+                      </div>
+
                       <div className="flex flex-col md:flex-row gap-6 items-start">
                         <div className="flex-1 w-full">
                           <label className="block text-[10px] text-gray-500 mono mb-1 uppercase tracking-widest">Description</label>
@@ -1167,7 +1179,7 @@ export default function AdminDashboard() {
                               }
                               setNewExpData({ 
                                 company: '', description: '', role: '', location: '', 
-                                start_date: '', end_date: '', current: true, tech_stack: [], certificate_url: null,
+                                start_date: '', end_date: '', current: true, tech_stack: [], certificate_url: null, credential_link: '',
                                 timeline_order: 0, milestone_year: '', featured: false, visual_layout: 'auto'
                               });
                               setShowAddExpForm(false);
@@ -1207,6 +1219,7 @@ export default function AdminDashboard() {
                                     current: e.current,
                                     tech_stack: e.tech_stack || [],
                                     certificate_url: e.certificate_url,
+                                    credential_link: e.credential_link || '',
                                     timeline_order: e.timeline_order ?? 0,
                                     milestone_year: e.milestone_year || '',
                                     featured: e.featured || false,
@@ -1241,6 +1254,13 @@ export default function AdminDashboard() {
                           placeholder="Tech stack, comma separated"
                           onChange={(ev) => setExperiences(prev => prev.map(x => x.id === e.id ? { ...x, tech_stack: ev.target.value.split(',').map((item: string) => item.trim()).filter(Boolean) } : x))}
                           onBlur={(ev) => apiUpdateExperience(e.id, { tech_stack: ev.target.value.split(',').map((item: string) => item.trim()).filter(Boolean) })}
+                        />
+                        <input
+                          className="bg-white/5 border border-white/10 rounded-lg text-xs text-gray-300 p-2.5 outline-none focus:border-cyan-400/30"
+                          value={e.credential_link || ''}
+                          placeholder="Credential Verification Link (URL) e.g. https://coursera.org/verify/..."
+                          onChange={(ev) => setExperiences(prev => prev.map(x => x.id === e.id ? { ...x, credential_link: ev.target.value } : x))}
+                          onBlur={(ev) => apiUpdateExperience(e.id, { credential_link: ev.target.value })}
                         />
                         
                         {/* Certificate Upload & Preview */}

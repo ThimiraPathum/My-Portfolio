@@ -46,8 +46,8 @@ I thrive at the intersection of infrastructure and development — combining my 
 I am passionate about building resilient systems that bridge the gap between clean code and reliable production environments.`;
 
   return (
-    <section className="pt-20 pb-16 px-4 sm:px-6">
-      <div className="max-w-6xl mx-auto">
+    <section id="about-section" className="pt-20 pb-16 px-4 sm:px-6">
+      <div className="max-w-7xl mx-auto">
 
         {/* Section header */}
         <motion.div

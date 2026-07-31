@@ -1,6 +1,7 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { Components } from "react-markdown";
+import CodeBlock from "./CodeBlock";
 
 interface MarkdownRendererProps {
   content: string;
@@ -41,7 +42,7 @@ const components: Components = {
     </ol>
   ),
   li: ({ children }) => (
-    <li className="leading-relaxed text-base">{children}</li>
+    <li className="leading-relaxed text-base text-stone-700">{children}</li>
   ),
   strong: ({ children }) => (
     <strong className="font-semibold text-stone-900">{children}</strong>
@@ -49,26 +50,22 @@ const components: Components = {
   em: ({ children }) => (
     <em className="italic text-stone-700">{children}</em>
   ),
-  code: ({ children, className }) => {
-    const isBlock = className?.includes("language-");
-    if (isBlock) {
-      return (
-        <code className="text-stone-100 font-mono text-sm">{children}</code>
-      );
+  code: ({ className, children }) => {
+    const match = /language-(\w+)/.exec(className || "");
+    const value = String(children).replace(/\n$/, "");
+
+    if (match) {
+      return <CodeBlock language={match[1]} value={value} />;
     }
     return (
-      <code className="bg-stone-100 text-amber-700 text-sm font-mono px-1.5 py-0.5 rounded">
+      <code className="bg-stone-200/60 text-stone-800 text-sm font-mono px-1.5 py-0.5 rounded border border-stone-300/40">
         {children}
       </code>
     );
   },
-  pre: ({ children }) => (
-    <pre className="bg-[#0d1117] border border-stone-200 rounded-lg p-4 mb-5 overflow-x-auto text-sm font-mono leading-relaxed">
-      {children}
-    </pre>
-  ),
+  pre: ({ children }) => <>{children}</>,
   blockquote: ({ children }) => (
-    <blockquote className="border-l-4 border-amber-600/60 pl-4 my-5 text-stone-500 italic">
+    <blockquote className="border-l-4 border-amber-600/60 pl-4 my-5 text-stone-600 italic">
       {children}
     </blockquote>
   ),
@@ -92,7 +89,7 @@ const components: Components = {
   ),
   table: ({ children }) => (
     <div className="overflow-x-auto mb-5">
-      <table className="w-full text-sm text-left border-collapse">
+      <table className="w-full text-sm text-left border-collapse text-stone-700">
         {children}
       </table>
     </div>

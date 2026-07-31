@@ -17,6 +17,7 @@ class Experience extends Model
         'tech_stack',
         'order',
         'certificate_url',
+        'credential_link',
         'timeline_order',
         'milestone_year',
         'featured',

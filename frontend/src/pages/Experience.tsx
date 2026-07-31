@@ -15,14 +15,28 @@ interface Experience {
   current: boolean;
   tech_stack: string[];
   certificate_url: string | null;
+  credential_link?: string | null;
 }
 
-function formatDate(dateStr: string) {
+function formatDate(dateStr: string | null | undefined) {
   if (!dateStr || dateStr.includes('0000-00-00')) return '';
   try {
-    const d = new Date(dateStr + 'T00:00:00');
-    if (isNaN(d.getTime())) return '';
-    return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    const clean = dateStr.split('T')[0].split(' ')[0];
+    const parts = clean.split('-');
+    if (parts.length >= 2) {
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const day = parts[2] ? parseInt(parts[2], 10) : 1;
+      const d = new Date(year, month, day);
+      if (!isNaN(d.getTime())) {
+        return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      }
+    }
+    const directDate = new Date(dateStr);
+    if (!isNaN(directDate.getTime())) {
+      return directDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    }
+    return '';
   } catch {
     return '';
   }
@@ -58,8 +72,8 @@ export default function Experience() {
   }, []);
 
   return (
-    <section className="pt-24 pb-20 px-4 sm:px-6 min-h-screen">
-      <div className="max-w-4xl mx-auto">
+    <section id="experience-section" className="pt-24 pb-20 px-4 sm:px-6 min-h-screen">
+      <div className="max-w-7xl mx-auto">
         {/* Heading */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-12">
           <div className="mono text-xs mb-3 tracking-widest" style={{ color: 'var(--accent-primary)' }}>{'>'} education.timeline()</div>
@@ -82,7 +96,7 @@ export default function Experience() {
               style={{ background: 'linear-gradient(180deg, var(--accent-secondary), var(--accent-primary), transparent)' }}
             />
 
-            <div className="space-y-6 pl-16">
+            <div className="space-y-6 pl-14 sm:pl-16">
               {experiences.map((exp, i) => (
                 <motion.div
                   key={exp.id}
@@ -92,7 +106,7 @@ export default function Experience() {
                   className="relative"
                 >
                   {/* Timeline dot — gold/orange gradient */}
-                  <div className="absolute -left-[42px] top-5 w-3 h-3 rounded-full"
+                  <div className="absolute -left-[40px] sm:-left-[42px] top-5 w-3 h-3 rounded-full"
                     style={{
                       background: 'linear-gradient(135deg, var(--accent-secondary), var(--accent-primary))',
                       border: '2px solid var(--bg-primary)',
@@ -100,116 +114,155 @@ export default function Experience() {
                     }}
                   />
 
-                  <div className="glass glass-hover p-6">
-                    <div className="flex flex-wrap gap-3 items-start justify-between mb-3">
-                      <div>
-                        <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>{exp.role}</h3>
-                        <p className="text-sm font-medium" style={{ color: 'var(--accent-primary)' }}>{exp.company}</p>
-                      </div>
-                      {exp.current && (
-                        <span className="px-2.5 py-1 rounded-full text-[11px] mono"
-                          style={{ background: 'rgba(107, 165, 118, 0.1)', color: 'var(--success)', border: '1px solid rgba(107, 165, 118, 0.2)' }}>
-                          ● Current
-                        </span>
-                      )}
-                    </div>
+                  {/* Responsive Grid Card (2-Column Desktop, 1-Column Mobile) */}
+                  <div className="glass glass-hover p-6 sm:p-7">
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+                      
+                      {/* Left Column: Role, Company, Dates, Location, Description, Tags, Verify Button */}
+                      <div className={`flex flex-col justify-between ${exp.certificate_url ? 'md:col-span-7 lg:col-span-8' : 'md:col-span-12'}`}>
+                        <div>
+                          {/* Title & Company */}
+                          <div className="flex flex-wrap gap-3 items-start justify-between mb-3">
+                            <div>
+                              <h3 className="text-xl font-bold tracking-tight" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>
+                                {exp.role}
+                              </h3>
+                              <p className="text-sm font-semibold mt-0.5" style={{ color: 'var(--accent-primary)' }}>
+                                {exp.company}
+                              </p>
+                            </div>
+                            {exp.current && (
+                              <span className="px-2.5 py-1 rounded-full text-[11px] mono font-medium"
+                                style={{ background: 'rgba(107, 165, 118, 0.1)', color: 'var(--success)', border: '1px solid rgba(107, 165, 118, 0.2)' }}>
+                                ● Current
+                              </span>
+                            )}
+                          </div>
 
-                    <div className="flex flex-wrap gap-4 text-xs mono mb-4" style={{ color: 'var(--text-secondary)' }}>
-                      <span className="flex items-center gap-1">
-                        <FiCalendar size={12} />
-                        {formatDate(exp.start_date)} — {exp.current ? 'Present' : exp.end_date ? formatDate(exp.end_date) : ''}
-                      </span>
-                      {exp.location && (
-                        <span className="flex items-center gap-1">
-                          <FiMapPin size={12} />
-                          {exp.location}
-                        </span>
-                      )}
-                    </div>
+                          {/* Dates & Location */}
+                          <div className="flex flex-wrap gap-4 text-xs mono mb-4" style={{ color: 'var(--text-secondary)' }}>
+                            {formatDate(exp.start_date) && (
+                              <span className="flex items-center gap-1.5 font-medium">
+                                <FiCalendar size={13} style={{ color: 'var(--accent-primary)' }} />
+                                {formatDate(exp.start_date)} {exp.current ? '— Present' : exp.end_date && formatDate(exp.end_date) ? `— ${formatDate(exp.end_date)}` : ''}
+                              </span>
+                            )}
+                            {exp.location && (
+                              <span className="flex items-center gap-1.5">
+                                <FiMapPin size={13} style={{ color: 'var(--accent-secondary)' }} />
+                                {exp.location}
+                              </span>
+                            )}
+                          </div>
 
-                    <div className="relative group">
-                      {expandedId !== exp.id ? (
-                        // Collapsed — plain stripped text with clamp
-                        <p
-                          className="text-sm leading-relaxed line-clamp-3"
-                          style={{ color: 'var(--text-secondary)' }}
-                        >
-                          {stripMarkdown(exp.description)}
-                        </p>
-                      ) : (
-                        // Expanded — full markdown rendering
-                        <MarkdownRenderer content={exp.description} />
-                      )}
-                      {exp.description.length > 150 && (
-                        <button 
-                          onClick={() => setExpandedId(expandedId === exp.id ? null : exp.id)}
-                          className="text-[10px] mono mt-1 transition-colors uppercase tracking-widest"
-                          style={{ color: 'var(--accent-primary)' }}
-                        >
-                          {expandedId === exp.id ? '— Show Less' : '+ View More'}
-                        </button>
-                      )}
-                    </div>
-
-                    {exp.tech_stack && exp.tech_stack.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {exp.tech_stack
-                          .filter(tech => !tech.toLowerCase().includes('studying') && !tech.toLowerCase().includes('active'))
-                          .map((tech) => (
-                          <span key={tech} className="tech-tag">{tech}</span>
-                        ))}
-                      </div>
-                    )}
-
-                    {exp.certificate_url && (
-                      <div className="mt-6 pt-5" style={{ borderTop: '1px solid var(--border)' }}>
-                        <div className="flex flex-col gap-4 items-center">
-                          <label className="text-[10px] mono uppercase tracking-widest flex items-center justify-center gap-2 w-full" style={{ color: 'var(--text-secondary)' }}>
-                            <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--accent-secondary)', boxShadow: '0 0 5px rgba(212, 175, 55, 0.5)' }} />
-                            Credentials & Proof
-                          </label>
-                          
-                          {(() => {
-                            const fullUrl = getSafeUrl(exp.certificate_url);
-                            const isPdf = exp.certificate_url.toLowerCase().endsWith('.pdf');
-                            
-                            return isPdf ? (
-                              <button 
-                                onClick={() => setSelectedCert({ url: fullUrl, title: exp.role || exp.company, isPdf: true })}
-                                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all group cursor-pointer"
-                                style={{
-                                  background: 'linear-gradient(135deg, rgba(232, 116, 29, 0.08), rgba(212, 175, 55, 0.08))',
-                                  color: 'var(--accent-primary)',
-                                  border: '1px solid rgba(232, 116, 29, 0.2)',
-                                }}
-                              >
-                                <FiMessageSquare size={16} className="group-hover:scale-110 transition-transform" /> 
-                                View Certification PDF
-                              </button>
+                          {/* Description */}
+                          <div className="relative group mb-4">
+                            {expandedId !== exp.id ? (
+                              <p className="text-sm leading-relaxed line-clamp-3" style={{ color: 'var(--text-secondary)' }}>
+                                {stripMarkdown(exp.description)}
+                              </p>
                             ) : (
-                              <div 
-                                className="relative group max-w-sm cursor-pointer overflow-hidden transition-all"
-                                style={{ borderRadius: '12px', border: '1px solid var(--border)' }}
-                                onClick={() => setSelectedCert({ url: fullUrl, title: exp.role || exp.company, isPdf: false })}
+                              <MarkdownRenderer content={exp.description} />
+                            )}
+                            {exp.description.length > 150 && (
+                              <button 
+                                onClick={() => setExpandedId(expandedId === exp.id ? null : exp.id)}
+                                className="text-[10px] mono mt-1 transition-colors uppercase tracking-widest font-semibold"
+                                style={{ color: 'var(--accent-primary)' }}
                               >
-                                <img 
-                                  src={fullUrl} 
-                                  className="w-full h-auto object-cover group-hover:scale-[1.03] transition-transform duration-500" 
-                                  alt="Certification"
-                                />
-                                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                                  style={{ background: 'rgba(26, 20, 16, 0.4)' }}>
-                                  <span className="px-4 py-2 rounded-full text-[10px] mono uppercase"
-                                    style={{ background: 'rgba(250, 244, 239, 0.15)', backdropFilter: 'blur(8px)', color: 'var(--bg-primary)', border: '1px solid rgba(250, 244, 239, 0.2)' }}>
-                                    Expand View
-                                  </span>
-                                </div>
-                              </div>
-                            );
-                          })()}
+                                {expandedId === exp.id ? '— Show Less' : '+ View More'}
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Tech / Skill Tags */}
+                          {exp.tech_stack && exp.tech_stack.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mb-4">
+                              {exp.tech_stack
+                                .filter(tech => !tech.toLowerCase().includes('studying') && !tech.toLowerCase().includes('active'))
+                                .map((tech) => (
+                                <span key={tech} className="tech-tag">{tech}</span>
+                              ))}
+                            </div>
+                          )}
                         </div>
+
+                        {/* Verify Credential Button */}
+                        {exp.credential_link && (
+                          <div className="pt-2 mt-2">
+                            <a
+                              href={exp.credential_link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border group"
+                              style={{
+                                borderColor: 'rgba(232, 116, 29, 0.35)',
+                                color: 'var(--accent-primary)',
+                                background: 'rgba(232, 116, 29, 0.05)',
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = 'rgba(232, 116, 29, 0.12)';
+                                e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'rgba(232, 116, 29, 0.05)';
+                                e.currentTarget.style.borderColor = 'rgba(232, 116, 29, 0.35)';
+                              }}
+                            >
+                              <span>Verify Credential</span>
+                              <FiExternalLink size={14} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                            </a>
+                          </div>
+                        )}
                       </div>
-                    )}
+
+                      {/* Right Column: Certificate Image / PDF Proof */}
+                      {exp.certificate_url && (
+                        <div className="md:col-span-5 lg:col-span-4 w-full flex flex-col items-center justify-center pt-4 md:pt-0">
+                          <div className="w-full flex flex-col items-center gap-2">
+                            {(() => {
+                              const fullUrl = getSafeUrl(exp.certificate_url);
+                              const isPdf = exp.certificate_url.toLowerCase().endsWith('.pdf');
+                              
+                              return isPdf ? (
+                                <button 
+                                  onClick={() => setSelectedCert({ url: fullUrl, title: exp.role || exp.company, isPdf: true })}
+                                  className="w-full py-6 px-4 rounded-xl text-xs font-bold flex flex-col items-center justify-center gap-2 transition-all group cursor-pointer border"
+                                  style={{
+                                    background: 'linear-gradient(135deg, rgba(232, 116, 29, 0.06), rgba(212, 175, 55, 0.06))',
+                                    color: 'var(--accent-primary)',
+                                    borderColor: 'rgba(232, 116, 29, 0.25)',
+                                  }}
+                                >
+                                  <FiMessageSquare size={24} className="group-hover:scale-110 transition-transform" /> 
+                                  <span>View Certification PDF</span>
+                                </button>
+                              ) : (
+                                <div 
+                                  className="relative group w-full max-w-[280px] mx-auto cursor-pointer overflow-hidden rounded-xl border transition-all"
+                                  style={{ borderColor: 'var(--border)' }}
+                                  onClick={() => setSelectedCert({ url: fullUrl, title: exp.role || exp.company, isPdf: false })}
+                                >
+                                  <img 
+                                    src={fullUrl} 
+                                    className="w-full h-44 sm:h-48 object-cover group-hover:scale-[1.03] transition-transform duration-500 rounded-xl" 
+                                    alt={exp.role || "Certification"}
+                                  />
+                                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                                    style={{ background: 'rgba(26, 20, 16, 0.5)', backdropFilter: 'blur(2px)' }}>
+                                    <span className="px-3.5 py-1.5 rounded-full text-[10px] mono uppercase font-bold tracking-wider"
+                                      style={{ background: 'rgba(250, 244, 239, 0.2)', color: '#FAF4EF', border: '1px solid rgba(250, 244, 239, 0.3)' }}>
+                                      Expand Image
+                                    </span>
+                                  </div>
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        </div>
+                      )}
+
+                    </div>
                   </div>
                 </motion.div>
               ))}

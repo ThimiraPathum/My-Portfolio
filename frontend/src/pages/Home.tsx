@@ -1,10 +1,14 @@
 import { useRef } from 'react';
 import { motion } from 'framer-motion';
 import { FiArrowRight, FiGithub, FiLinkedin, FiMail } from 'react-icons/fi';
-import { NavLink } from 'react-router-dom';
 import { useSettings } from '../context/SettingsContext';
 import { getSafeUrl } from '../api';
 import About from './About';
+import Projects from './Projects';
+import Skills from './Skills';
+import Experience from './Experience';
+import Contact from './Contact';
+import RecentBlogs from '../components/RecentBlogs';
 import { scrollToElement } from '../hooks/useLenis';
 import MarkdownRenderer from "../components/MarkdownRenderer";
 
@@ -17,31 +21,31 @@ export default function Home() {
   const lastName = rest.join(' ');
   const description = settings.home_description || 'Building modern digital solutions through software engineering, networking, and innovation. Passionate about systems that are purposeful, efficient, and future-ready.';
 
-  const handleScrollToAbout = () => {
-    if (aboutRef.current) scrollToElement(aboutRef.current);
+  const handleScrollToSection = (sectionId: string) => {
+    const el = document.getElementById(sectionId);
+    if (el) scrollToElement(el);
   };
 
   if (isLoading) return null;
 
   return (
     <div className="relative">
-      {/* ── Hero Section ── */}
+      {/* ── 1. Hero Section (#home-section) ── */}
       <main
         id="home-section"
         className="min-h-screen flex flex-col justify-center relative px-5 sm:px-6 grid-bg overflow-x-hidden"
-        style={{ paddingTop: '64px' }} /* navbar offset */
+        style={{ paddingTop: '64px' }}
       >
         {/* Background blobs */}
         <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-3xl pointer-events-none" style={{ background: 'rgba(212, 175, 55, 0.04)' }} />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full blur-3xl pointer-events-none" style={{ background: 'rgba(232, 116, 29, 0.03)' }} />
 
-        <div className="max-w-6xl w-full mx-auto relative z-10">
+        <div className="max-w-7xl w-full mx-auto relative z-10">
 
           {/* ── MOBILE LAYOUT (hidden on md+) ── */}
           <div className="md:hidden flex flex-col items-center text-center">
             {/* Top: photo + name stacked */}
             <div className="flex flex-col items-center gap-5 mb-8">
-              {/* Photo */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -52,10 +56,7 @@ export default function Home() {
                   <img
                     src={settings.profile_photo ? getSafeUrl(settings.profile_photo) : '/profile.jpg'}
                     alt={name}
-                    className="w-full h-full object-cover object-top"
-                    style={{
-                      borderRadius: '50%',
-                    }}
+                    className="w-full h-full object-cover object-top rounded-full"
                     onError={(e) => {
                       e.currentTarget.onerror = null;
                       e.currentTarget.src = '/profile.jpg';
@@ -64,16 +65,12 @@ export default function Home() {
                 </div>
               </motion.div>
 
-              {/* Name + label */}
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="flex flex-col items-center">
-
                 <h1
                   className="text-5xl font-medium leading-tight mb-2"
                   style={{ fontFamily: "'Playfair Display', serif", letterSpacing: '-0.02em' }}
                 >
-                  <span style={{ color: 'var(--text-primary)' }}>
-                    {firstName}
-                  </span>
+                  <span style={{ color: 'var(--text-primary)' }}>{firstName}</span>
                   <br />
                   <span
                     style={{
@@ -88,7 +85,6 @@ export default function Home() {
                     {lastName}
                   </span>
                 </h1>
-
               </motion.div>
             </div>
 
@@ -110,18 +106,18 @@ export default function Home() {
               transition={{ duration: 0.5, delay: 0.3 }}
               className="flex flex-col sm:flex-row justify-center gap-3 mb-8 w-full px-2"
             >
-              <NavLink
-                to="/projects"
-                className="text-center justify-center btn-gradient px-6 py-3.5 rounded-xl flex items-center gap-2 text-sm font-semibold w-full sm:w-auto"
+              <button
+                onClick={() => handleScrollToSection('projects-section')}
+                className="text-center justify-center btn-gradient px-6 py-3.5 rounded-xl flex items-center gap-2 text-sm font-semibold w-full sm:w-auto cursor-pointer"
               >
                 Explore Projects <FiArrowRight size={14} />
-              </NavLink>
+              </button>
               <button
-                className="text-center px-6 py-3.5 rounded-xl text-sm font-semibold transition-all w-full sm:w-auto"
+                className="text-center px-6 py-3.5 rounded-xl text-sm font-semibold transition-all w-full sm:w-auto cursor-pointer"
                 style={{ border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)' }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(232, 116, 29, 0.07)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-                onClick={handleScrollToAbout}
+                onClick={() => handleScrollToSection('about-section')}
               >
                 More About Me
               </button>
@@ -138,8 +134,6 @@ export default function Home() {
                 <a href={settings.social_github} target="_blank" rel="noreferrer"
                   className="flex items-center gap-1.5 text-xs transition-colors"
                   style={{ color: 'var(--text-secondary)' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--accent-primary)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
                 >
                   <FiGithub size={16} /> <span className="mono">GitHub</span>
                 </a>
@@ -148,8 +142,6 @@ export default function Home() {
                 <a href={settings.social_linkedin} target="_blank" rel="noreferrer"
                   className="flex items-center gap-1.5 text-xs transition-colors"
                   style={{ color: 'var(--text-secondary)' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--accent-primary)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
                 >
                   <FiLinkedin size={16} /> <span className="mono">LinkedIn</span>
                 </a>
@@ -158,8 +150,6 @@ export default function Home() {
                 <a href={`mailto:${settings.social_email}`}
                   className="flex items-center gap-1.5 text-xs transition-colors"
                   style={{ color: 'var(--text-secondary)' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--accent-primary)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
                 >
                   <FiMail size={16} /> <span className="mono">Email</span>
                 </a>
@@ -169,18 +159,13 @@ export default function Home() {
 
           {/* ── DESKTOP LAYOUT (hidden on mobile) ── */}
           <div className="hidden md:flex items-center justify-between gap-12">
-            {/* Text content */}
             <div className="flex-1 flex flex-col items-start text-left">
-
-
               <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}>
                 <h1
                   className="text-6xl lg:text-[5.5rem] font-medium mb-6 leading-none tracking-tight"
                   style={{ fontFamily: "'Playfair Display', serif", letterSpacing: '-0.02em' }}
                 >
-                  <span style={{ color: 'var(--text-primary)' }}>
-                    {firstName}
-                  </span>
+                  <span style={{ color: 'var(--text-primary)' }}>{firstName}</span>
                   <br />
                   <span
                     style={{
@@ -207,15 +192,18 @@ export default function Home() {
               <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }}
                 className="flex flex-row flex-wrap gap-4 mb-8"
               >
-                <NavLink to="/projects" className="btn-gradient px-8 py-3.5 rounded-lg flex items-center gap-2 text-sm font-semibold">
+                <button 
+                  onClick={() => handleScrollToSection('projects-section')}
+                  className="btn-gradient px-8 py-3.5 rounded-lg flex items-center gap-2 text-sm font-semibold cursor-pointer"
+                >
                   Explore Projects <FiArrowRight />
-                </NavLink>
+                </button>
                 <button
-                  className="px-8 py-3.5 rounded-lg text-sm font-semibold transition-all"
+                  className="px-8 py-3.5 rounded-lg text-sm font-semibold transition-all cursor-pointer"
                   style={{ border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)' }}
                   onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(232, 116, 29, 0.08)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-                  onClick={handleScrollToAbout}
+                  onClick={() => handleScrollToSection('about-section')}
                 >
                   More About Me
                 </button>
@@ -228,8 +216,6 @@ export default function Home() {
                   <a href={settings.social_github} target="_blank" rel="noreferrer"
                     className="flex items-center gap-1.5 text-sm transition-colors"
                     style={{ color: 'var(--text-secondary)' }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--accent-primary)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
                   >
                     <FiGithub size={18} /> <span className="mono text-xs">GitHub</span>
                   </a>
@@ -238,8 +224,6 @@ export default function Home() {
                   <a href={settings.social_linkedin} target="_blank" rel="noreferrer"
                     className="flex items-center gap-1.5 text-sm transition-colors"
                     style={{ color: 'var(--text-secondary)' }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--accent-primary)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
                   >
                     <FiLinkedin size={18} /> <span className="mono text-xs">LinkedIn</span>
                   </a>
@@ -248,8 +232,6 @@ export default function Home() {
                   <a href={`mailto:${settings.social_email}`}
                     className="flex items-center gap-1.5 text-sm transition-colors"
                     style={{ color: 'var(--text-secondary)' }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--accent-primary)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
                   >
                     <FiMail size={18} /> <span className="mono text-xs">Email</span>
                   </a>
@@ -264,15 +246,11 @@ export default function Home() {
               transition={{ duration: 0.7, delay: 0.2 }}
               className="flex-shrink-0 relative subtle-float"
             >
-
               <div className="w-72 h-72 md:w-80 md:h-80 lg:w-96 lg:h-96">
                 <img
                   src={settings.profile_photo ? getSafeUrl(settings.profile_photo) : '/profile.jpg'}
                   alt={name}
-                  className="w-full h-full object-cover object-top"
-                  style={{
-                    borderRadius: '50%',
-                  }}
+                  className="w-full h-full object-cover object-top rounded-full"
                   onError={(e) => {
                     e.currentTarget.onerror = null;
                     e.currentTarget.src = '/profile.jpg';
@@ -285,10 +263,25 @@ export default function Home() {
         </div>
       </main>
 
-      {/* ── About Section ── */}
-      <div ref={aboutRef} id="about-section">
+      {/* ── 2. About Section (#about-section) ── */}
+      <div ref={aboutRef}>
         <About />
       </div>
+
+      {/* ── 3. Projects Section (#projects-section) ── */}
+      <Projects />
+
+      {/* ── 4. Skills Section (#skills-section) ── */}
+      <Skills />
+
+      {/* ── 5. Education & Certifications (#experience-section) ── */}
+      <Experience />
+
+      {/* ── 6. Hybrid Blog Preview (#blog-preview-section) ── */}
+      <RecentBlogs />
+
+      {/* ── 7. Contact Section (#contact-section) ── */}
+      <Contact />
     </div>
   );
 }
