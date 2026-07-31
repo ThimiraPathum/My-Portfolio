@@ -74,54 +74,64 @@ export default function Experience() {
   return (
     <section id="experience-section" className="pt-24 pb-20 px-4 sm:px-6 min-h-screen">
       <div className="max-w-7xl mx-auto">
-        {/* Heading */}
+        {/* Section Heading */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-12">
-          <div className="mono text-xs mb-3 tracking-widest" style={{ color: 'var(--accent-primary)' }}>{'>'} education.timeline()</div>
-          <h1 className="section-heading mb-4">
-            Education &amp; <span className="gradient-text">Certifications</span>
-          </h1>
-          <div className="h-px w-24 rounded-full" style={{ background: 'linear-gradient(to right, var(--accent-secondary), var(--accent-primary))' }} />
+          <div className="mono text-xs mb-3 tracking-widest" style={{ color: 'var(--accent-primary)' }}>{'>'} qualifications.timeline()</div>
+          <h2 className="section-heading mb-4">
+            Education &amp; <span className="gradient-text">Qualifications</span>
+          </h2>
+          <div className="h-px w-24 rounded-full mb-6" style={{ background: 'linear-gradient(to right, var(--accent-secondary), var(--accent-primary))' }} />
+          <p className="max-w-2xl text-sm sm:text-base leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+            Academic degrees, certifications, and technical accomplishments tracked across my engineering journey.
+          </p>
         </motion.div>
 
         {loading ? (
           <div className="space-y-6">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="glass h-40 animate-pulse" />
+              <div key={i} className="glass h-40 animate-pulse rounded-2xl" />
             ))}
           </div>
         ) : (
           <div className="relative">
-            {/* Timeline center line — gold to orange gradient */}
+            {/* Minimalist Vertical Timeline Connecting Line */}
             <div className="absolute left-6 top-4 bottom-4 w-px"
               style={{ background: 'linear-gradient(180deg, var(--accent-secondary), var(--accent-primary), transparent)' }}
             />
 
-            <div className="space-y-6 pl-14 sm:pl-16">
+            {/* Timeline Item Nodes */}
+            <div className="space-y-8 pl-14 sm:pl-16">
               {experiences.map((exp, i) => (
                 <motion.div
                   key={exp.id}
                   initial={{ opacity: 0, x: -30 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.15, duration: 0.5 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true, margin: '-30px' }}
+                  transition={{ delay: i * 0.12, duration: 0.5 }}
                   className="relative"
                 >
-                  {/* Timeline dot — gold/orange gradient */}
-                  <div className="absolute -left-[40px] sm:-left-[42px] top-5 w-3 h-3 rounded-full"
+                  {/* Timeline Node Point (Glowing Dot) */}
+                  <div className="absolute -left-[40px] sm:-left-[42px] top-6 w-3.5 h-3.5 rounded-full transition-transform hover:scale-125"
                     style={{
                       background: 'linear-gradient(135deg, var(--accent-secondary), var(--accent-primary))',
-                      border: '2px solid var(--bg-primary)',
-                      boxShadow: '0 0 10px rgba(232, 116, 29, 0.4)',
+                      border: '2.5px solid var(--bg-primary)',
+                      boxShadow: '0 0 12px rgba(232, 116, 29, 0.4)',
                     }}
                   />
 
-                  {/* Responsive Grid Card (2-Column Desktop, 1-Column Mobile) */}
-                  <div className="glass glass-hover p-6 sm:p-7">
+                  {/* Timeline Qualification Card */}
+                  <motion.div 
+                    whileHover={{ y: -4 }}
+                    transition={{ duration: 0.3 }}
+                    className="glass glass-hover p-6 sm:p-7 rounded-2xl relative border"
+                    style={{ borderColor: 'rgba(232, 116, 29, 0.15)' }}
+                  >
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
                       
-                      {/* Left Column: Role, Company, Dates, Location, Description, Tags, Verify Button */}
+                      {/* Left Column: Qualification Details & Credentials */}
                       <div className={`flex flex-col justify-between ${exp.certificate_url ? 'md:col-span-7 lg:col-span-8' : 'md:col-span-12'}`}>
                         <div>
-                          {/* Title & Company */}
+                          {/* Degree / Certificate Title & Institution */}
                           <div className="flex flex-wrap gap-3 items-start justify-between mb-3">
                             <div>
                               <h3 className="text-xl font-bold tracking-tight" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>
@@ -139,7 +149,7 @@ export default function Experience() {
                             )}
                           </div>
 
-                          {/* Dates & Location */}
+                          {/* Year / Dates & Location */}
                           <div className="flex flex-wrap gap-4 text-xs mono mb-4" style={{ color: 'var(--text-secondary)' }}>
                             {formatDate(exp.start_date) && (
                               <span className="flex items-center gap-1.5 font-medium">
@@ -167,7 +177,7 @@ export default function Experience() {
                             {exp.description.length > 150 && (
                               <button 
                                 onClick={() => setExpandedId(expandedId === exp.id ? null : exp.id)}
-                                className="text-[10px] mono mt-1 transition-colors uppercase tracking-widest font-semibold"
+                                className="text-[10px] mono mt-1.5 transition-colors uppercase tracking-widest font-semibold cursor-pointer"
                                 style={{ color: 'var(--accent-primary)' }}
                               >
                                 {expandedId === exp.id ? '— Show Less' : '+ View More'}
@@ -194,7 +204,7 @@ export default function Experience() {
                               href={exp.credential_link}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border group"
+                              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border group cursor-pointer"
                               style={{
                                 borderColor: 'rgba(232, 116, 29, 0.35)',
                                 color: 'var(--accent-primary)',
@@ -263,7 +273,7 @@ export default function Experience() {
                       )}
 
                     </div>
-                  </div>
+                  </motion.div>
                 </motion.div>
               ))}
             </div>
@@ -271,7 +281,7 @@ export default function Experience() {
         )}
       </div>
 
-      {/* Certificate Lightbox */}
+      {/* Certificate Lightbox Modal */}
       <AnimatePresence>
         {selectedCert && (
           <motion.div 
@@ -299,7 +309,7 @@ export default function Experience() {
                 <div className="flex items-center gap-2">
                   <button 
                     onClick={() => window.open(selectedCert.url, '_blank')}
-                    className="p-2 transition-colors"
+                    className="p-2 transition-colors cursor-pointer"
                     style={{ color: 'var(--text-secondary)' }}
                     title="Open in new tab"
                   >
@@ -307,7 +317,7 @@ export default function Experience() {
                   </button>
                   <button 
                     onClick={() => setSelectedCert(null)}
-                    className="p-2 transition-colors"
+                    className="p-2 transition-colors cursor-pointer"
                     style={{ color: 'var(--text-secondary)' }}
                   >
                     <FiX size={24} />

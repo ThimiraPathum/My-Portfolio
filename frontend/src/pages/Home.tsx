@@ -269,7 +269,7 @@ export default function Home() {
       </div>
 
       {/* ── 3. Projects Section (#projects-section) ── */}
-      <Projects />
+      <Projects limit={2} />
 
       {/* ── 4. Skills Section (#skills-section) ── */}
       <Skills />
