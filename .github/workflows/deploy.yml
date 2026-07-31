@@ -193,7 +193,7 @@ jobs:
               /usr/bin/git -C "${PROJECT_PATH}" remote set-url origin "${REPO_URL}" || true
               /usr/bin/git -C "${PROJECT_PATH}" fetch origin "${BRANCH}" --prune
               /usr/bin/git -C "${PROJECT_PATH}" reset --hard "origin/${BRANCH}"
-              /usr/bin/git -C "${PROJECT_PATH}" clean -fd
+              /usr/bin/git -C "${PROJECT_PATH}" clean -fd -e backend/storage -e storage -e backend/database
               /usr/bin/git -C "${PROJECT_PATH}" checkout "${BRANCH}"
             else
               echo "⚠️ .git not found. Re-cloning repository..."

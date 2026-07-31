@@ -27,6 +27,22 @@ const categoryLabels: Record<string, string> = {
   research: 'Research',
 };
 
+const stripMarkdown = (text: string): string => {
+  return text
+    .replace(/#{1,6}\s+/g, '')        // remove ## headings
+    .replace(/\*\*(.*?)\*\*/g, '$1')  // remove **bold**
+    .replace(/\*(.*?)\*/g, '$1')      // remove *italic*
+    .replace(/`{3}[\s\S]*?`{3}/g, '') // remove code blocks
+    .replace(/`([^`]+)`/g, '$1')      // remove inline code
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // remove [links](url)
+    .replace(/^[-*+]\s+/gm, '')       // remove list bullets
+    .replace(/^\d+\.\s+/gm, '')       // remove numbered lists
+    .replace(/^>\s+/gm, '')           // remove blockquotes
+    .replace(/---/g, '')              // remove dividers
+    .replace(/\n{2,}/g, ' ')          // collapse newlines to space
+    .trim();
+};
+
 export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [filter, setFilter] = useState('All');
@@ -162,7 +178,7 @@ export default function Projects() {
 
                       {/* Description */}
                       <p className="text-sm leading-relaxed flex-1 mb-5 line-clamp-4" style={{ color: 'var(--text-secondary)' }}>
-                        {project.description}
+                        {stripMarkdown(project.description)}
                       </p>
 
                       {/* Tech / Skill tags */}

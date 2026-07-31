@@ -3,6 +3,7 @@ import { useParams, NavLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiArrowLeft, FiGithub, FiExternalLink, FiClock } from 'react-icons/fi';
 import { getProjects, getSafeUrl } from '../api';
+import MarkdownRenderer from "../components/MarkdownRenderer";
 
 export default function ProjectDetail() {
   const { id } = useParams();
@@ -125,9 +126,7 @@ export default function ProjectDetail() {
 
           <div className="glass p-8" style={{ lineHeight: '1.7' }}>
             <h2 className="text-xl font-bold mb-4 mt-0 pb-2" style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--border)', fontFamily: 'var(--font-display)' }}>About the Project</h2>
-            <div className="whitespace-pre-wrap text-lg" style={{ color: 'var(--text-secondary)' }}>
-              {project.description}
-            </div>
+            <MarkdownRenderer content={project.description} />
           </div>
         </motion.article>
       </div>

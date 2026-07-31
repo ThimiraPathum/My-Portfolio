@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { FiServer, FiCpu, FiGitMerge, FiLayers, FiArrowRight } from 'react-icons/fi';
 import { useSettings } from '../context/SettingsContext';
 import { NavLink } from 'react-router-dom';
+import MarkdownRenderer from '../components/MarkdownRenderer';
 
 const expertise = [
   {
@@ -76,17 +77,7 @@ I am passionate about building resilient systems that bridge the gap between cle
 
 
             {/* Bio text */}
-            <div className="space-y-4 mb-8">
-              {bio.split('\n\n').filter(Boolean).map((para, i) => (
-                <p
-                  key={i}
-                  className="text-sm leading-relaxed"
-                  style={{ color: 'var(--text-secondary)', lineHeight: '1.85' }}
-                >
-                  {para}
-                </p>
-              ))}
-            </div>
+            <MarkdownRenderer content={bio} className="mb-8" />
 
             {/* CTAs */}
             <div className="flex flex-wrap gap-3">

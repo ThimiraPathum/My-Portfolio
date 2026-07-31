@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { FiArrowLeft, FiMessageSquare } from 'react-icons/fi';
 import { getBlog, postComment, getSafeUrl } from '../api';
 import toast from 'react-hot-toast';
+import MarkdownRenderer from "../components/MarkdownRenderer";
 
 export default function BlogPost() {
   const { slug } = useParams();
@@ -80,9 +81,7 @@ export default function BlogPost() {
             )}
           </header>
 
-          <div className="leading-relaxed font-sans text-base md:text-lg whitespace-pre-wrap" style={{ color: 'var(--text-primary)', lineHeight: '1.7' }}>
-            {cleanContent}
-          </div>
+          <MarkdownRenderer content={cleanContent || blog.content} />
         </motion.article>
 
         {/* Comments Section */}

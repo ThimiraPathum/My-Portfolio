@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiMapPin, FiCalendar, FiMessageSquare, FiX, FiExternalLink } from 'react-icons/fi';
 import { getExperiences, getSafeUrl } from '../api';
+import MarkdownRenderer from "../components/MarkdownRenderer";
 
 interface Experience {
   id: number;
@@ -26,6 +27,22 @@ function formatDate(dateStr: string) {
     return '';
   }
 }
+
+const stripMarkdown = (text: string): string => {
+  return text
+    .replace(/#{1,6}\s+/g, '')
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    .replace(/`{3}[\s\S]*?`{3}/g, '')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/^[-*+]\s+/gm, '')
+    .replace(/^\d+\.\s+/gm, '')
+    .replace(/^>\s+/gm, '')
+    .replace(/---/g, '')
+    .replace(/\n{2,}/g, ' ')
+    .trim();
+};
 
 export default function Experience() {
   const [experiences, setExperiences] = useState<Experience[]>([]);
@@ -111,9 +128,18 @@ export default function Experience() {
                     </div>
 
                     <div className="relative group">
-                      <p className={`text-sm leading-relaxed ${expandedId !== exp.id ? 'line-clamp-3' : ''}`} style={{ color: 'var(--text-secondary)' }}>
-                        {exp.description}
-                      </p>
+                      {expandedId !== exp.id ? (
+                        // Collapsed — plain stripped text with clamp
+                        <p
+                          className="text-sm leading-relaxed line-clamp-3"
+                          style={{ color: 'var(--text-secondary)' }}
+                        >
+                          {stripMarkdown(exp.description)}
+                        </p>
+                      ) : (
+                        // Expanded — full markdown rendering
+                        <MarkdownRenderer content={exp.description} />
+                      )}
                       {exp.description.length > 150 && (
                         <button 
                           onClick={() => setExpandedId(expandedId === exp.id ? null : exp.id)}

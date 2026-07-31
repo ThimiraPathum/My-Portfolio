@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { FiArrowRight, FiExternalLink } from 'react-icons/fi';
 import MilestoneDate from './MilestoneDate';
+import MarkdownRenderer from "../../components/MarkdownRenderer";
 
 interface MilestoneContentProps {
   year: string;
@@ -48,12 +49,7 @@ export default function MilestoneContent({
       </div>
 
       {/* Narrative Description */}
-      <p 
-        className="text-sm sm:text-base leading-relaxed whitespace-pre-wrap"
-        style={{ color: 'var(--text-primary)', lineHeight: '1.7' }}
-      >
-        {description}
-      </p>
+      <MarkdownRenderer content={description} />
 
       {/* Tech Tags */}
       {skills && skills.length > 0 && (

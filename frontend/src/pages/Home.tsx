@@ -6,6 +6,7 @@ import { useSettings } from '../context/SettingsContext';
 import { getSafeUrl } from '../api';
 import About from './About';
 import { scrollToElement } from '../hooks/useLenis';
+import MarkdownRenderer from "../components/MarkdownRenderer";
 
 export default function Home() {
   const { settings, isLoading } = useSettings();
@@ -92,15 +93,15 @@ export default function Home() {
             </div>
 
             {/* Description */}
-            <motion.p
+            <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
               className="w-full text-sm mb-8 leading-relaxed px-2"
               style={{ color: 'var(--text-secondary)', lineHeight: '1.75' }}
             >
-              {description}
-            </motion.p>
+              <MarkdownRenderer content={description} />
+            </motion.div>
 
             {/* Buttons */}
             <motion.div
@@ -196,12 +197,12 @@ export default function Home() {
                 </h1>
               </motion.div>
 
-              <motion.p initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
+              <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
                 className="w-full text-lg max-w-xl mb-8 leading-relaxed"
                 style={{ color: 'var(--text-secondary)', lineHeight: '1.8' }}
               >
-                {description}
-              </motion.p>
+                <MarkdownRenderer content={description} />
+              </motion.div>
 
               <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }}
                 className="flex flex-row flex-wrap gap-4 mb-8"

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useSettings } from '../../context/SettingsContext';
+import MarkdownRenderer from "../../components/MarkdownRenderer";
 
 export default function Hero() {
   const { settings, isLoading } = useSettings();
@@ -85,15 +86,15 @@ export default function Hero() {
           </span>
         </motion.div>
 
-        <motion.p
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.8 }}
           className="max-w-xl mx-auto text-sm leading-relaxed"
           style={{ color: 'var(--text-secondary)' }}
         >
-          {settings.home_tag || 'Evolving from basic scripting to designing robust orchestration architectures.'}
-        </motion.p>
+          <MarkdownRenderer content={settings.home_tag || 'Evolving from basic scripting to designing robust orchestration architectures.'} />
+        </motion.div>
       </div>
 
       {/* Floating scroll hint at bottom */}
