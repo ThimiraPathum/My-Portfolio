@@ -255,24 +255,24 @@ jobs:
               }
               echo -e "${GREEN}   ✅ Migrations completed (existing data protected)${NC}"
 
-              # ========== SMART SEEDING ==========
-              echo -e "${YELLOW}   🌱 Checking if database seeding is needed...${NC}"
+              # # ========== SMART SEEDING ==========
+              # echo -e "${YELLOW}   🌱 Checking if database seeding is needed...${NC}"
 
-              USER_COUNT=$(sudo docker exec backend-api php artisan tinker --quiet --execute="echo \App\Models\User::count();" 2>/dev/null | tail -1 | tr -d ' ')
+              # USER_COUNT=$(sudo docker exec backend-api php artisan tinker --quiet --execute="echo \App\Models\User::count();" 2>/dev/null | tail -1 | tr -d ' ')
 
-              if [ -z "$USER_COUNT" ]; then
-                USER_COUNT=0
-              fi
+              # if [ -z "$USER_COUNT" ]; then
+              #   USER_COUNT=0
+              # fi
 
-              if [ "$USER_COUNT" = "0" ]; then
-                echo -e "${YELLOW}   📊 No users found - seeding database...${NC}"
-                sudo docker exec backend-api php artisan db:seed --force --no-interaction || {
-                  echo -e "${YELLOW}   ⚠️  Seeding failed, continuing...${NC}"
-                }
-                echo -e "${GREEN}   ✅ Database seeded${NC}"
-              else
-                echo -e "${GREEN}   ✅ Database already populated with $USER_COUNT user(s) - skipping seed${NC}"
-              fi
+              # if [ "$USER_COUNT" = "0" ]; then
+              #   echo -e "${YELLOW}   📊 No users found - seeding database...${NC}"
+              #   sudo docker exec backend-api php artisan db:seed --force --no-interaction || {
+              #     echo -e "${YELLOW}   ⚠️  Seeding failed, continuing...${NC}"
+              #   }
+              #   echo -e "${GREEN}   ✅ Database seeded${NC}"
+              # else
+              #   echo -e "${GREEN}   ✅ Database already populated with $USER_COUNT user(s) - skipping seed${NC}"
+              # fi
 
               # ========== CLEAR CACHES ==========
               echo -e "${YELLOW}   🧹 Clearing application cache...${NC}"

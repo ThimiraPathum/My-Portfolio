@@ -11,6 +11,8 @@ services:
     volumes:
       - ./backend:/var/www/html
       - portfolio-data:/var/data
+      # මෙන්න මේ අලුත් පේළිය එකතු කරන්න (Storage එක persistent කරන්න)
+      - portfolio-storage:/var/www/html/storage 
     environment:
       - APP_ENV=production
       - APP_DEBUG=false
@@ -28,6 +30,9 @@ services:
 
 volumes:
   portfolio-data:
+    driver: local
+  # මෙන්න මේ අලුත් Volume එක මෙතනටත් එකතු කරන්න
+  portfolio-storage:
     driver: local
 
 networks:

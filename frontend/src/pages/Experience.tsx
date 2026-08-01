@@ -16,6 +16,7 @@ interface Experience {
   tech_stack: string[];
   certificate_url: string | null;
   credential_link?: string | null;
+  credential_url?: string | null;
 }
 
 function formatDate(dateStr: string | null | undefined) {
@@ -198,10 +199,10 @@ export default function Experience() {
                         </div>
 
                         {/* Verify Credential Button */}
-                        {exp.credential_link && (
+                        {(exp.credential_link || exp.credential_url) && (
                           <div className="pt-2 mt-2">
                             <a
-                              href={exp.credential_link}
+                              href={exp.credential_link || exp.credential_url || '#'}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border group cursor-pointer"
