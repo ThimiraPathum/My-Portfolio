@@ -38,6 +38,7 @@ return [
             'report' => false,
         ],
 
+        // Redirects uploads to persistent volume via LARAVEL_STORAGE_PATH env variable
         'public' => [
             'driver' => 'local',
             'root' => env('LARAVEL_STORAGE_PATH', storage_path('app/public')),
