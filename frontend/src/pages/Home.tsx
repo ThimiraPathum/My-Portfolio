@@ -128,30 +128,63 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.45 }}
-              className="flex items-center justify-center gap-6"
+              className="flex items-center justify-center gap-3"
             >
               {settings.social_github && (
                 <a href={settings.social_github} target="_blank" rel="noreferrer"
-                  className="flex items-center gap-1.5 text-xs transition-colors"
-                  style={{ color: 'var(--text-secondary)' }}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all"
+                  style={{ 
+                    color: 'var(--text-secondary)',
+                    border: '1px solid var(--border)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                    e.currentTarget.style.color = 'var(--accent-primary)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--border)';
+                    e.currentTarget.style.color = 'var(--text-secondary)';
+                  }}
                 >
-                  <FiGithub size={16} /> <span className="mono">GitHub</span>
+                  <FiGithub size={15} /> <span>GitHub</span>
                 </a>
               )}
               {settings.social_linkedin && (
                 <a href={settings.social_linkedin} target="_blank" rel="noreferrer"
-                  className="flex items-center gap-1.5 text-xs transition-colors"
-                  style={{ color: 'var(--text-secondary)' }}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all"
+                  style={{ 
+                    color: 'var(--text-secondary)',
+                    border: '1px solid var(--border)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                    e.currentTarget.style.color = 'var(--accent-primary)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--border)';
+                    e.currentTarget.style.color = 'var(--text-secondary)';
+                  }}
                 >
-                  <FiLinkedin size={16} /> <span className="mono">LinkedIn</span>
+                  <FiLinkedin size={15} /> <span>LinkedIn</span>
                 </a>
               )}
               {settings.social_email && (
                 <a href={`mailto:${settings.social_email}`}
-                  className="flex items-center gap-1.5 text-xs transition-colors"
-                  style={{ color: 'var(--text-secondary)' }}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all"
+                  style={{ 
+                    color: 'var(--text-secondary)',
+                    border: '1px solid var(--border)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                    e.currentTarget.style.color = 'var(--accent-primary)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--border)';
+                    e.currentTarget.style.color = 'var(--text-secondary)';
+                  }}
                 >
-                  <FiMail size={16} /> <span className="mono">Email</span>
+                  <FiMail size={15} /> <span>Email</span>
                 </a>
               )}
             </motion.div>
@@ -209,31 +242,67 @@ export default function Home() {
                 </button>
               </motion.div>
 
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
-                className="flex items-center gap-5"
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+                className="flex items-center justify-start gap-3"
               >
                 {settings.social_github && (
                   <a href={settings.social_github} target="_blank" rel="noreferrer"
-                    className="flex items-center gap-1.5 text-sm transition-colors"
-                    style={{ color: 'var(--text-secondary)' }}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all"
+                    style={{ 
+                      color: 'var(--text-secondary)',
+                      border: '1px solid var(--border)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                      e.currentTarget.style.color = 'var(--accent-primary)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--border)';
+                      e.currentTarget.style.color = 'var(--text-secondary)';
+                    }}
                   >
-                    <FiGithub size={18} /> <span className="mono text-xs">GitHub</span>
+                    <FiGithub size={15} /> <span>GitHub</span>
                   </a>
                 )}
                 {settings.social_linkedin && (
                   <a href={settings.social_linkedin} target="_blank" rel="noreferrer"
-                    className="flex items-center gap-1.5 text-sm transition-colors"
-                    style={{ color: 'var(--text-secondary)' }}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all"
+                    style={{ 
+                      color: 'var(--text-secondary)',
+                      border: '1px solid var(--border)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                      e.currentTarget.style.color = 'var(--accent-primary)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--border)';
+                      e.currentTarget.style.color = 'var(--text-secondary)';
+                    }}
                   >
-                    <FiLinkedin size={18} /> <span className="mono text-xs">LinkedIn</span>
+                    <FiLinkedin size={15} /> <span>LinkedIn</span>
                   </a>
                 )}
                 {settings.social_email && (
                   <a href={`mailto:${settings.social_email}`}
-                    className="flex items-center gap-1.5 text-sm transition-colors"
-                    style={{ color: 'var(--text-secondary)' }}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all"
+                    style={{ 
+                      color: 'var(--text-secondary)',
+                      border: '1px solid var(--border)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                      e.currentTarget.style.color = 'var(--accent-primary)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--border)';
+                      e.currentTarget.style.color = 'var(--text-secondary)';
+                    }}
                   >
-                    <FiMail size={18} /> <span className="mono text-xs">Email</span>
+                    <FiMail size={15} /> <span>Email</span>
                   </a>
                 )}
               </motion.div>
