@@ -37,7 +37,7 @@ class SiteSettingController extends Controller
             }
         }
 
-        SiteSetting::setMany($settingsToUpdate);
+        SiteSetting::updateMany($settingsToUpdate);
 
         return response()->json([
             'message' => 'Settings updated successfully',
@@ -52,7 +52,7 @@ class SiteSettingController extends Controller
             'value' => 'nullable|string',
         ]);
 
-        SiteSetting::setMany([$key => $validated['value'] ?? '']);
+        SiteSetting::updateMany([$key => $validated['value'] ?? '']);
 
         return response()->json([
             'message' => "Setting '{$key}' updated successfully",

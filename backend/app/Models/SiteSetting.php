@@ -46,6 +46,16 @@ class SiteSetting extends Model
         }
     }
 
+    public static function updateMany(array $data): void
+    {
+        foreach ($data as $key => $value) {
+            static::updateOrCreate(
+                ['key' => $key],
+                ['value' => $value]
+            );
+        }
+    }
+
     public static function allAsMap(): array
     {
         $dbSettings = static::pluck('value', 'key')->toArray();
