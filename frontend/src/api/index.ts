@@ -1,9 +1,6 @@
 import axios from 'axios';
 
-const rawApiUrl = import.meta.env.VITE_API_URL || 
-  (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') 
-    ? 'http://localhost:8000/api/' 
-    : 'https://my-portfolio-api-20fo.onrender.com/api/');
+const rawApiUrl = import.meta.env.VITE_API_URL || '/api';
 
 export const API_URL = rawApiUrl.replace(/\/$/, '') + (rawApiUrl.includes('/api') ? '/' : '/api/');
 export const BASE_URL = API_URL.split('/api')[0];
@@ -143,7 +140,7 @@ export const createExperience = (data: object) => api.post('experiences', data);
 export const updateExperience = (id: number, data: object) => api.put(`experiences/${id}`, data);
 export const deleteExperience = (id: number) => api.delete(`experiences/${id}`);
 
-// Messagesgg
+// Messages
 export const sendMessage   = (data: object) => api.post('messages', data);
 export const getMessages   = () => api.get('messages');
 export const markRead      = (id: number) => api.put(`messages/${id}/read`);

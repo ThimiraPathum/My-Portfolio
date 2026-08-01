@@ -87,6 +87,14 @@ jobs:
           echo "VITE_API_URL=/api" > .env.production
           npm run build
 
+      - name: Verify build has no hardcoded API URLs
+        run: |
+          if grep -r "onrender.com" frontend/dist/assets/; then
+            echo "❌ Build contains old API URL — aborting deployment"
+            exit 1
+          fi
+          echo "✅ Build verified — no hardcoded URLs found"
+
       - name: ✅ Verify Build Output
         run: |
           if [ ! -d "frontend/dist" ] || [ -z "$(ls -A frontend/dist)" ]; then
@@ -220,6 +228,10 @@ jobs:
               sudo chown -R www-data:www-data /var/www/html
               sudo find /var/www/html -type d -exec chmod 755 {} +
               sudo find /var/www/html -type f -exec chmod 644 {} +
+
+              sudo find /var/www/html -name "*.js" -newer /var/www/html/index.html \
+                | head -5 \
+                | xargs ls -la
 
               sudo rm -rf /tmp/frontend-delivery
 
