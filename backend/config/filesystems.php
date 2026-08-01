@@ -38,10 +38,12 @@ return [
             'report' => false,
         ],
 
-        // Redirects uploads to persistent volume via LARAVEL_STORAGE_PATH env variable
+        // Redirects uploads to persistent volume app/public directory via LARAVEL_STORAGE_PATH env variable
         'public' => [
             'driver' => 'local',
-            'root' => env('LARAVEL_STORAGE_PATH', storage_path('app/public')),
+            'root' => env('LARAVEL_STORAGE_PATH') 
+                ? (str_contains(env('LARAVEL_STORAGE_PATH'), 'app/public') ? env('LARAVEL_STORAGE_PATH') : rtrim(env('LARAVEL_STORAGE_PATH'), '/').'/app/public')
+                : storage_path('app/public'),
             'url' => env('APP_URL', '').'/storage',
             'visibility' => 'public',
             'throw' => false,
@@ -75,7 +77,9 @@ return [
     */
 
     'links' => [
-        public_path('storage') => env('LARAVEL_STORAGE_PATH', storage_path('app/public')),
+        public_path('storage') => env('LARAVEL_STORAGE_PATH') 
+            ? (str_contains(env('LARAVEL_STORAGE_PATH'), 'app/public') ? env('LARAVEL_STORAGE_PATH') : rtrim(env('LARAVEL_STORAGE_PATH'), '/').'/app/public')
+            : storage_path('app/public'),
     ],
 
 ];

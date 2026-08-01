@@ -11,13 +11,12 @@ class FileUploadController extends Controller
     public function upload(Request $request)
     {
         try {
-            $disk = config('filesystems.default', 'public');
+            $disk = 'public';
             $type = $request->input('type', 'image');
             $uploadedFile = $request->file('file');
             $contentLength = (int) $request->server('CONTENT_LENGTH', 0);
             $postMaxSizeBytes = $this->toBytes((string) ini_get('post_max_size'));
             
-            // Log only metadata that does not force Symfony to read the temp file path.
             Log::info('Upload Request Received', [
                 'type' => $type,
                 'has_file' => $request->hasFile('file'),
@@ -68,18 +67,15 @@ class FileUploadController extends Controller
                 ], 422);
             }
 
-            // Define rules based on type
             $rules = [
                 'type' => 'nullable|string|in:image,video,document',
             ];
 
             if ($type === 'video') {
-                // More permissive for videos
                 $rules['file'] = 'required|file|max:102400'; 
             } elseif ($type === 'document') {
                 $rules['file'] = 'required|file|max:20480|mimes:pdf,doc,docx,txt,zip';
             } else {
-                // Use 'image' rule - it's more robust than specifying mimes manually
                 $rules['file'] = 'required|image|max:15360'; 
             }
 
@@ -101,16 +97,16 @@ class FileUploadController extends Controller
             if ($type === 'video') $folder = 'videos';
             if ($type === 'document') $folder = 'documents';
             
-            $path = $file->store("uploads/{$folder}", $disk);
+            $path = $file->store("uploads/{$folder}", 'public');
 
             if (!$path) {
                 throw new \Exception('Disk storage failed - check directory permissions');
             }
 
             return response()->json([
-                'url'  => $this->buildFileUrl($disk, $path),
+                'url'  => $this->buildFileUrl('public', $path),
                 'path' => $path,
-                'disk' => $disk,
+                'disk' => 'public',
             ]);
 
         } catch (\Exception $e) {
@@ -130,17 +126,13 @@ class FileUploadController extends Controller
     public function delete(Request $request)
     {
         $request->validate(['path' => 'required|string']);
-        Storage::disk(config('filesystems.default', 'public'))->delete($request->path);
+        Storage::disk('public')->delete($request->path);
         return response()->json(['message' => 'File deleted']);
     }
 
     private function buildFileUrl(string $disk, string $path): string
     {
-        if ($disk === 'public') {
-            return '/storage/' . ltrim($path, '/');
-        }
-
-        return Storage::disk($disk)->url($path);
+        return '/storage/' . ltrim($path, '/');
     }
 
     private function toBytes(string $value): int
