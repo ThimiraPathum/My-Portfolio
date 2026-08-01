@@ -10,7 +10,7 @@ use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\SiteSettingController;
 use App\Http\Controllers\Api\FileUploadController;
 
-// Public routes
+// Public routesgg
 Route::get('/health', function () {
     return response()->json(['status' => 'ok', 'message' => 'Backend is live!']);
 });
