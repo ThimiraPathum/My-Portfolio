@@ -198,30 +198,25 @@ export default function Experience() {
                           )}
                         </div>
 
-                        {/* Verify Credential Button */}
+                        {/* View Credential Button under Tags */}
                         {(exp.credential_link || exp.credential_url) && (
-                          <div className="pt-2 mt-2">
-                            <a
-                              href={exp.credential_link || exp.credential_url || '#'}
-                              target="_blank"
+                          <div className="mt-5 flex justify-start">
+                            <a 
+                              href={exp.credential_link || exp.credential_url || '#'} 
+                              target="_blank" 
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border group cursor-pointer"
-                              style={{
-                                borderColor: 'rgba(232, 116, 29, 0.35)',
-                                color: 'var(--accent-primary)',
-                                background: 'rgba(232, 116, 29, 0.05)',
+                              className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg border transition-colors duration-300 cursor-pointer"
+                              style={{ 
+                                borderColor: 'var(--accent-primary, #d97706)', 
+                                color: 'var(--accent-primary, #d97706)',
                               }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.background = 'rgba(232, 116, 29, 0.12)';
-                                e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.background = 'rgba(232, 116, 29, 0.05)';
-                                e.currentTarget.style.borderColor = 'rgba(232, 116, 29, 0.35)';
-                              }}
+                              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(217, 119, 6, 0.08)'; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
                             >
-                              <span>Verify Credential</span>
-                              <FiExternalLink size={14} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
+                              <span>View Credential</span>
                             </a>
                           </div>
                         )}
