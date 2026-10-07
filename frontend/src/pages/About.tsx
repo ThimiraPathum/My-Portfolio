@@ -6,24 +6,24 @@ import MarkdownRenderer from '../components/MarkdownRenderer';
 
 const expertise = [
   {
-    icon: FiGitMerge,
-    title: 'DevOps & MLOps',
-    desc: 'Automating workflows, CI/CD pipelines, and operationalizing ML models into production environments.',
-  },
-  {
-    icon: FiServer,
-    title: 'Backend Engineering',
-    desc: 'Scalable backend systems with Java and Laravel, designed for reliability and clean architecture.',
-  },
-  {
     icon: FiCpu,
-    title: 'Linux & Infrastructure',
-    desc: 'Custom Linux architectures, system-level optimization, and infrastructure automation.',
+    title: 'AI & Machine Learning',
+    desc: 'Building machine learning applications with Python, Scikit-learn, TensorFlow, and PyTorch, supported by data analysis and visualization.',
   },
   {
     icon: FiLayers,
-    title: 'Networking & Systems',
-    desc: 'Deep networking fundamentals applied to resilient, production-grade system design.',
+    title: 'Full-Stack Development',
+    desc: 'Developing responsive interfaces and backend APIs with React, TypeScript, FastAPI, and Laravel, backed by relational and NoSQL databases.',
+  },
+  {
+    icon: FiGitMerge,
+    title: 'LLMs & Agentic AI',
+    desc: 'Integrating local and cloud-based language models and building multi-step AI workflows with LangChain, LangGraph, and Ollama.',
+  },
+  {
+    icon: FiServer,
+    title: 'DevOps & Cloud',
+    desc: 'Containerizing and deploying applications with Docker, GitHub Actions, Linux, and cloud platforms including Azure and AWS.',
   },
 ];
 
