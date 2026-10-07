@@ -12,6 +12,17 @@ class FileUploadTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_non_video_files_cannot_be_uploaded_as_video(): void
+    {
+        Storage::fake('public');
+        $this->actingAs(User::factory()->create(['role' => 'admin']), 'api')
+            ->postJson('/api/upload', [
+                'file' => UploadedFile::fake()->create('page.html', 1, 'text/html'),
+                'type' => 'video',
+            ])->assertUnprocessable()->assertJsonValidationErrors('file');
+        $this->assertEmpty(Storage::disk('public')->allFiles());
+    }
+
     public function test_can_upload_image()
     {
         Storage::fake('public');

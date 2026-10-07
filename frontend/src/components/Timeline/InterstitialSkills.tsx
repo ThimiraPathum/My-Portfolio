@@ -40,8 +40,6 @@ export default function InterstitialSkills({
         .then(({ data }) => setSkills(data))
         .catch(console.error)
         .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
     }
   }, [type]);
 

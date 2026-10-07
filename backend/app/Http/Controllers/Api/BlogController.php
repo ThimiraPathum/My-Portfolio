@@ -14,7 +14,7 @@ class BlogController extends Controller
         $blogs = Blog::where('status', 'published')
             ->orWhere('coming_soon', true)
             ->orderByRaw('COALESCE(published_at, created_at) DESC')
-            ->get(['id','title','slug','excerpt','content','cover_image','status','coming_soon','published_at','created_at']);
+            ->get(['id','title','slug','excerpt','cover_image','status','coming_soon','published_at','created_at']);
 
         return response()->json($blogs);
     }
@@ -23,6 +23,8 @@ class BlogController extends Controller
     public function show($slug)
     {
         $blog = Blog::where('slug', $slug)
+            ->where('status', 'published')
+            ->where('coming_soon', false)
             ->with(['comments' => fn($q) => $q->where('approved', true)->orderBy('created_at')])
             ->firstOrFail();
         return response()->json($blog);
@@ -40,13 +42,16 @@ class BlogController extends Controller
         $validated = $request->validate([
             'title'       => 'required|string|max:255',
             'excerpt'     => 'nullable|string',
-            'content'     => 'nullable|string',
+            'content'     => 'required|string',
             'cover_image' => 'nullable|string',
             'status'      => 'in:draft,published',
             'coming_soon' => 'boolean',
         ]);
 
         $validated['slug'] = Str::slug($validated['title']) . '-' . Str::random(5);
+        if (($validated['status'] ?? 'draft') === 'published') {
+            $validated['published_at'] = now();
+        }
         $blog = Blog::create($validated);
         return response()->json($blog, 201);
     }
@@ -58,14 +63,14 @@ class BlogController extends Controller
         $validated = $request->validate([
             'title'       => 'sometimes|required|string|max:255',
             'excerpt'     => 'nullable|string',
-            'content'     => 'nullable|string',
+            'content'     => 'sometimes|required|string',
             'cover_image' => 'nullable|string',
             'status'      => 'nullable|string|in:draft,published',
             'coming_soon' => 'nullable|boolean',
         ]);
 
-        if (isset($validated['title']) && $validated['title'] !== $blog->title) {
-            $validated['slug'] = Str::slug($validated['title']) . '-' . Str::random(5);
+        if (($validated['status'] ?? $blog->status) === 'published' && !$blog->published_at) {
+            $validated['published_at'] = now();
         }
 
         $blog->update($validated);

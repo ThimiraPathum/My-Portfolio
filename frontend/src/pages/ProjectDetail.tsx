@@ -1,3 +1,4 @@
+import type { Project } from '../api/types';
 import { useEffect, useState } from 'react';
 import { useParams, NavLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -7,13 +8,13 @@ import MarkdownRenderer from "../components/MarkdownRenderer";
 
 export default function ProjectDetail() {
   const { id } = useParams();
-  const [project, setProject] = useState<any>(null);
+  const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     getProjects()
       .then(({ data }) => {
-        const found = data.find((p: any) => p.id.toString() === id);
+        const found = data.find((p: Project) => p.id.toString() === id);
         setProject(found);
       })
       .catch(console.error)

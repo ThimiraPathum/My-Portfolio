@@ -28,29 +28,6 @@ class AuthController extends Controller
         return $this->respondWithToken($token);
     }
 
-    public function register(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'name'     => 'required|string|max:100',
-            'email'    => 'required|email|unique:users',
-            'password' => 'required|string|min:6|confirmed',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => bcrypt($request->password),
-            'role'     => 'admin',
-        ]);
-
-        $token = Auth::guard('api')->login($user);
-        return $this->respondWithToken($token);
-    }
-
     public function me()
     {
         return response()->json(Auth::guard('api')->user());
@@ -62,9 +39,18 @@ class AuthController extends Controller
         return response()->json(['message' => 'Successfully logged out']);
     }
 
-    public function refresh()
+    public function refresh(Request $request)
     {
-        return $this->respondWithToken(Auth::guard('api')->refresh());
+        if (!$request->bearerToken()) {
+            return response()->json(['message' => 'A refresh token is required.'], 401);
+        }
+        try {
+            $token = Auth::guard('api')->setToken($request->bearerToken())->refresh();
+            Auth::guard('api')->setToken($token);
+            return $this->respondWithToken($token);
+        } catch (\Tymon\JWTAuth\Exceptions\JWTException $e) {
+            return response()->json(['message' => 'Invalid or expired refresh token.'], 401);
+        }
     }
 
     protected function respondWithToken($token)

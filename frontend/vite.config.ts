@@ -11,14 +11,26 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: process.env.VITE_API_URL || 'http://localhost:8000',
+        target: process.env.API_PROXY_TARGET || 'http://localhost:8000',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '/api')
-      }
+      },
+      '/storage': {
+        target: process.env.API_PROXY_TARGET || 'http://localhost:8000',
+        changeOrigin: true,
+      },
     }
   },
   build: {
     outDir: 'dist',
-    sourcemap: false
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          motion: ['framer-motion'],
+          markdown: ['react-markdown', 'remark-gfm'],
+        },
+      },
+    },
   }
 })

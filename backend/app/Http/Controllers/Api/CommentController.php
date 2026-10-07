@@ -10,6 +10,7 @@ class CommentController extends Controller
     // Public: post a comment (saved as unapproved)
     public function store(Request $request, $blogId)
     {
+        \App\Models\Blog::where('status', 'published')->where('coming_soon', false)->findOrFail($blogId);
         $validated = $request->validate([
             'name'    => 'required|string|max:100',
             'email'   => 'required|email',
@@ -29,7 +30,9 @@ class CommentController extends Controller
     public function index($blogId)
     {
         return response()->json(
-            Comment::where('blog_id', $blogId)->orderBy('created_at', 'desc')->get()
+            Comment::where('blog_id', $blogId)->where('approved', true)
+                ->whereHas('blog', fn ($query) => $query->where('status', 'published')->where('coming_soon', false))
+                ->orderBy('created_at', 'desc')->get()
         );
     }
 
@@ -37,7 +40,7 @@ class CommentController extends Controller
     public function all()
     {
         return response()->json(
-            Comment::with('blog:id,title,slug')->orderBy('created_at', 'desc')->get()
+            Comment::with('blog:id,title,slug')->orderBy('created_at', 'desc')->get()->makeVisible('email')
         );
     }
 

@@ -1,6 +1,36 @@
 import { useState } from "react";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { PrismLight as SyntaxHighlighter } from "react-syntax-highlighter";
+import oneLight from 'react-syntax-highlighter/dist/esm/styles/prism/one-light';
+import javascript from 'react-syntax-highlighter/dist/esm/languages/prism/javascript';
+import typescript from 'react-syntax-highlighter/dist/esm/languages/prism/typescript';
+import jsx from 'react-syntax-highlighter/dist/esm/languages/prism/jsx';
+import tsx from 'react-syntax-highlighter/dist/esm/languages/prism/tsx';
+import python from 'react-syntax-highlighter/dist/esm/languages/prism/python';
+import bash from 'react-syntax-highlighter/dist/esm/languages/prism/bash';
+import json from 'react-syntax-highlighter/dist/esm/languages/prism/json';
+import yaml from 'react-syntax-highlighter/dist/esm/languages/prism/yaml';
+import sql from 'react-syntax-highlighter/dist/esm/languages/prism/sql';
+import java from 'react-syntax-highlighter/dist/esm/languages/prism/java';
+import css from 'react-syntax-highlighter/dist/esm/languages/prism/css';
+import php from 'react-syntax-highlighter/dist/esm/languages/prism/php';
+import go from 'react-syntax-highlighter/dist/esm/languages/prism/go';
+import docker from 'react-syntax-highlighter/dist/esm/languages/prism/docker';
+import markdown from 'react-syntax-highlighter/dist/esm/languages/prism/markdown';
+SyntaxHighlighter.registerLanguage('javascript', javascript);
+SyntaxHighlighter.registerLanguage('typescript', typescript);
+SyntaxHighlighter.registerLanguage('jsx', jsx);
+SyntaxHighlighter.registerLanguage('tsx', tsx);
+SyntaxHighlighter.registerLanguage('python', python);
+SyntaxHighlighter.registerLanguage('bash', bash);
+SyntaxHighlighter.registerLanguage('json', json);
+SyntaxHighlighter.registerLanguage('yaml', yaml);
+SyntaxHighlighter.registerLanguage('sql', sql);
+SyntaxHighlighter.registerLanguage('java', java);
+SyntaxHighlighter.registerLanguage('css', css);
+SyntaxHighlighter.registerLanguage('php', php);
+SyntaxHighlighter.registerLanguage('go', go);
+SyntaxHighlighter.registerLanguage('docker', docker);
+SyntaxHighlighter.registerLanguage('markdown', markdown);
 
 const theme = {
   ...oneLight,

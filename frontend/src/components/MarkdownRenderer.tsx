@@ -1,7 +1,9 @@
 import ReactMarkdown from "react-markdown";
+import { getSafeUrl } from '../api';
 import remarkGfm from "remark-gfm";
 import type { Components } from "react-markdown";
-import CodeBlock from "./CodeBlock";
+import { lazy, Suspense } from 'react';
+const CodeBlock = lazy(() => import('./CodeBlock'));
 
 interface MarkdownRendererProps {
   content: string;
@@ -55,7 +57,7 @@ const components: Components = {
     const value = String(children).replace(/\n$/, "");
 
     if (match) {
-      return <CodeBlock language={match[1]} value={value} />;
+      return <Suspense fallback={<pre className="overflow-auto"><code>{value}</code></pre>}><CodeBlock language={match[1]} value={value} /></Suspense>;
     }
     return (
       <code className="bg-stone-200/60 text-stone-800 text-sm font-mono px-1.5 py-0.5 rounded border border-stone-300/40">
@@ -81,7 +83,7 @@ const components: Components = {
   ),
   img: ({ src, alt }) => (
     <img
-      src={src}
+      src={getSafeUrl(src)}
       alt={alt ?? ""}
       className="rounded-lg w-full my-6 border border-stone-200 object-cover"
       loading="lazy"

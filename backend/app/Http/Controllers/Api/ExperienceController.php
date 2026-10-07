@@ -20,7 +20,7 @@ class ExperienceController extends Controller
             'role'            => 'required|string|max:255',
             'description'     => 'nullable|string',
             'location'        => 'nullable|string',
-            'start_date'      => 'nullable|date',
+            'start_date'      => 'required|date',
             'end_date'        => 'nullable|date',
             'current'         => 'boolean',
             'tech_stack'      => 'nullable|array',
@@ -33,6 +33,7 @@ class ExperienceController extends Controller
             'visual_layout'   => 'string|nullable|in:left-text,right-text,auto',
         ]);
 
+        $validated['description'] = $validated['description'] ?? '';
         return response()->json(Experience::create($validated), 201);
     }
 
@@ -44,7 +45,7 @@ class ExperienceController extends Controller
             'role'            => 'sometimes|string|max:255',
             'description'     => 'nullable|string',
             'location'        => 'nullable|string',
-            'start_date'      => 'nullable|date',
+            'start_date'      => 'sometimes|required|date',
             'end_date'        => 'nullable|date',
             'current'         => 'boolean',
             'tech_stack'      => 'nullable|array',
@@ -56,6 +57,9 @@ class ExperienceController extends Controller
             'featured'        => 'boolean',
             'visual_layout'   => 'string|nullable|in:left-text,right-text,auto',
         ]);
+        if (array_key_exists('description', $validated) && $validated['description'] === null) {
+            $validated['description'] = '';
+        }
         $exp->update($validated);
         return response()->json($exp);
     }

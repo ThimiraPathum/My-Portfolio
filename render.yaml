@@ -11,7 +11,9 @@ services:
       - key: APP_DEBUG
         value: "false"
       - key: APP_KEY
-        value: base64:V29Tfl5/5HTDXIqn2DPaOMvt/m3C6wq/gsfkKgbVaDk=
+        sync: false
+      - key: JWT_SECRET
+        sync: false
       - key: DB_CONNECTION
         value: sqlite
       - key: DB_DATABASE

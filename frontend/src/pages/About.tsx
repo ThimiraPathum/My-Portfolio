@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { FiServer, FiCpu, FiGitMerge, FiLayers, FiArrowRight } from 'react-icons/fi';
-import { useSettings } from '../context/SettingsContext';
+import { useSettings } from '../context/useSettings';
 import { NavLink } from 'react-router-dom';
 import MarkdownRenderer from '../components/MarkdownRenderer';
 
@@ -34,9 +34,9 @@ export default function About() {
   const { settings } = useSettings();
 
 
-  const email = settings.social_email || 'kasthuriarachchipathum@gmail.com';
+  const email = settings.social_email ?? 'kasthuriarachchipathum@gmail.com';
 
-  const bio = settings.about_bio ||
+  const bio = settings.about_bio ??
     `I am Thimira Pathum, an Information and Communication Technology undergraduate at the University of Colombo whose career is defined by optimizing complex systems.
 
 My professional roots as an award-winning industrial mechanic instilled a rigorous, hands-on approach to preventive maintenance and troubleshooting. I brought that analytical mindset into software engineering, and it now drives my journey into DevOps and MLOps.

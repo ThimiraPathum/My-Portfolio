@@ -1,3 +1,4 @@
+import { errorMessage } from '../../api/errors';
 import { useState } from 'react';
 import { useNavigate, NavLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -22,9 +23,8 @@ export default function ForgotPassword() {
       await forgotPassword(email);
       toast.success('Password reset link sent to your email.');
       navigate('/admin/login');
-    } catch (error: any) {
-      const data = error.response?.data;
-      toast.error(data?.email || data?.message || 'Failed to send reset link.');
+    } catch (error) {
+      toast.error(errorMessage(error));
     } finally {
       setLoading(false);
     }

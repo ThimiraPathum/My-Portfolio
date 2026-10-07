@@ -1,3 +1,4 @@
+import type { Project, Experience } from '../api/types';
 import { getProjects, getExperiences } from '../api';
 
 export interface Milestone {
@@ -32,7 +33,7 @@ export async function fetchTimelineMilestones(): Promise<Milestone[]> {
     const experiences = experiencesRes.data || [];
 
     // Map projects
-    const projectMilestones: Milestone[] = projects.map((p: any) => {
+    const projectMilestones: Milestone[] = projects.map((p: Project) => {
       const displayYear = p.milestone_year || (p.coming_soon ? '2025' : '2024');
       const order = typeof p.timeline_order === 'number' ? p.timeline_order : (p.order ?? 99);
       
@@ -64,7 +65,7 @@ export async function fetchTimelineMilestones(): Promise<Milestone[]> {
     });
 
     // Map experiences
-    const experienceMilestones: Milestone[] = experiences.map((e: any) => {
+    const experienceMilestones: Milestone[] = experiences.map((e: Experience) => {
       const defaultYear = e.start_date ? new Date(e.start_date).getFullYear().toString() : '2024';
       const displayYear = e.milestone_year || (e.current ? `${defaultYear}-Present` : defaultYear);
       const order = typeof e.timeline_order === 'number' ? e.timeline_order : (e.order ?? 99);

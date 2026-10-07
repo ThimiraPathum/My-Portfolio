@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
@@ -19,7 +20,7 @@ import AdminLogin from './pages/admin/Login';
 import ForgotPassword from './pages/admin/ForgotPassword';
 import ResetPassword from './pages/admin/ResetPassword';
 import ProjectDetail from './pages/ProjectDetail';
-import AdminDashboard from './pages/admin/Dashboard';
+const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'));
 import { useLenis } from './hooks/useLenis';
 import './index.css';
 
@@ -54,11 +55,7 @@ export default function App() {
             path="/admin"
             element={
               <ProtectedRoute>
-                <>
-                  <Navbar />
-                  <AdminDashboard />
-                  <Footer />
-                </>
+                <Suspense fallback={<div role="status">Loading dashboard…</div>}><AdminDashboard /></Suspense>
               </ProtectedRoute>
             }
           />

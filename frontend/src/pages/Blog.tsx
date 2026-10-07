@@ -23,8 +23,6 @@ export default function BlogList() {
   const [visibleCount, setVisibleCount] = useState<number>(6);
 
   const fetchBlogs = () => {
-    setLoading(true);
-    setError(null);
     getBlogs()
       .then(({ data }) => {
         if (Array.isArray(data)) {
@@ -72,7 +70,7 @@ export default function BlogList() {
               <p className="text-sm font-medium">{error}</p>
             </div>
             <button
-              onClick={fetchBlogs}
+              onClick={() => { setLoading(true); setError(null); fetchBlogs(); }}
               className="px-4 py-2 text-xs font-semibold rounded-lg bg-red-500/20 hover:bg-red-500/30 text-white transition-colors"
             >
               Retry

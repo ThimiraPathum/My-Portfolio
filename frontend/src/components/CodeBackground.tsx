@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 const CODE_SNIPPETS = [
   "const App = () => {",
@@ -35,12 +35,7 @@ const CODE_SNIPPETS = [
 ];
 
 export default function CodeBackground() {
-  const [elements, setElements] = useState<
-    { id: number; text: string; top: string; left: string; delay: string; duration: string; drift: string }[]
-  >([]);
-
-  useEffect(() => {
-    const list = Array.from({ length: 28 }).map((_, i) => ({
+  const [elements] = useState(() => Array.from({ length: 28 }).map((_, i) => ({
       id: i,
       text: CODE_SNIPPETS[Math.floor(Math.random() * CODE_SNIPPETS.length)],
       top: `${Math.random() * 105}%`,
@@ -48,9 +43,7 @@ export default function CodeBackground() {
       delay: `${Math.random() * 10}s`,
       duration: `${16 + Math.random() * 22}s`,
       drift: `${(Math.random() - 0.5) * 30}px`,
-    }));
-    setElements(list);
-  }, []);
+    })));
 
   return (
     <div className="fixed inset-0 z-[-1] pointer-events-none overflow-hidden bg-transparent">

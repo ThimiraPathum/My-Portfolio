@@ -1,14 +1,7 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { getSettings } from '../api';
 
-interface SettingsContextType {
-  settings: Record<string, string>;
-  isLoading: boolean;
-  refreshSettings: () => Promise<void>;
-}
-
-const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
-
+import { SettingsContext } from './useSettings';
 export function SettingsProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
@@ -33,10 +26,4 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       {children}
     </SettingsContext.Provider>
   );
-}
-
-export function useSettings() {
-  const context = useContext(SettingsContext);
-  if (!context) throw new Error('useSettings must be within SettingsProvider');
-  return context;
 }

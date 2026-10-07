@@ -1,3 +1,4 @@
+import type { Blog } from '../api/types';
 import { useEffect, useState } from 'react';
 import { useParams, NavLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -8,7 +9,7 @@ import MarkdownRenderer from "../components/MarkdownRenderer";
 
 export default function BlogPost() {
   const { slug } = useParams();
-  const [blog, setBlog] = useState<any>(null);
+  const [blog, setBlog] = useState<Blog | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -26,6 +27,7 @@ export default function BlogPost() {
 
   const submitComment = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!blog) return;
     if (!form.name || !form.email || !form.body) return toast.error('Fill in all fields');
     setCommenting(true);
     try {
@@ -91,7 +93,7 @@ export default function BlogPost() {
           </h3>
 
           <div className="space-y-6 mb-10">
-            {blog.comments?.map((comment: any) => (
+            {blog.comments?.map((comment) => (
               <div key={comment.id} className="glass p-5 flex gap-4">
                 <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold uppercase shrink-0"
                   style={{ background: 'rgba(232, 116, 29, 0.1)', color: 'var(--accent-primary)' }}>

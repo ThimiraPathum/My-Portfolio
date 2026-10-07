@@ -37,6 +37,8 @@ class ProjectController extends Controller
             'visual_layout'  => 'string|nullable|in:left-text,right-text,auto',
         ]);
 
+        $validated['description'] = $validated['description'] ?? '';
+        $validated['category'] = $validated['category'] ?? 'web';
         $project = Project::create($validated);
         return response()->json($project, 201);
     }
@@ -62,6 +64,11 @@ class ProjectController extends Controller
             'visual_layout'  => 'nullable|string|in:left-text,right-text,auto',
         ]);
 
+        foreach (['description' => '', 'category' => 'web'] as $key => $default) {
+            if (array_key_exists($key, $validated) && $validated[$key] === null) {
+                $validated[$key] = $default;
+            }
+        }
         $project->update($validated);
         return response()->json($project);
     }

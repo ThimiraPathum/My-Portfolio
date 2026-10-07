@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { motion } from 'framer-motion';
 import { FiArrowRight, FiGithub, FiLinkedin, FiMail } from 'react-icons/fi';
-import { useSettings } from '../context/SettingsContext';
+import { useSettings } from '../context/useSettings';
 import { getSafeUrl } from '../api';
 import About from './About';
 import Projects from './Projects';
@@ -19,7 +19,7 @@ export default function Home() {
   const name = settings.home_name || 'Thimira Pathum';
   const [firstName, ...rest] = name.split(' ');
   const lastName = rest.join(' ');
-  const description = settings.home_description || 'Building modern digital solutions through software engineering, networking, and innovation. Passionate about systems that are purposeful, efficient, and future-ready.';
+  const description = settings.home_description ?? 'Building modern digital solutions through software engineering, networking, and innovation. Passionate about systems that are purposeful, efficient, and future-ready.';
 
   const handleScrollToSection = (sectionId: string) => {
     const el = document.getElementById(sectionId);

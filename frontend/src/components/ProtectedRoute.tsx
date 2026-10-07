@@ -1,13 +1,13 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 
 interface Props {
   children: React.ReactElement;
 }
 
 export default function ProtectedRoute({ children }: Props) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
   if (isLoading) {
     return (
@@ -17,7 +17,7 @@ export default function ProtectedRoute({ children }: Props) {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || user?.role !== 'admin') {
     return <Navigate to="/admin/login" replace />;
   }
 

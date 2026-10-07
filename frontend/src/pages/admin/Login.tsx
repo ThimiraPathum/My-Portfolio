@@ -1,8 +1,9 @@
+import { errorMessage } from '../../api/errors';
 import { useState } from 'react';
 import { useNavigate, NavLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiLock, FiMail, FiTerminal } from 'react-icons/fi';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/useAuth';
 import toast from 'react-hot-toast';
 
 export default function AdminLogin() {
@@ -16,13 +17,11 @@ export default function AdminLogin() {
     e.preventDefault();
     setLoading(true);
     try {
-      await loginFn(email.trim(), password.trim());
+      await loginFn(email.trim(), password);
       toast.success('Welcome back!');
       navigate('/admin');
-    } catch (err: any) {
-      console.error('[Login Error Detail]:', err.response?.data || err.message);
-      const message = err.response?.data?.error || err.response?.data?.message || err.message || 'Login failed';
-      toast.error(message);
+    } catch (error) {
+      toast.error(errorMessage(error));
     } finally {
       setLoading(false);
     }

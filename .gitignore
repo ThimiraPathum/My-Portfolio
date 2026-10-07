@@ -1,0 +1,5 @@
+.local-audit/
+/.env
+frontend/lint-report.json
+backend/.env
+frontend/.env

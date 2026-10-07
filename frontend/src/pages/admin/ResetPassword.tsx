@@ -1,3 +1,4 @@
+import { errorMessage } from '../../api/errors';
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, NavLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -45,9 +46,8 @@ export default function ResetPassword() {
       
       toast.success('Password successfully reset!');
       setSuccess(true);
-    } catch (error: any) {
-      const data = error.response?.data;
-      toast.error(data?.email || data?.password || data?.message || 'Failed to reset password.');
+    } catch (error) {
+      toast.error(errorMessage(error));
     } finally {
       setLoading(false);
     }

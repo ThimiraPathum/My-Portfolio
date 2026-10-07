@@ -47,9 +47,9 @@ api.interceptors.request.use((config) => {
 });
 
 let isRefreshing = false;
-let failedQueue: any[] = [];
+let failedQueue: { resolve: (token: string | null) => void; reject: (error: unknown) => void }[] = [];
 
-const processQueue = (error: any, token: string | null = null) => {
+const processQueue = (error: unknown, token: string | null = null) => {
   failedQueue.forEach((prom) => {
     if (error) {
       prom.reject(error);
@@ -73,9 +73,9 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && originalRequest && !url.includes('auth/login') && !url.includes('auth/refresh') && !originalRequest._retry) {
       if (isRefreshing) {
-        return new Promise((resolve, reject) => {
+        return new Promise<string | null>((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
           .then((token) => {

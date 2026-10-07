@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FiSend, FiGithub, FiLinkedin, FiMail } from 'react-icons/fi';
-import { useSettings } from '../../context/SettingsContext';
+import { useSettings } from '../../context/useSettings';
 import { sendMessage } from '../../api';
 import toast from 'react-hot-toast';
 import TimelineNode from './TimelineNode';

@@ -1,31 +1,17 @@
+import { useSettings } from '../context/useSettings';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FiSend, FiGithub, FiLinkedin, FiMail } from 'react-icons/fi';
 import { sendMessage } from '../api';
 import toast from 'react-hot-toast';
 
-const socials = [
-  {
-    icon: FiMail,
-    label: 'Email',
-    value: 'info@thimira.me',
-    href: 'mailto:info@thimira.me',
-  },
-  {
-    icon: FiLinkedin,
-    label: 'LinkedIn',
-    value: 'linkedin.com/in/thimira-pathum',
-    href: 'https://linkedin.com/in/thimira-pathum',
-  },
-  {
-    icon: FiGithub,
-    label: 'GitHub',
-    value: 'github.com/THIMIRAPATHUM',
-    href: 'https://github.com/THIMIRAPATHUM',
-  },
-];
-
 export default function Contact() {
+  const { settings } = useSettings();
+  const socials = [
+    { icon: FiMail, label: 'Email', value: settings.social_email, href: settings.social_email ? 'mailto:' + settings.social_email : '' },
+    { icon: FiLinkedin, label: 'LinkedIn', value: settings.social_linkedin, href: settings.social_linkedin },
+    { icon: FiGithub, label: 'GitHub', value: settings.social_github, href: settings.social_github },
+  ].filter(social => social.href);
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [loading, setLoading] = useState(false);
 

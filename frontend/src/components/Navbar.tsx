@@ -23,10 +23,12 @@ const navItems: NavItem[] = [
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuLocation, setMenuLocation] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<string>('home-section');
   const location = useLocation();
   const navigate = useNavigate();
+  const menuOpen = menuLocation === location.key;
+  const setMenuOpen = (open: boolean) => setMenuLocation(open ? location.key : null);
 
   // Scroll glass-morphism toggle
   useEffect(() => {
@@ -34,11 +36,6 @@ export default function Navbar() {
     window.addEventListener('scroll', handler, { passive: true });
     return () => window.removeEventListener('scroll', handler);
   }, []);
-
-  // Close mobile menu on route change
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [location]);
 
   // IntersectionObserver: track active section on single-page landing route ('/')
   useEffect(() => {

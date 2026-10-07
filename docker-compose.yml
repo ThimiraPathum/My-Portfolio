@@ -20,8 +20,8 @@ services:
       - LARAVEL_STORAGE_PATH=/var/data/storage
       - LOG_CHANNEL=stdout
       - PORT=80
-      - JWT_SECRET=9d76efb690e79569f21688b28e61b847fd0dd76a78b63a08203863d20cf8d245
-      - APP_KEY=base64:FRS7TFF32X0A/rRtsIV+LkUJwk7avm+mxNv9LNdIAbw=
+      - JWT_SECRET=${JWT_SECRET:?Set JWT_SECRET in your environment}
+      - APP_KEY=${APP_KEY:?Set APP_KEY in your environment}
       - APACHE_DOCUMENT_ROOT=/var/www/html/public
     networks:
       - portfolio-network

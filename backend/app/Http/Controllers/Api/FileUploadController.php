@@ -72,7 +72,7 @@ class FileUploadController extends Controller
             ];
 
             if ($type === 'video') {
-                $rules['file'] = 'required|file|max:102400'; 
+                $rules['file'] = 'required|file|max:102400|mimetypes:video/mp4,video/webm,video/quicktime';
             } elseif ($type === 'document') {
                 $rules['file'] = 'required|file|max:20480|mimes:pdf,doc,docx,txt,zip';
             } else {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { useSettings } from '../../context/SettingsContext';
+import { useSettings } from '../../context/useSettings';
 import MarkdownRenderer from "../../components/MarkdownRenderer";
 
 export default function Hero() {
@@ -25,8 +25,7 @@ export default function Hero() {
     } else if (erasing && displayed.length > 0) {
       timeout = setTimeout(() => setDisplayed(displayed.slice(0, -1)), 40);
     } else if (erasing && displayed.length === 0) {
-      setErasing(false);
-      setRoleIndex((i) => (i + 1) % roles.length);
+      timeout = setTimeout(() => { setErasing(false); setRoleIndex((i) => (i + 1) % roles.length); }, 80);
     }
     return () => clearTimeout(timeout);
   }, [displayed, erasing, roleIndex, roles, isLoading]);

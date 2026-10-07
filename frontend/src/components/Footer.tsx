@@ -1,13 +1,8 @@
+import { useSettings } from '../context/useSettings';
 import { FiGithub, FiLinkedin, FiMail, FiCode } from 'react-icons/fi';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { scrollToElement, scrollToTop } from '../hooks/useLenis';
-
-const socials = [
-  { icon: FiGithub,   href: 'https://github.com/THIMIRAPATHUM',         label: 'GitHub' },
-  { icon: FiLinkedin, href: 'https://linkedin.com/in/thimira-pathum',   label: 'LinkedIn' },
-  { icon: FiMail,     href: 'mailto:kasthuriarachchipathum@gmail.com',   label: 'Email' },
-];
 
 const quickLinks = [
   { label: 'Home', sectionId: 'home-section' },
@@ -20,6 +15,12 @@ const quickLinks = [
 ];
 
 export default function Footer() {
+  const { settings } = useSettings();
+  const socials = [
+    { icon: FiGithub, href: settings.social_github, label: 'GitHub' },
+    { icon: FiLinkedin, href: settings.social_linkedin, label: 'LinkedIn' },
+    { icon: FiMail, href: settings.social_email ? 'mailto:' + settings.social_email : '', label: 'Email' },
+  ].filter(social => social.href);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -65,7 +66,7 @@ export default function Footer() {
                   fontFamily: 'var(--font-display)',
                 }}
               >
-                Thimira Pathum
+                {settings.home_name || 'Thimira Pathum'}
               </span>
             </div>
 
@@ -157,7 +158,7 @@ export default function Footer() {
           <div className="flex items-center gap-1.5">
             <FiCode size={11} style={{ color: 'var(--accent-primary)' }} />
             <span className="mono text-xs" style={{ color: 'var(--text-secondary)' }}>
-              © {new Date().getFullYear()} Thimira Pathum. All rights reserved.
+              © {new Date().getFullYear()} {settings.home_name || 'Thimira Pathum'}. All rights reserved.
             </span>
           </div>
 
