@@ -20,3 +20,9 @@ The failed run removed `backend-api` before Compose rejected missing secrets. It
 The updated workflow passes secrets explicitly to SSH and Compose using a private temporary env file. Missing secrets stop deployment before source updates or container removal. Compose validation and image building finish before container replacement. Existing named volumes are retained. Docker build dependency failures now fail the build.
 
 No live credentials were rotated and no server recovery or deployment was performed by these local changes.
+
+## HTTP 403 after a successful build
+
+The earlier workflow applied `umask 077` to the entire remote script, including Git checkout. New source files/directories could therefore become unreadable to Apache through the backend bind mount, even while root-run Artisan commands succeeded. The workflow now uses `umask 022` for source checkout; `mktemp` still creates private secret files. It repairs source permissions before deployment and checks source readability as `www-data`. Environment files remain private; database and upload contents are not modified by this repair.
+
+Push this updated workflow and deploy that commit. If HTTP 403 remains, the workflow prints Apache virtual-host and public-entry-point permission diagnostics. A successful migration alone does not confirm HTTP service health or verify existing content.

@@ -190,7 +190,9 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
-            umask 077
+            # Git checkout must create source readable by Apache. mktemp files
+            # are private (0600) independently of this source-file umask.
+            umask 022
             DEPLOY_ENV_FILE=""
             BACKEND_ENV_BACKUP=""
             PROJECT_PATH="/home/azureuser/My-Portfolio"
@@ -270,6 +272,17 @@ jobs:
             fi
             if [ "${{ needs.detect-changes.outputs.backend }}" = "true" ]; then
               cd "$PROJECT_PATH"
+              # Repair source permissions left by earlier umask-077 deployments.
+              # Do not change environment files, databases, or upload contents.
+              sudo chmod 755 "$PROJECT_PATH/backend"
+              for source_dir in app bootstrap config public resources routes vendor database/migrations database/seeders database/factories; do
+                if [ -d "$PROJECT_PATH/backend/$source_dir" ]; then
+                  sudo find "$PROJECT_PATH/backend/$source_dir" -type d -exec chmod 755 {} +
+                  sudo find "$PROJECT_PATH/backend/$source_dir" -type f ! -name '.env*' ! -name '*.key' -exec chmod 644 {} +
+                fi
+              done
+              sudo chmod 755 "$PROJECT_PATH/backend/database"
+              sudo chmod 644 "$PROJECT_PATH/backend/artisan" "$PROJECT_PATH/backend/composer.json" "$PROJECT_PATH/backend/composer.lock"
               sudo docker-compose --env-file "$DEPLOY_ENV_FILE" config --quiet
               sudo docker-compose --env-file "$DEPLOY_ENV_FILE" build backend-api
             fi
@@ -321,6 +334,13 @@ jobs:
                 echo -e "${RED}❌ Backend container is not running${NC}"
                 exit 1
               fi
+
+              # CLI commands run as root; also verify the actual HTTP worker.
+              sudo docker exec --user www-data backend-api sh -c 'test -r /var/www/html/public/index.php && test -r /var/www/html/public/.htaccess && test -r /var/www/html/vendor/autoload.php' || {
+                echo "Apache cannot read the application source; check bind-mount permissions."
+                exit 1
+              }
+              sudo docker exec backend-api apache2ctl -t
 
               # ========== DATABASE MIGRATIONS ==========
               echo -e "${YELLOW}   🔄 Running database migrations...${NC}"
@@ -380,11 +400,13 @@ jobs:
             fi
 
             if [ "${{ needs.detect-changes.outputs.backend }}" = "true" ]; then
-              BACKEND_CHECK=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/api/settings || echo "000")
+              BACKEND_CHECK=$(curl --noproxy '*' --max-time 15 -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8000/api/settings || echo "000")
               if [ "$BACKEND_CHECK" = "200" ]; then
                 echo -e "${GREEN}✅ Backend API is healthy (HTTP $BACKEND_CHECK)${NC}"
               else
                 echo -e "${RED}Backend health check failed (HTTP $BACKEND_CHECK)${NC}"
+                sudo docker exec backend-api apache2ctl -S
+                sudo docker exec --user www-data backend-api sh -c 'ls -ld /var/www/html /var/www/html/public; ls -l /var/www/html/public/index.php /var/www/html/public/.htaccess'
                 exit 1
               fi
             fi
