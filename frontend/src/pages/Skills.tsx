@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   SiReact, SiTypescript, SiTailwindcss, SiPython, SiFastapi, 
@@ -21,7 +22,7 @@ const CATEGORY_MAP: Record<string, string> = {
   // Backend
   'Laravel': 'Backend', 'PHP': 'Backend', 'Python': 'Backend',
   'FastAPI': 'Backend', 'Node.js': 'Backend', 'Express': 'Backend',
-  'Java': 'Backend', 'Django': 'Backend',
+  'Java': 'Backend', 'Django': 'Backend', 'REST APIs': 'Backend', 'Laravel Sanctum': 'Backend',
   // DevOps
   'Docker': 'DevOps', 'GitHub Actions': 'DevOps', 'Azure': 'DevOps',
   'Nginx': 'DevOps', 'Linux': 'DevOps', 'Terraform': 'DevOps',
@@ -37,7 +38,7 @@ const CATEGORY_MAP: Record<string, string> = {
 const getSkillIcon = (name: string) => {
   const n = name.toLowerCase();
   if (n.includes('react')) return <SiReact className="text-[#61DAFB]" />;
-  if (n.includes('typescript') || n.includes('ts')) return <SiTypescript className="text-[#3178C6]" />;
+  if (n === 'typescript') return <SiTypescript className="text-[#3178C6]" />;
   if (n.includes('tailwind')) return <SiTailwindcss className="text-[#06B6D4]" />;
   if (n.includes('python')) return <SiPython className="text-[#3776AB]" />;
   if (n.includes('fastapi')) return <SiFastapi className="text-[#009688]" />;
@@ -92,7 +93,7 @@ export default function Skills() {
     <section id="skills-section" className="pt-24 pb-20 px-4 sm:px-6">
       <div className="max-w-7xl mx-auto">
         {/* Section Heading — Strictly Left-Aligned matching rest of portfolio */}
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-12">
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-7">
           <div className="mono text-xs mb-3 tracking-widest" style={{ color: 'var(--accent-primary)' }}>
             {'>'} tech.expertise()
           </div>
@@ -102,7 +103,7 @@ export default function Skills() {
           <div className="h-px w-24 rounded-full mb-6" style={{ background: 'linear-gradient(to right, var(--accent-secondary), var(--accent-primary))' }} />
 
           <p className="max-w-2xl text-sm sm:text-base leading-relaxed mb-6" style={{ color: 'var(--text-secondary)' }}>
-            Auto-derived directly from technology stacks across my live portfolio projects.
+            Technologies I use, with links to the projects where I use them.
           </p>
 
           {/* Category Filter Tabs — Flush Left */}
@@ -112,6 +113,7 @@ export default function Skills() {
               return (
                 <button
                   key={tabLabel}
+                  aria-pressed={isActive}
                   onClick={() => setActiveTab(tabLabel)}
                   className="px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer"
                   style={{
@@ -128,13 +130,13 @@ export default function Skills() {
         </motion.div>
 
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="glass h-40 animate-pulse rounded-2xl" />
+              <div key={i} className="glass h-28 animate-pulse rounded-2xl" />
             ))}
           </div>
         ) : (
-          <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <AnimatePresence>
               {filteredSkills.map((skill, index) => {
                 const icon = getSkillIcon(skill.name);
@@ -148,14 +150,14 @@ export default function Skills() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ delay: index * 0.04, duration: 0.3 }}
-                    className="glass glass-hover p-6 flex flex-col justify-between rounded-2xl relative overflow-hidden"
+                    className="glass glass-hover p-4 flex flex-col gap-3 rounded-xl min-w-0"
                     style={{ border: '1px solid rgba(232, 116, 29, 0.15)' }}
                   >
                     <div>
                       {/* Header: Icon + Skill Name + Count Badge */}
-                      <div className="flex items-start justify-between gap-3 mb-4">
-                        <div className="flex items-center gap-3">
-                          <div className="text-2xl w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                      <div className="flex items-center flex-wrap gap-x-3 gap-y-2">
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          <div className="text-xl w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
                             style={{ background: 'rgba(232, 116, 29, 0.06)', border: '1px solid rgba(232, 116, 29, 0.12)' }}>
                             {icon || (
                               <span className="text-xs font-bold mono" style={{ color: 'var(--accent-primary)' }}>
@@ -163,33 +165,31 @@ export default function Skills() {
                               </span>
                             )}
                           </div>
-                          <h3 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
+                          <h3 className="text-base font-semibold break-words min-w-0" style={{ color: 'var(--text-primary)' }}>
                             {skill.name}
                           </h3>
                         </div>
 
-                        <span className="mono text-[10px] uppercase font-bold px-2.5 py-1 rounded-full tracking-wider flex-shrink-0"
+                        <span className="text-xs font-medium px-2 py-1 rounded-full flex-shrink-0"
                           style={{
                             background: 'rgba(232, 116, 29, 0.12)',
                             color: 'var(--accent-primary)',
                             border: '1px solid rgba(232, 116, 29, 0.3)',
                           }}>
-                          Used in {count} project{count === 1 ? '' : 's'}
+                          {count} project{count === 1 ? '' : 's'}
                         </span>
                       </div>
                     </div>
 
                     {/* Project Pills Tag List */}
-                    <div className="pt-4 border-t border-[var(--border)]">
-                      <div className="text-[10px] mono uppercase tracking-wider mb-2" style={{ color: 'var(--text-secondary)' }}>
-                        Projects:
-                      </div>
+                    <div className="min-w-0">
                       {count > 0 ? (
                         <div className="flex flex-wrap gap-1.5">
                           {skill.used_in.map((p) => (
-                            <span 
+                            <Link
+                              to={`/project/${p.id}`}
                               key={p.id || p.title} 
-                              className="text-[11px] px-2.5 py-1 rounded-md mono border"
+                              className="text-xs px-2 py-1 rounded-md border max-w-full break-words hover:underline focus-visible:outline-2"
                               style={{
                                 background: 'rgba(255, 255, 255, 0.04)',
                                 color: 'var(--text-primary)',
@@ -197,7 +197,7 @@ export default function Skills() {
                               }}
                             >
                               {p.title}
-                            </span>
+                            </Link>
                           ))}
                         </div>
                       ) : (

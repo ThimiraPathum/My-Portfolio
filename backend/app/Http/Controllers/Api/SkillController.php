@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Skill;
+use App\Support\TechnologyNames;
 use Illuminate\Http\Request;
 
 class SkillController extends Controller
@@ -48,25 +49,26 @@ class SkillController extends Controller
         foreach ($projects as $project) {
             $techs = $project->tech_stack ?? [];
             foreach ($techs as $tech) {
-                $tech = trim($tech);
-                if (!$tech) continue;
-                
-                if (!isset($skillMap[$tech])) {
-                    $skillMap[$tech] = [
-                        'name' => $tech,
-                        'used_in' => [],
+                if (!is_string($tech)) continue;
+                foreach (TechnologyNames::expand($tech) as $name) {
+                    $key = mb_strtolower($name);
+                    if (!isset($skillMap[$key])) {
+                        $skillMap[$key] = ['name' => $name, 'used_in' => []];
+                    }
+                    // Multiple aliases in one project must count only once.
+                    $skillMap[$key]['used_in'][$project->id] = [
+                        'id' => $project->id,
+                        'title' => $project->title,
                     ];
                 }
-                
-                $skillMap[$tech]['used_in'][] = [
-                    'id' => $project->id,
-                    'title' => $project->title,
-                ];
             }
         }
         
-        $skills = array_values($skillMap);
-        usort($skills, fn($a, $b) => count($b['used_in']) - count($a['used_in']));
+        $skills = array_map(function ($skill) {
+            $skill['used_in'] = array_values($skill['used_in']);
+            return $skill;
+        }, array_values($skillMap));
+        usort($skills, fn($a, $b) => (count($b['used_in']) <=> count($a['used_in'])) ?: strcasecmp($a['name'], $b['name']));
         
         return response()->json($skills);
     }
