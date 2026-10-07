@@ -52,6 +52,10 @@ jobs:
               - 'frontend/**'
             backend:
               - 'backend/**'
+              - 'Dockerfile'
+              - 'docker-compose.yml'
+              - '.dockerignore'
+              - '.github/workflows/deploy.yml'
 
       - name: 📊 Report Changes
         run: |
@@ -143,7 +147,12 @@ jobs:
   # ==========================================
   deploy:
     needs: [pre-deployment-check, detect-changes, frontend-build, backend-validation]
-    if: always() && needs.detect-changes.outputs.has-changes == 'true'
+    if: >-
+      always() && !cancelled() &&
+      needs.detect-changes.result == 'success' &&
+      needs.detect-changes.outputs.has-changes == 'true' &&
+      (needs.frontend-build.result == 'success' || needs.frontend-build.result == 'skipped') &&
+      (needs.backend-validation.result == 'success' || needs.backend-validation.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -171,12 +180,54 @@ jobs:
       # ========== DEPLOYMENT EXECUTION ==========
       - name: 🚀 Execute Deployment Pipeline
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          APP_KEY: ${{ secrets.APP_KEY }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
         with:
+          envs: APP_KEY,JWT_SECRET
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
+            umask 077
+            DEPLOY_ENV_FILE=""
+            BACKEND_ENV_BACKUP=""
+            PROJECT_PATH="/home/azureuser/My-Portfolio"
+            cleanup() {
+              if [ -n "$BACKEND_ENV_BACKUP" ]; then
+                if [ -d "$PROJECT_PATH/backend" ]; then
+                  sudo cp "$BACKEND_ENV_BACKUP" "$PROJECT_PATH/backend/.env"
+                  sudo chown 33:33 "$PROJECT_PATH/backend/.env"
+                  sudo chmod 600 "$PROJECT_PATH/backend/.env"
+                  rm -f "$BACKEND_ENV_BACKUP"
+                else
+                  echo "Environment backup retained at $BACKEND_ENV_BACKUP"
+                fi
+              fi
+              if [ -n "$DEPLOY_ENV_FILE" ]; then rm -f "$DEPLOY_ENV_FILE"; fi
+            }
+            trap cleanup EXIT
+
+            # Fail before changing source, assets, or running containers.
+            if [ "${{ needs.detect-changes.outputs.backend }}" = "true" ]; then
+              if [ -z "$APP_KEY" ] || [ -z "$JWT_SECRET" ]; then
+                echo "Deployment stopped: configure APP_KEY and JWT_SECRET in GitHub Actions repository secrets."
+                exit 1
+              fi
+              DEPLOY_ENV_FILE=$(mktemp)
+              printf 'APP_KEY=%s\nJWT_SECRET=%s\n' "$APP_KEY" "$JWT_SECRET" > "$DEPLOY_ENV_FILE"
+            fi
+            if [ -f "$PROJECT_PATH/backend/.env" ]; then
+              ENV_COPY=$(mktemp)
+              if sudo cat "$PROJECT_PATH/backend/.env" > "$ENV_COPY"; then
+                BACKEND_ENV_BACKUP="$ENV_COPY"
+              else
+                rm -f "$ENV_COPY"
+                echo "Cannot back up the backend environment; deployment stopped."
+                exit 1
+              fi
+            fi
 
             RED='\033[0;31m'
             GREEN='\033[0;32m'
@@ -205,10 +256,23 @@ jobs:
               /usr/bin/git -C "${PROJECT_PATH}" checkout "${BRANCH}"
             else
               echo "⚠️ .git not found. Re-cloning repository..."
-              sudo rm -rf "${PROJECT_PATH}"
+              if [ -d "${PROJECT_PATH}" ] && [ -n "$(ls -A "${PROJECT_PATH}")" ]; then
+                echo "Refusing to delete a non-empty project directory without Git metadata."
+                exit 1
+              fi
               /usr/bin/git clone --branch "${BRANCH}" --single-branch "${REPO_URL}" "${PROJECT_PATH}"
             fi
 
+            if [ -n "$BACKEND_ENV_BACKUP" ]; then
+              sudo cp "$BACKEND_ENV_BACKUP" "$PROJECT_PATH/backend/.env"
+              sudo chown 33:33 "$PROJECT_PATH/backend/.env"
+              sudo chmod 600 "$PROJECT_PATH/backend/.env"
+            fi
+            if [ "${{ needs.detect-changes.outputs.backend }}" = "true" ]; then
+              cd "$PROJECT_PATH"
+              sudo docker-compose --env-file "$DEPLOY_ENV_FILE" config --quiet
+              sudo docker-compose --env-file "$DEPLOY_ENV_FILE" build backend-api
+            fi
             echo -e "${GREEN}✅ Source code synchronized${NC}"
 
             # ========== FRONTEND DEPLOYMENT ==========
@@ -231,7 +295,7 @@ jobs:
 
               sudo find /var/www/html -name "*.js" -newer /var/www/html/index.html \
                 | head -5 \
-                | xargs ls -la
+                | xargs -r ls -la
 
               sudo rm -rf /tmp/frontend-delivery
 
@@ -246,10 +310,9 @@ jobs:
               echo -e "${YELLOW}🔨 Rebuilding Docker container with PHP 8.4...${NC}"
               cd "${PROJECT_PATH}"
               sudo docker-compose version
-              sudo docker rm -f frontend-nginx backend-api 2>/dev/null || true
-              sudo docker-compose down --remove-orphans || true
-              sudo docker-compose build backend-api
-              sudo docker-compose up -d backend-api
+              # Build and config checks already passed. Preserve named volumes.
+              sudo docker rm -f backend-api 2>/dev/null || true
+              sudo docker-compose --env-file "$DEPLOY_ENV_FILE" up -d --no-deps backend-api
               echo -e "${GREEN}✅ Container rebuilt successfully${NC}"
 
               sleep 15
@@ -321,7 +384,8 @@ jobs:
               if [ "$BACKEND_CHECK" = "200" ]; then
                 echo -e "${GREEN}✅ Backend API is healthy (HTTP $BACKEND_CHECK)${NC}"
               else
-                echo -e "${YELLOW}⚠️  Backend returned HTTP $BACKEND_CHECK (check logs if unexpected)${NC}"
+                echo -e "${RED}Backend health check failed (HTTP $BACKEND_CHECK)${NC}"
+                exit 1
               fi
             fi
 

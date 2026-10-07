@@ -26,7 +26,7 @@ ENV DB_CONNECTION=sqlite
 ENV DB_DATABASE=/var/data/database.sqlite
 ENV LOG_CHANNEL=stdout
 
-RUN composer install --no-dev --optimize-autoloader || true
+RUN composer install --no-dev --no-interaction --optimize-autoloader
 
 RUN mkdir -p /var/data/storage /var/www/html/bootstrap/cache && \
     chmod -R 777 /var/data/storage /var/www/html/bootstrap/cache && \
