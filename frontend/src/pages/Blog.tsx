@@ -1,7 +1,8 @@
+import LoadError from '../components/LoadError';
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { NavLink } from 'react-router-dom';
-import { FiArrowRight, FiClock, FiAlertCircle, FiChevronDown } from 'react-icons/fi';
+import { FiArrowRight, FiClock, FiChevronDown } from 'react-icons/fi';
 import { getBlogs, getSafeUrl } from '../api';
 
 interface Blog {
@@ -63,20 +64,7 @@ export default function BlogList() {
           )}
         </motion.div>
 
-        {error && (
-          <div className="glass p-6 rounded-2xl border border-red-500/30 bg-red-500/10 text-red-300 flex items-center justify-between gap-4 mb-6">
-            <div className="flex items-center gap-3">
-              <FiAlertCircle size={20} className="flex-shrink-0 text-red-400" />
-              <p className="text-sm font-medium">{error}</p>
-            </div>
-            <button
-              onClick={() => { setLoading(true); setError(null); fetchBlogs(); }}
-              className="px-4 py-2 text-xs font-semibold rounded-lg bg-red-500/20 hover:bg-red-500/30 text-white transition-colors"
-            >
-              Retry
-            </button>
-          </div>
-        )}
+        {error && <LoadError subject="articles" onRetry={() => { setLoading(true); setError(null); fetchBlogs(); }} />}
 
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">

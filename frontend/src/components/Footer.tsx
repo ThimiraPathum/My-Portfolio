@@ -1,8 +1,8 @@
+import Brand from './Brand';
 import { useSettings } from '../context/useSettings';
 import { FiGithub, FiLinkedin, FiMail, FiCode } from 'react-icons/fi';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { scrollToElement, scrollToTop } from '../hooks/useLenis';
 
 const quickLinks = [
   { label: 'Home', sectionId: 'home-section' },
@@ -22,26 +22,15 @@ export default function Footer() {
     { icon: FiMail, href: settings.social_email ? 'mailto:' + settings.social_email : '', label: 'Email' },
   ].filter(social => social.href);
   const navigate = useNavigate();
-  const location = useLocation();
 
   const handleLink = (item: typeof quickLinks[0]) => {
     if (item.route) {
-      scrollToTop();
       navigate(item.route);
       return;
     }
 
     if (item.sectionId) {
-      if (location.pathname === '/') {
-        const el = document.getElementById(item.sectionId);
-        if (el) scrollToElement(el);
-      } else {
-        navigate('/');
-        setTimeout(() => {
-          const el = document.getElementById(item.sectionId!);
-          if (el) scrollToElement(el);
-        }, 120);
-      }
+      navigate({ pathname: '/', hash: `#${item.sectionId}` });
     }
   };
 
@@ -55,19 +44,7 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <img src="/logo.png" alt="Logo" className="h-8 w-8 object-contain rounded-full flex-shrink-0" />
-              <span
-                className="font-bold text-sm tracking-tight leading-tight"
-                style={{
-                  background: 'linear-gradient(135deg, #1a0a00 0%, #D4AF37 40%, #E8741D 70%, #0d0500 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                  fontFamily: 'var(--font-display)',
-                }}
-              >
-                {settings.home_name || 'Thimira Pathum'}
-              </span>
+              <Brand name={settings.home_name || 'Thimira Pathum'} />
             </div>
 
             <div className="flex items-center gap-2">

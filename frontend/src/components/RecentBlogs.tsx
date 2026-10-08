@@ -1,3 +1,4 @@
+import LoadError from './LoadError';
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { NavLink } from 'react-router-dom';
@@ -19,6 +20,13 @@ interface Blog {
 export default function RecentBlogs() {
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const retry = () => {
+    setError(false);
+    setLoading(true);
+    setAttempt(value => value + 1);
+  };
 
   useEffect(() => {
     getBlogs()
@@ -27,12 +35,12 @@ export default function RecentBlogs() {
           setBlogs(data.slice(0, 3));
         }
       })
-      .catch(console.error)
+      .catch(() => setError(true))
       .finally(() => setLoading(false));
-  }, []);
+  }, [attempt]);
 
   return (
-    <section id="blog-preview-section" className="py-20 px-4 sm:px-6">
+    <section id="blog-preview-section" aria-busy={loading} className="py-20 px-4 sm:px-6">
       <div className="max-w-7xl mx-auto">
         {/* Section Heading — Shares exact max-w-6xl container with zero extra offsets */}
         <motion.div 
@@ -49,7 +57,9 @@ export default function RecentBlogs() {
           <div className="h-px w-24 rounded-full" style={{ background: 'linear-gradient(to right, var(--accent-secondary), var(--accent-primary))' }} />
         </motion.div>
 
-        {loading ? (
+        {!loading && !error && blogs.length === 0 && <p className="py-8 text-sm text-stone-600">Articles will appear here when published.</p>}
+
+        {error ? <LoadError subject="articles" onRetry={retry} /> : loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="glass h-96 animate-pulse rounded-2xl" />

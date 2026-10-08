@@ -1,8 +1,9 @@
+import Brand from './Brand';
+import { useSettings } from '../context/useSettings';
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiMenu, FiX } from 'react-icons/fi';
-import { scrollToElement } from '../hooks/useLenis';
 
 interface NavItem {
   key: string;
@@ -26,6 +27,7 @@ export default function Navbar() {
   const [menuLocation, setMenuLocation] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<string>('home-section');
   const location = useLocation();
+  const { settings, isLoading } = useSettings();
   const navigate = useNavigate();
   const menuOpen = menuLocation === location.key;
   const setMenuOpen = (open: boolean) => setMenuLocation(open ? location.key : null);
@@ -37,35 +39,26 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handler);
   }, []);
 
-  // IntersectionObserver: track active section on single-page landing route ('/')
+  // Attach after the settings-dependent homepage has mounted.
   useEffect(() => {
-    if (location.pathname !== '/') return;
-
-    const sectionIds = ['home-section', 'about-section', 'projects-section', 'skills-section', 'experience-section', 'contact-section'];
-    const elements = sectionIds.map((id) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
-
-    if (elements.length === 0) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        let best: IntersectionObserverEntry | null = null;
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            if (!best || entry.intersectionRatio > best.intersectionRatio) {
-              best = entry;
-            }
-          }
-        });
-        if (best && (best as IntersectionObserverEntry).target.id) {
-          setActiveSection((best as IntersectionObserverEntry).target.id);
-        }
-      },
-      { threshold: [0.15, 0.4, 0.7], rootMargin: '-80px 0px -40% 0px' }
-    );
-
-    elements.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
-  }, [location.pathname]);
+    if (location.pathname !== '/' || isLoading) return;
+    const elements = navItems.flatMap(item => {
+      const element = item.sectionId && document.getElementById(item.sectionId);
+      return element ? [element] : [];
+    });
+    const updateActive = () => {
+      const current = elements.filter(element => element.getBoundingClientRect().top <= 160).at(-1);
+      setActiveSection(current?.id ?? 'home-section');
+    };
+    const frame = requestAnimationFrame(updateActive);
+    window.addEventListener('scroll', updateActive, { passive: true });
+    window.addEventListener('resize', updateActive);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener('scroll', updateActive);
+      window.removeEventListener('resize', updateActive);
+    };
+  }, [location.pathname, isLoading]);
 
   // Smart Nav Click Handler: smooth scroll on SPA landing, navigate to '/' then scroll from other routes, navigate to '/blog' for Blog link
   const handleNavClick = (item: NavItem) => {
@@ -78,20 +71,7 @@ export default function Navbar() {
     }
 
     if (item.sectionId) {
-      if (location.pathname === '/') {
-        const el = document.getElementById(item.sectionId);
-        if (el) {
-          scrollToElement(el);
-          setActiveSection(item.sectionId);
-        }
-      } else {
-        // Navigate to '/' first, then scroll
-        navigate('/');
-        setTimeout(() => {
-          const el = document.getElementById(item.sectionId!);
-          if (el) scrollToElement(el);
-        }, 120);
-      }
+      navigate({ pathname: '/', hash: `#${item.sectionId}` });
     }
   };
 
@@ -118,26 +98,13 @@ export default function Navbar() {
         {/* Brand Logo */}
         <button
           onClick={() => handleNavClick(navItems[0])}
-          className="flex items-center group cursor-pointer bg-transparent border-0 p-0"
+          className="flex min-w-0 items-center cursor-pointer rounded-xl bg-transparent border-0 p-0 mr-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange-700"
         >
-          <img
-            src="/logo.png"
-            alt="Logo"
-            className="h-16 w-16 object-contain rounded-full transition-opacity group-hover:opacity-90 -mr-2"
-          />
-          <span
-            className="font-medium text-base sm:text-lg tracking-tight underline underline-offset-4 decoration-1 truncate max-w-[140px] sm:max-w-none"
-            style={{
-              fontFamily: "'Playfair Display', serif",
-              color: 'var(--text-primary)',
-            }}
-          >
-            Thimira Pathum
-          </span>
+          <Brand name={settings.home_name || 'Thimira Pathum'} />
         </button>
 
         {/* Desktop Sticky Nav Links */}
-        <div className="hidden md:flex items-center gap-1">
+        <div className="hidden xl:flex items-center gap-1">
           {navItems.map((item) => {
             const isActive = isItemActive(item);
             return (
@@ -173,12 +140,14 @@ export default function Navbar() {
         </div>
 
         {/* Mobile Hamburger Toggle */}
-        <div className="flex items-center gap-3 md:hidden">
+        <div className="flex items-center gap-3 xl:hidden">
           <button
             className="p-2 transition-colors cursor-pointer"
             style={{ color: 'var(--text-secondary)' }}
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="Toggle menu"
+            aria-expanded={menuOpen}
+            aria-controls="mobile-navigation"
           >
             {menuOpen ? <FiX size={22} /> : <FiMenu size={22} />}
           </button>
@@ -192,7 +161,8 @@ export default function Navbar() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden backdrop-blur-xl border-b border-[rgba(212,175,55,0.2)]"
+            id="mobile-navigation"
+            className="xl:hidden backdrop-blur-xl border-b border-[rgba(212,175,55,0.2)]"
             style={{
               backgroundColor: 'rgba(250, 244, 239, 0.97)',
             }}

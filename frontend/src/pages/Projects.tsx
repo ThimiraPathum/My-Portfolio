@@ -1,3 +1,4 @@
+import LoadError from '../components/LoadError';
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiGithub, FiExternalLink, FiFilter, FiArrowRight, FiCode } from 'react-icons/fi';
@@ -51,13 +52,20 @@ export default function Projects({ limit }: ProjectsProps) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [filter, setFilter] = useState('All');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const retry = () => {
+    setError(false);
+    setLoading(true);
+    setAttempt(value => value + 1);
+  };
 
   useEffect(() => {
     getProjects()
       .then(({ data }) => setProjects(data))
-      .catch(console.error)
+      .catch(() => setError(true))
       .finally(() => setLoading(false));
-  }, []);
+  }, [attempt]);
 
   const categories = ['All', ...Array.from(new Set(projects.map((p) => p.category)))];
   
@@ -67,7 +75,7 @@ export default function Projects({ limit }: ProjectsProps) {
   }
 
   return (
-    <section id="projects-section" className="pt-24 pb-20 px-4 sm:px-6">
+    <section id="projects-section" aria-busy={loading} className="pt-24 pb-20 px-4 sm:px-6">
       <div className="max-w-7xl mx-auto">
         {/* Heading */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-12">
@@ -99,7 +107,7 @@ export default function Projects({ limit }: ProjectsProps) {
           )}
         </motion.div>
 
-        {loading ? (
+        {error ? <LoadError subject="projects" onRetry={retry} /> : loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {[...Array(limit || 4)].map((_, i) => (
               <div key={i} className="glass h-80 animate-pulse rounded-2xl" />
@@ -259,7 +267,7 @@ export default function Projects({ limit }: ProjectsProps) {
           </div>
         )}
 
-        {!loading && displayedProjects.length === 0 && (
+        {!loading && !error && displayedProjects.length === 0 && (
           <div className="text-left py-16 mono text-sm" style={{ color: 'var(--text-secondary)' }}>
             No projects found in category "{filter}".
           </div>

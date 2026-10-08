@@ -92,7 +92,7 @@ I am passionate about building resilient systems that bridge the gap between cle
                 className="px-5 py-2.5 rounded-lg text-sm inline-flex items-center gap-2 transition-all"
                 style={{ border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)' }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(232, 116, 29, 0.06)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = '#FFFFFF'; }}
               >
                 View Projects
               </NavLink>
@@ -104,15 +104,15 @@ I am passionate about building resilient systems that bridge the gap between cle
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: '-50px' }}
-            className="grid grid-cols-2 gap-3"
+            className="grid grid-cols-1 sm:grid-cols-2 gap-4"
           >
             {expertise.map((item) => (
               <motion.div
                 key={item.title}
                 variants={itemVariants}
-                className="p-4 rounded-2xl flex flex-col gap-2.5 transition-all duration-300"
+                className="p-5 rounded-2xl flex flex-col gap-2.5 transition-all duration-300"
                 style={{
-                  background: 'transparent',
+                  background: '#FFFFFF',
                   border: '1px solid rgba(212, 175, 55, 0.14)',
                 }}
                 onMouseEnter={(e) => {
@@ -120,7 +120,7 @@ I am passionate about building resilient systems that bridge the gap between cle
                   e.currentTarget.style.borderColor = 'rgba(212, 175, 55, 0.32)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.background = '#FFFFFF';
                   e.currentTarget.style.borderColor = 'rgba(212, 175, 55, 0.14)';
                 }}
               >
@@ -131,10 +131,10 @@ I am passionate about building resilient systems that bridge the gap between cle
                   <item.icon size={15} style={{ color: 'var(--accent-primary)' }} />
                 </div>
                 <div>
-                  <div className="text-xs font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>
+                  <div className="text-base font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
                     {item.title}
                   </div>
-                  <div className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+                  <div className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
                     {item.desc}
                   </div>
                 </div>

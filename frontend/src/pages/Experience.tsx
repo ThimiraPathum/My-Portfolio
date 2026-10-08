@@ -1,3 +1,4 @@
+import LoadError from '../components/LoadError';
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiMapPin, FiCalendar, FiMessageSquare, FiX, FiExternalLink } from 'react-icons/fi';
@@ -62,18 +63,25 @@ const stripMarkdown = (text: string): string => {
 export default function Experience() {
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const retry = () => {
+    setError(false);
+    setLoading(true);
+    setAttempt(value => value + 1);
+  };
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [selectedCert, setSelectedCert] = useState<{ url: string; title: string; isPdf: boolean } | null>(null);
 
   useEffect(() => {
     getExperiences()
       .then(({ data }) => setExperiences(data))
-      .catch(console.error)
+      .catch(() => setError(true))
       .finally(() => setLoading(false));
-  }, []);
+  }, [attempt]);
 
   return (
-    <section id="experience-section" className="pt-24 pb-20 px-4 sm:px-6 min-h-screen">
+    <section id="experience-section" aria-busy={loading} className="pt-24 pb-20 px-4 sm:px-6 min-h-screen">
       <div className="max-w-7xl mx-auto">
         {/* Section Heading */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-12">
@@ -87,7 +95,9 @@ export default function Experience() {
           </p>
         </motion.div>
 
-        {loading ? (
+        {!loading && !error && experiences.length === 0 && <p className="py-8 text-sm text-stone-600">Qualifications will appear here when published.</p>}
+
+        {error ? <LoadError subject="qualifications" onRetry={retry} /> : loading ? (
           <div className="space-y-6">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="glass h-40 animate-pulse rounded-2xl" />

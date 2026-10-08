@@ -1,6 +1,7 @@
+import LoadError from '../components/LoadError';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { 
   SiReact, SiTypescript, SiTailwindcss, SiPython, SiFastapi, 
   SiPostgresql, SiDocker, SiGithubactions, SiLinux, 
@@ -29,7 +30,7 @@ const CATEGORY_MAP: Record<string, string> = {
   'Ansible': 'DevOps', 'AWS': 'DevOps',
   // AI/ML
   'LangGraph': 'AI/ML', 'Ollama': 'AI/ML', 'OpenAI API': 'AI/ML',
-  'Groq': 'AI/ML', 'TensorFlow': 'AI/ML',
+  'Groq': 'AI/ML', 'TensorFlow': 'AI/ML', 'PyTorch': 'AI/ML', 'Scikit-learn': 'AI/ML', 'LangChain': 'AI/ML',
   // Database
   'PostgreSQL': 'Database', 'MySQL': 'Database', 'SQLite': 'Database',
   'MongoDB': 'Database', 'Redis': 'Database',
@@ -43,7 +44,7 @@ const getSkillIcon = (name: string) => {
   if (n.includes('python')) return <SiPython className="text-[#3776AB]" />;
   if (n.includes('fastapi')) return <SiFastapi className="text-[#009688]" />;
   if (n.includes('langgraph') || n.includes('ollama') || n.includes('openai') || n.includes('groq')) {
-    return <div className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400 border border-purple-500/30">AI</div>;
+    return <span className="text-xs font-bold text-violet-700">AI</span>;
   }
   if (n.includes('postgres')) return <SiPostgresql className="text-[#4169E1]" />;
   if (n.includes('mysql')) return <SiMysql className="text-[#4479A1]" />;
@@ -62,6 +63,13 @@ const getSkillIcon = (name: string) => {
 export default function Skills() {
   const [skills, setSkills] = useState<DerivedSkillItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const retry = () => {
+    setError(false);
+    setLoading(true);
+    setAttempt(value => value + 1);
+  };
   const [activeTab, setActiveTab] = useState('All');
 
   useEffect(() => {
@@ -70,11 +78,12 @@ export default function Skills() {
         setSkills(Array.isArray(data) ? data : []);
       })
       .catch((err) => {
-        console.error('Failed to fetch derived skills:', err);
+        console.error(err);
+        setError(true);
         setSkills([]);
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [attempt]);
 
   const tabs = ['All', 'Frontend', 'Backend', 'DevOps', 'AI/ML', 'Database', 'Other'];
 
@@ -90,7 +99,7 @@ export default function Skills() {
   });
 
   return (
-    <section id="skills-section" className="pt-24 pb-20 px-4 sm:px-6">
+    <section id="skills-section" aria-busy={loading} className="pt-24 pb-20 px-4 sm:px-6">
       <div className="max-w-7xl mx-auto">
         {/* Section Heading — Strictly Left-Aligned matching rest of portfolio */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-7">
@@ -103,117 +112,76 @@ export default function Skills() {
           <div className="h-px w-24 rounded-full mb-6" style={{ background: 'linear-gradient(to right, var(--accent-secondary), var(--accent-primary))' }} />
 
           <p className="max-w-2xl text-sm sm:text-base leading-relaxed mb-6" style={{ color: 'var(--text-secondary)' }}>
-            Technologies I use, with links to the projects where I use them.
+            The tools behind my work. Explore a category or see them in action.
           </p>
 
-          {/* Category Filter Tabs — Flush Left */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2" aria-label="Filter skills by category">
             {tabs.map((tabLabel) => {
+              const count = tabLabel === 'All' ? skills.length : skills.filter(skill => getCategory(skill.name) === tabLabel).length;
+              if (!loading && !error && count === 0 && tabLabel !== 'All') return null;
               const isActive = activeTab === tabLabel;
               return (
                 <button
+                  type="button"
                   key={tabLabel}
                   aria-pressed={isActive}
                   onClick={() => setActiveTab(tabLabel)}
-                  className="px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer"
-                  style={{
-                    background: isActive ? 'rgba(232, 116, 29, 0.12)' : 'transparent',
-                    color: isActive ? 'var(--accent-primary)' : 'var(--text-secondary)',
-                    border: `1px solid ${isActive ? 'rgba(232, 116, 29, 0.35)' : 'var(--border)'}`,
-                  }}
+                  className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-700 ${isActive ? 'border-stone-800 bg-stone-800 text-white' : 'border-stone-200 bg-white/70 text-stone-600 hover:border-orange-300 hover:text-stone-900'}`}
                 >
                   {tabLabel}
+                  {!loading && !error && <span className={`text-xs ${isActive ? 'text-stone-300' : 'text-stone-500'}`}>{count}</span>}
                 </button>
               );
             })}
           </div>
         </motion.div>
 
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="glass h-28 animate-pulse rounded-2xl" />
+        {error ? <LoadError subject="skills" onRetry={retry} /> : loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5" role="status" aria-label="Loading skills">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-64 animate-pulse rounded-2xl bg-white/70 border border-stone-200" />
             ))}
           </div>
         ) : (
-          <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            <AnimatePresence>
-              {filteredSkills.map((skill, index) => {
-                const icon = getSkillIcon(skill.name);
-                const count = skill.used_in?.length || 0;
-
-                return (
-                  <motion.div
-                    key={skill.name}
-                    layout
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ delay: index * 0.04, duration: 0.3 }}
-                    className="glass glass-hover p-4 flex flex-col gap-3 rounded-xl min-w-0"
-                    style={{ border: '1px solid rgba(232, 116, 29, 0.15)' }}
-                  >
-                    <div>
-                      {/* Header: Icon + Skill Name + Count Badge */}
-                      <div className="flex items-center flex-wrap gap-x-3 gap-y-2">
-                        <div className="flex items-center gap-2 min-w-0 flex-1">
-                          <div className="text-xl w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                            style={{ background: 'rgba(232, 116, 29, 0.06)', border: '1px solid rgba(232, 116, 29, 0.12)' }}>
-                            {icon || (
-                              <span className="text-xs font-bold mono" style={{ color: 'var(--accent-primary)' }}>
-                                {skill.name.slice(0, 2).toUpperCase()}
+          <div className={`grid gap-5 items-start ${activeTab === 'All' ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
+            {tabs.filter(category => category !== 'All').map(category => {
+              const items = filteredSkills.filter(skill => getCategory(skill.name) === category);
+              if (!items.length) return null;
+              return (
+                <motion.div key={category} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}
+                  className="overflow-hidden rounded-2xl border border-stone-200/80 bg-white shadow-sm">
+                  <div className="flex items-center justify-between gap-3 border-b border-stone-100 px-5 py-4">
+                    <h3 className="text-base font-semibold text-stone-900">{category}</h3>
+                    <span className="text-xs text-stone-500">{items.length} {items.length === 1 ? 'skill' : 'skills'}</span>
+                  </div>
+                  <ul className={activeTab === 'All' ? 'divide-y divide-stone-100' : 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3'}>
+                    {items.map(skill => (
+                      <li key={skill.name} className="flex items-start gap-3 px-5 py-4 transition-colors hover:bg-orange-50/40 min-w-0">
+                        <div aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-stone-50 text-2xl">
+                          {getSkillIcon(skill.name) || <span className="text-xs font-semibold text-stone-600">{skill.name.slice(0, 2).toUpperCase()}</span>}
+                        </div>
+                        <div className="min-w-0 pt-0.5">
+                          <h4 className="text-sm font-semibold text-stone-900 break-words">{skill.name}</h4>
+                          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs leading-relaxed text-stone-500">
+                            {skill.used_in.map((project, index) => (
+                              <span key={project.id} className="min-w-0 max-w-full">
+                                {index > 0 && <span aria-hidden="true" className="mr-2 text-stone-300">/</span>}
+                                <Link to={`/project/${project.id}`} className="rounded-sm break-words underline decoration-stone-300 underline-offset-4 hover:text-orange-700 hover:decoration-orange-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-700">{project.title}</Link>
                               </span>
-                            )}
+                            ))}
+                            {skill.used_in.length === 0 && <span>No linked projects yet</span>}
                           </div>
-                          <h3 className="text-base font-semibold break-words min-w-0" style={{ color: 'var(--text-primary)' }}>
-                            {skill.name}
-                          </h3>
                         </div>
-
-                        <span className="text-xs font-medium px-2 py-1 rounded-full flex-shrink-0"
-                          style={{
-                            background: 'rgba(232, 116, 29, 0.12)',
-                            color: 'var(--accent-primary)',
-                            border: '1px solid rgba(232, 116, 29, 0.3)',
-                          }}>
-                          {count} project{count === 1 ? '' : 's'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Project Pills Tag List */}
-                    <div className="min-w-0">
-                      {count > 0 ? (
-                        <div className="flex flex-wrap gap-1.5">
-                          {skill.used_in.map((p) => (
-                            <Link
-                              to={`/project/${p.id}`}
-                              key={p.id || p.title} 
-                              className="text-xs px-2 py-1 rounded-md border max-w-full break-words hover:underline focus-visible:outline-2"
-                              style={{
-                                background: 'rgba(255, 255, 255, 0.04)',
-                                color: 'var(--text-primary)',
-                                borderColor: 'var(--border)',
-                              }}
-                            >
-                              {p.title}
-                            </Link>
-                          ))}
-                        </div>
-                      ) : (
-                        <span className="text-xs italic" style={{ color: 'var(--text-secondary)' }}>
-                          No projects linked yet
-                        </span>
-                      )}
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
-          </motion.div>
+                      </li>
+                    ))}
+                  </ul>
+                </motion.div>
+              );
+            })}
+          </div>
         )}
 
-        {!loading && filteredSkills.length === 0 && (
+        {!loading && !error && filteredSkills.length === 0 && (
           <div className="text-left py-12 mono text-sm" style={{ color: 'var(--text-secondary)' }}>
             No skills found for category "{activeTab}".
           </div>
