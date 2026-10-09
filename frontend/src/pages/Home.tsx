@@ -26,7 +26,7 @@ export default function Home() {
   if (isLoading) return null;
 
   return (
-    <div className="relative">
+    <div className="portfolio-home relative">
       <main id="home-section" className="hero-section pb-10 pt-28 lg:pt-32">
         <div className="site-container grid items-center gap-9 md:grid-cols-[1.25fr_1fr] md:gap-12 lg:gap-20">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}
@@ -36,8 +36,8 @@ export default function Home() {
               {settings.home_status || 'Open to internships · AI/ML & Software Engineering'}
             </div>
             <p className="hero-eyebrow mb-3 text-xs font-semibold uppercase tracking-[0.12em]">Hello, I'm</p>
-            <h1 className="mb-6 text-[3.25rem] font-medium leading-[1.05] tracking-tight text-stone-900 sm:text-6xl lg:text-7xl break-words"
-              style={{ fontFamily: "'Playfair Display', serif" }}>
+            <h1 className="mb-6 text-[2.625rem] font-bold leading-[1.05] tracking-tight text-stone-900 sm:text-[3.5rem] lg:text-[4rem] break-words"
+              style={{ fontFamily: "var(--font-body)" }}>
               {firstName}{rest.length > 0 && <><br /><span className="hero-accent">{rest.join(' ')}</span></>}
             </h1>
             <div className="hero-summary mx-auto max-w-xl text-base md:mx-0">

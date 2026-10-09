@@ -52,7 +52,6 @@ export default function BlogList() {
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Page Header */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
-          <div className="mono text-xs mb-3 tracking-widest" style={{ color: 'var(--accent-primary)' }}>{'>'} blog.read_all()</div>
           <h1 className="section-heading mb-4">
             All <span className="gradient-text">Articles</span>
           </h1>
@@ -95,7 +94,7 @@ export default function BlogList() {
                             <FiClock size={14} />
                             <span className="mono text-[10px] uppercase tracking-wider">Coming Soon</span>
                           </div>
-                          <h2 className="text-xl font-bold mb-2" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>{blog.title}</h2>
+                          <h2 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>{blog.title}</h2>
                           <p className="text-sm line-clamp-3" style={{ color: 'var(--text-secondary)' }}>{blog.excerpt}</p>
                         </div>
                       </div>
@@ -123,7 +122,7 @@ export default function BlogList() {
                                   month: 'long', day: 'numeric', year: 'numeric'
                                 }) : 'Recently Published'}
                               </div>
-                              <h2 className="text-xl font-bold mb-3 leading-snug transition-colors line-clamp-2" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>
+                              <h2 className="text-xl font-semibold mb-3 leading-snug transition-colors line-clamp-2" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>
                                 {blog.title}
                               </h2>
                               <p className="text-sm leading-relaxed mb-6 line-clamp-3" style={{ color: 'var(--text-secondary)' }}>

@@ -78,12 +78,11 @@ export default function Projects({ limit }: ProjectsProps) {
     <section id="projects-section" aria-busy={loading} className="pt-24 pb-20 px-4 sm:px-6">
       <div className="max-w-7xl mx-auto">
         {/* Heading */}
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-12">
-          <div className="mono text-xs mb-3 tracking-widest" style={{ color: 'var(--accent-primary)' }}>{'>'} projects.load()</div>
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="section-header mb-6">
           <h2 className="section-heading mb-4">
             Featured <span className="gradient-text">Projects</span>
           </h2>
-          <div className="h-px w-24 rounded-full mb-8" style={{ background: 'linear-gradient(to right, var(--accent-secondary), var(--accent-primary))' }} />
+          <div className="h-px w-24 rounded-full mb-4" style={{ background: 'linear-gradient(to right, var(--accent-secondary), var(--accent-primary))' }} />
 
           {/* Filter tabs — rendered only when not limited */}
           {!limit && (
@@ -133,7 +132,7 @@ export default function Projects({ limit }: ProjectsProps) {
                       style={{ borderColor: 'rgba(232, 116, 29, 0.15)' }}
                     >
                       {/* Project Image Placeholder / Thumbnail */}
-                      <NavLink to={`/project/${project.id}`} className="block relative w-full h-52 overflow-hidden bg-black/5" style={{ borderBottom: '1px solid var(--border)' }}>
+                      <NavLink to={`/project/${project.id}`} className="block relative w-full h-36 sm:h-40 overflow-hidden bg-black/5" style={{ borderBottom: '1px solid var(--border)' }}>
                         {coverImage ? (
                           <img 
                             src={getSafeUrl(coverImage)} 
@@ -171,27 +170,28 @@ export default function Projects({ limit }: ProjectsProps) {
                       </NavLink>
 
                       {/* Card Body */}
-                      <div className="p-6 flex-1 flex flex-col justify-between">
+                      <div className="p-4 flex-1 flex flex-col justify-between">
                         <div>
                           {/* Title */}
                           <NavLink to={`/project/${project.id}`}>
-                            <h3 className="text-xl font-bold mb-2.5 leading-snug transition-colors group-hover:text-[var(--accent-primary)]" 
+                            <h3 className="text-xl font-semibold mb-2.5 leading-snug transition-colors group-hover:text-[var(--accent-primary)]"
                               style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>
                               {project.title}
                             </h3>
                           </NavLink>
 
                           {/* Description */}
-                          <p className="text-sm leading-relaxed mb-5 line-clamp-3" style={{ color: 'var(--text-secondary)' }}>
+                          <p className="text-sm leading-relaxed mb-3 line-clamp-2" style={{ color: 'var(--text-secondary)' }}>
                             {stripMarkdown(project.description)}
                           </p>
 
                           {/* Tech Stack Tags */}
                           {project.tech_stack && project.tech_stack.length > 0 && (
-                            <div className="flex flex-wrap gap-2 mb-6">
-                              {project.tech_stack.map((tech) => (
+                            <div className="flex flex-wrap gap-2 mb-3">
+                              {project.tech_stack.slice(0, 5).map((tech) => (
                                 <span key={tech} className="tech-tag">{tech}</span>
                               ))}
+                              {project.tech_stack.length > 5 && <NavLink to={`/project/${project.id}`} className="tech-tag">+{project.tech_stack.length - 5} more</NavLink>}
                             </div>
                           )}
                         </div>
@@ -255,7 +255,7 @@ export default function Projects({ limit }: ProjectsProps) {
 
             {/* Prominent Centered "View All Projects" Button (rendered when limited to 2) */}
             {limit && projects.length > limit && (
-              <div className="text-center mt-12">
+              <div className="text-center mt-6">
                 <NavLink
                   to="/projects"
                   className="btn-gradient px-8 py-3.5 rounded-xl inline-flex items-center gap-2 text-sm font-semibold shadow-warm-md hover:scale-105 transition-all"

@@ -52,7 +52,6 @@ export default function RecentBlogs() {
           transition={{ duration: 0.5 }}
           className="mb-12"
         >
-          <div className="mono text-xs mb-3 tracking-widest" style={{ color: 'var(--accent-primary)' }}>{'>'} blog.recent()</div>
           <h2 className="section-heading mb-4">
             Recent <span className="gradient-text">Thoughts</span>
           </h2>
@@ -90,7 +89,7 @@ export default function RecentBlogs() {
                             <FiClock size={14} />
                             <span className="mono text-[10px] uppercase tracking-wider">Coming Soon</span>
                           </div>
-                          <h3 className="text-xl font-bold mb-2" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>{blog.title}</h3>
+                          <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>{blog.title}</h3>
                           <p className="text-xs line-clamp-3" style={{ color: 'var(--text-secondary)' }}>{blog.excerpt}</p>
                         </div>
                       </div>
@@ -117,7 +116,7 @@ export default function RecentBlogs() {
                                   month: 'short', day: 'numeric', year: 'numeric'
                                 }) : 'Recently Published'}
                               </div>
-                              <h3 className="text-xl font-bold mb-3 leading-snug transition-colors line-clamp-2" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>
+                              <h3 className="text-xl font-semibold mb-3 leading-snug transition-colors line-clamp-2" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>
                                 {blog.title}
                               </h3>
                               <p className="text-sm leading-relaxed mb-6 line-clamp-3" style={{ color: 'var(--text-secondary)' }}>

@@ -103,9 +103,6 @@ export default function Skills() {
       <div className="max-w-7xl mx-auto">
         {/* Section Heading — Strictly Left-Aligned matching rest of portfolio */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-7">
-          <div className="mono text-xs mb-3 tracking-widest" style={{ color: 'var(--accent-primary)' }}>
-            {'>'} tech.expertise()
-          </div>
           <h2 className="section-heading mb-4">
             Technical <span className="gradient-text">Skills</span>
           </h2>

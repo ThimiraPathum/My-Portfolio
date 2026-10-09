@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Chivo+Mono:wght@300;400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 /* ===========================
@@ -20,9 +20,9 @@
   --color-warm-info: #5B8DBE;
 
   /* Font Families */
-  --font-display: 'Bricolage Grotesque', sans-serif;
+  --font-display: 'Plus Jakarta Sans', sans-serif;
   --font-body: 'Plus Jakarta Sans', sans-serif;
-  --font-mono: 'Chivo Mono', monospace;
+  --font-mono: ui-monospace, SFMono-Regular, Consolas, monospace;
 
   /* Warm Shadows */
   --shadow-warm-xs: 0 2px 4px rgba(0, 0, 0, 0.08);
@@ -63,13 +63,10 @@
 
 html {
   box-sizing: border-box;
-  scroll-behavior: smooth;
+  /* Lenis owns smooth scrolling; native smoothing interferes with its frames. */
+  scroll-behavior: auto;
   width: 100%;
   overflow-y: auto;
-}
-
-#about, #projects, #skills, #experience, #contact {
-  scroll-margin-top: 64px; /* Offset for fixed Navbar */
 }
 
 body {
@@ -135,8 +132,8 @@ body {
    SECTION HEADING
    =========================== */
 .section-heading {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: clamp(2rem, 5vw, 3rem);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: clamp(2rem, 3vw, 2.25rem);
   font-weight: 600;
   color: var(--text-primary);
   letter-spacing: -0.02em;
@@ -146,7 +143,7 @@ body {
    MONO (Code font)
    =========================== */
 .mono {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-body);
 }
 
 /* ===========================
@@ -208,7 +205,7 @@ body {
   background: rgba(232, 116, 29, 0.08);
   border: 1px solid rgba(232, 116, 29, 0.2);
   color: var(--accent-primary);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-body);
   font-size: 0.7rem;
   font-variant: small-caps;
   padding: 2px 8px;
@@ -333,3 +330,15 @@ body { letter-spacing: 0.005em; }
 .nav-link:hover { text-decoration: underline; text-underline-offset: 6px; }
 a:focus-visible, button:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 4px; }
 @media (max-width: 639px) { .site-container { padding-inline: 20px; } }
+
+/* Home sections already sit below the fixed navigation after anchor scrolling.
+   Keep standalone pages' top padding, but avoid a second large gap at anchors. */
+.portfolio-home section[id] { padding-top: 28px; padding-bottom: 48px; }
+.portfolio-home .section-heading { font-size: clamp(2rem, 3vw, 2.25rem); line-height: 1.15; }
+.section-header .section-heading { margin-bottom: 12px; }
+.about-bio p { font-size: 1rem; line-height: 1.65; margin-bottom: 12px; }
+@media (max-width: 639px) {
+  .portfolio-home section[id] { padding-top: 24px; padding-bottom: 36px; }
+}
+
+.nav-link { font-weight: 500; }

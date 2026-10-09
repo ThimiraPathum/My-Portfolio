@@ -118,7 +118,7 @@ export default function Navbar() {
                 className="nav-link relative min-h-11 px-3 py-2 text-sm font-medium cursor-pointer bg-transparent border-0 transition-colors duration-200"
                 style={{
                   color: isActive ? 'var(--accent-primary)' : 'var(--nav-text)',
-                  fontWeight: isActive ? 600 : 400,
+                  fontWeight: isActive ? 600 : 500,
                 }}
               >
                 {item.label}
@@ -183,7 +183,7 @@ export default function Navbar() {
                     style={{
                       color: isActive ? 'var(--accent-primary)' : 'var(--nav-text)',
                       backgroundColor: isActive ? 'rgba(232, 116, 29, 0.08)' : 'transparent',
-                      fontWeight: isActive ? 600 : 400,
+                      fontWeight: isActive ? 600 : 500,
                     }}
                   >
                     {item.label}

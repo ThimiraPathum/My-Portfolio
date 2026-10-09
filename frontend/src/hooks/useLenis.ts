@@ -30,13 +30,13 @@ export function useLenis() {
 }
 
 // Call this from anywhere to smooth-scroll to an element via Lenis
-export function scrollToElement(el: HTMLElement, offset = -64) {
+export function scrollToElement(el: HTMLElement, offset = -64, immediate = false) {
   if (lenisInstance) {
     lenisInstance.resize();
-    lenisInstance.scrollTo(el, { offset, duration: 1.0, force: true });
+    lenisInstance.scrollTo(el, { offset, duration: 0.6, force: true, immediate });
   } else {
     const y = el.getBoundingClientRect().top + window.scrollY + offset;
-    window.scrollTo({ top: y, behavior: 'smooth' });
+    window.scrollTo({ top: y, behavior: immediate ? 'instant' : 'smooth' });
   }
 }
 

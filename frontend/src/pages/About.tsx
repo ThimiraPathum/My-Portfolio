@@ -55,9 +55,8 @@ I am passionate about building resilient systems that bridge the gap between cle
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-50px' }}
           transition={{ duration: 0.5 }}
-          className="mb-16"
+          className="section-header mb-8"
         >
-          <div className="mono text-xs mb-3 tracking-widest" style={{ color: 'var(--accent-primary)' }}>{'>'} about.me()</div>
           <h1 className="section-heading mb-4">
             About <span className="gradient-text">Me</span>
           </h1>
@@ -65,7 +64,7 @@ I am passionate about building resilient systems that bridge the gap between cle
         </motion.div>
 
         {/* Main content — 2 column */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
 
           {/* Left — Bio */}
           <motion.div
@@ -77,7 +76,7 @@ I am passionate about building resilient systems that bridge the gap between cle
 
 
             {/* Bio text */}
-            <MarkdownRenderer content={bio} className="mb-8" />
+            <MarkdownRenderer content={bio} className="about-bio mb-5" />
 
             {/* CTAs */}
             <div className="flex flex-wrap gap-3">
@@ -110,7 +109,7 @@ I am passionate about building resilient systems that bridge the gap between cle
               <motion.div
                 key={item.title}
                 variants={itemVariants}
-                className="p-5 rounded-2xl flex flex-col gap-2.5 transition-all duration-300"
+                className="p-4 rounded-2xl flex flex-col gap-2 transition-all duration-300"
                 style={{
                   background: '#FFFFFF',
                   border: '1px solid rgba(212, 175, 55, 0.14)',
@@ -131,7 +130,7 @@ I am passionate about building resilient systems that bridge the gap between cle
                   <item.icon size={15} style={{ color: 'var(--accent-primary)' }} />
                 </div>
                 <div>
-                  <div className="text-base font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+                  <div className="text-base font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>
                     {item.title}
                   </div>
                   <div className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>

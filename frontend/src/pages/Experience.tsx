@@ -81,15 +81,14 @@ export default function Experience() {
   }, [attempt]);
 
   return (
-    <section id="experience-section" aria-busy={loading} className="pt-24 pb-20 px-4 sm:px-6 min-h-screen">
+    <section id="experience-section" aria-busy={loading} className="pt-24 pb-20 px-4 sm:px-6">
       <div className="max-w-7xl mx-auto">
         {/* Section Heading */}
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-12">
-          <div className="mono text-xs mb-3 tracking-widest" style={{ color: 'var(--accent-primary)' }}>{'>'} qualifications.timeline()</div>
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="section-header mb-6">
           <h2 className="section-heading mb-4">
             Education &amp; <span className="gradient-text">Qualifications</span>
           </h2>
-          <div className="h-px w-24 rounded-full mb-6" style={{ background: 'linear-gradient(to right, var(--accent-secondary), var(--accent-primary))' }} />
+          <div className="h-px w-24 rounded-full mb-3" style={{ background: 'linear-gradient(to right, var(--accent-secondary), var(--accent-primary))' }} />
           <p className="max-w-2xl text-sm sm:text-base leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
             Academic degrees, certifications, and technical accomplishments tracked across my engineering journey.
           </p>
@@ -111,7 +110,7 @@ export default function Experience() {
             />
 
             {/* Timeline Item Nodes */}
-            <div className="space-y-8 pl-14 sm:pl-16">
+            <div className="space-y-5 pl-14 sm:pl-16">
               {experiences.map((exp, i) => (
                 <motion.div
                   key={exp.id}
@@ -134,7 +133,7 @@ export default function Experience() {
                   <motion.div 
                     whileHover={{ y: -4 }}
                     transition={{ duration: 0.3 }}
-                    className="glass glass-hover p-6 sm:p-7 rounded-2xl relative border"
+                    className="glass glass-hover p-4 sm:p-5 rounded-2xl relative border"
                     style={{ borderColor: 'rgba(232, 116, 29, 0.15)' }}
                   >
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
@@ -145,7 +144,7 @@ export default function Experience() {
                           {/* Degree / Certificate Title & Institution */}
                           <div className="flex flex-wrap gap-3 items-start justify-between mb-3">
                             <div>
-                              <h3 className="text-xl font-bold tracking-tight" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>
+                              <h3 className="text-xl font-semibold tracking-tight" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>
                                 {exp.role}
                               </h3>
                               <p className="text-sm font-semibold mt-0.5" style={{ color: 'var(--accent-primary)' }}>
@@ -261,7 +260,7 @@ export default function Experience() {
                                 >
                                   <img 
                                     src={fullUrl} 
-                                    className="w-full h-44 sm:h-48 object-cover group-hover:scale-[1.03] transition-transform duration-500 rounded-xl" 
+                                    className="w-full h-36 sm:h-40 object-contain group-hover:scale-[1.03] transition-transform duration-500 rounded-xl"
                                     alt={exp.role || "Certification"}
                                   />
                                   <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"

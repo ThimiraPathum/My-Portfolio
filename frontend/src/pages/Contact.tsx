@@ -47,7 +47,6 @@ export default function Contact() {
       <div className="max-w-7xl mx-auto">
         {/* Heading */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-12">
-          <div className="mono text-xs mb-3 tracking-widest" style={{ color: 'var(--accent-primary)' }}>{'>'} contact.init()</div>
           <h1 className="section-heading mb-4">
             Get In <span className="gradient-text">Touch</span>
           </h1>
