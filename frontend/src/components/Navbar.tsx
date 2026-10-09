@@ -1,3 +1,5 @@
+import ResumeLink from './ResumeLink';
+import { usePublishedBlogs } from '../hooks/usePublishedBlogs';
 import Brand from './Brand';
 import { useSettings } from '../context/useSettings';
 import { useState, useEffect } from 'react';
@@ -14,10 +16,10 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { key: 'home', label: 'Home', sectionId: 'home-section' },
-  { key: 'about', label: 'About', sectionId: 'about-section' },
   { key: 'projects', label: 'Projects', sectionId: 'projects-section' },
+  { key: 'about', label: 'About', sectionId: 'about-section' },
   { key: 'skills', label: 'Skills', sectionId: 'skills-section' },
-  { key: 'experience', label: 'Education & Certifications', sectionId: 'experience-section' },
+  { key: 'experience', label: 'Education', sectionId: 'experience-section' },
   { key: 'blog', label: 'Blog', route: '/blog' },
   { key: 'contact', label: 'Contact', sectionId: 'contact-section' },
 ];
@@ -29,6 +31,8 @@ export default function Navbar() {
   const location = useLocation();
   const { settings, isLoading } = useSettings();
   const navigate = useNavigate();
+  const hasPosts = usePublishedBlogs();
+  const visibleItems = navItems.filter(item => item.key !== 'blog' || hasPosts);
   const menuOpen = menuLocation === location.key;
   const setMenuOpen = (open: boolean) => setMenuLocation(open ? location.key : null);
 
@@ -47,7 +51,7 @@ export default function Navbar() {
       return element ? [element] : [];
     });
     const updateActive = () => {
-      const current = elements.filter(element => element.getBoundingClientRect().top <= 160).at(-1);
+      const current = elements.filter(element => element.getBoundingClientRect().top <= 160).sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top).at(-1);
       setActiveSection(current?.id ?? 'home-section');
     };
     const frame = requestAnimationFrame(updateActive);
@@ -94,7 +98,7 @@ export default function Navbar() {
         scrolled ? 'backdrop-blur-xl bg-[#FAF4EF]/85 border-b border-[rgba(212,175,55,0.2)] shadow-warm-sm' : 'bg-transparent'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between overflow-hidden">
+      <div className="site-container h-16 flex items-center justify-between">
         {/* Brand Logo */}
         <button
           onClick={() => handleNavClick(navItems[0])}
@@ -105,15 +109,15 @@ export default function Navbar() {
 
         {/* Desktop Sticky Nav Links */}
         <div className="hidden xl:flex items-center gap-1">
-          {navItems.map((item) => {
+          {visibleItems.map((item) => {
             const isActive = isItemActive(item);
             return (
               <button
                 key={item.key}
                 onClick={() => handleNavClick(item)}
-                className="relative px-3.5 py-2 text-sm font-medium cursor-pointer bg-transparent border-0 transition-colors duration-200"
+                className="nav-link relative min-h-11 px-3 py-2 text-sm font-medium cursor-pointer bg-transparent border-0 transition-colors duration-200"
                 style={{
-                  color: isActive ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                  color: isActive ? 'var(--accent-primary)' : 'var(--nav-text)',
                   fontWeight: isActive ? 600 : 400,
                 }}
               >
@@ -125,7 +129,7 @@ export default function Navbar() {
                     layoutId="nav-indicator"
                     className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full"
                     style={{
-                      background: 'linear-gradient(90deg, var(--accent-secondary), var(--accent-primary))',
+                      background: 'var(--accent-primary)',
                     }}
                     transition={{
                       type: 'spring',
@@ -137,13 +141,14 @@ export default function Navbar() {
               </button>
             );
           })}
+          <ResumeLink compact />
         </div>
 
         {/* Mobile Hamburger Toggle */}
         <div className="flex items-center gap-3 xl:hidden">
           <button
             className="p-2 transition-colors cursor-pointer"
-            style={{ color: 'var(--text-secondary)' }}
+            style={{ color: 'var(--nav-text)' }}
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="Toggle menu"
             aria-expanded={menuOpen}
@@ -167,16 +172,16 @@ export default function Navbar() {
               backgroundColor: 'rgba(250, 244, 239, 0.97)',
             }}
           >
-            <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-1">
-              {navItems.map((item) => {
+            <div className="site-container py-4 flex flex-col gap-1">
+              {visibleItems.map((item) => {
                 const isActive = isItemActive(item);
                 return (
                   <button
                     key={item.key}
                     onClick={() => handleNavClick(item)}
-                    className="px-4 py-3 rounded-lg text-sm font-medium transition-all text-left cursor-pointer bg-transparent border-0"
+                    className="nav-link px-4 py-3 rounded-lg text-sm font-medium transition-all text-left cursor-pointer bg-transparent border-0"
                     style={{
-                      color: isActive ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                      color: isActive ? 'var(--accent-primary)' : 'var(--nav-text)',
                       backgroundColor: isActive ? 'rgba(232, 116, 29, 0.08)' : 'transparent',
                       fontWeight: isActive ? 600 : 400,
                     }}
@@ -185,6 +190,7 @@ export default function Navbar() {
                   </button>
                 );
               })}
+              <ResumeLink compact />
             </div>
           </motion.div>
         )}

@@ -1,3 +1,4 @@
+import { usePublishedBlogs } from '../hooks/usePublishedBlogs';
 import Brand from './Brand';
 import { useSettings } from '../context/useSettings';
 import { FiGithub, FiLinkedin, FiMail, FiCode } from 'react-icons/fi';
@@ -22,6 +23,7 @@ export default function Footer() {
     { icon: FiMail, href: settings.social_email ? 'mailto:' + settings.social_email : '', label: 'Email' },
   ].filter(social => social.href);
   const navigate = useNavigate();
+  const hasPosts = usePublishedBlogs();
 
   const handleLink = (item: typeof quickLinks[0]) => {
     if (item.route) {
@@ -82,7 +84,7 @@ export default function Footer() {
               NAVIGATION
             </div>
             <ul className="grid grid-cols-2 gap-x-4 gap-y-2.5">
-              {quickLinks.map((item) => (
+              {quickLinks.filter(item => item.route !== '/blog' || hasPosts).map((item) => (
                 <li key={item.label}>
                   <button
                     onClick={() => handleLink(item)}

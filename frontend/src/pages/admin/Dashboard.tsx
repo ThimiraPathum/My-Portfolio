@@ -61,7 +61,6 @@ const fields: Record<Resource, Field[]> = {
 };
 const settingsFields: Field[] = [
   { key: 'home_name', label: 'Full name', required: true },
-  { key: 'home_description', label: 'Homepage introduction', type: 'textarea', hint: 'The paragraph next to your profile photo. Markdown supported.' },
   { key: 'about_bio', label: 'About me', type: 'textarea', hint: 'Separate paragraphs with a blank line. Markdown supported.' },
   { key: 'social_email', label: 'Contact email' },
   { key: 'social_github', label: 'GitHub URL', type: 'url' },

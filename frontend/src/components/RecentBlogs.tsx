@@ -32,12 +32,14 @@ export default function RecentBlogs() {
     getBlogs()
       .then(({ data }) => {
         if (Array.isArray(data)) {
-          setBlogs(data.slice(0, 3));
+          setBlogs(data.filter(blog => blog.status === 'published' && !blog.coming_soon).slice(0, 3));
         }
       })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, [attempt]);
+
+  if (!loading && !error && blogs.length === 0) return null;
 
   return (
     <section id="blog-preview-section" aria-busy={loading} className="py-20 px-4 sm:px-6">

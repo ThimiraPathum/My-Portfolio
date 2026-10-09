@@ -38,11 +38,12 @@
   --bg-primary: #FAF4EF;
   --bg-secondary: #E6D7C3;
   --bg-card: #FFFFFF;
-  --accent-primary: #E8741D;
+  --accent-primary: #b54708;
   --accent-secondary: #D4AF37;
   --accent-tertiary: #FFB088;
   --text-primary: #1A1410;
-  --text-secondary: #8B7355;
+  --text-secondary: #4a4039;
+  --nav-text: #5c5047;
   --text-muted: #A0522D;
   --border: #E6D7C3;
   --border-hover: rgba(232, 116, 29, 0.4);
@@ -79,36 +80,6 @@ body {
   padding: 0;
   width: 100%;
   position: relative;
-}
-
-/* Cursor glow effect — warm gold */
-body::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  background: radial-gradient(circle 800px at 50% 50%, rgba(212, 175, 55, 0.03), transparent);
-  z-index: 0;
-}
-
-/* ===========================
-   SCROLLBAR — warm tinted
-   =========================== */
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: var(--bg-primary);
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(212, 175, 55, 0.3);
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(232, 116, 29, 0.5);
 }
 
 /* ===========================
@@ -347,3 +318,18 @@ input::placeholder {
 a {
   transition: color 0.2s ease;
 }
+
+/* Shared alignment and recruiter-facing hero. */
+.site-container { width: 100%; max-width: 1200px; margin-inline: auto; padding-inline: 24px; }
+body { letter-spacing: 0.005em; }
+.hero-summary p { color: var(--text-secondary); font-size: 1rem; line-height: 1.7; letter-spacing: 0.005em; }
+.hero-accent { color: var(--accent-primary); }
+.hero-eyebrow, .hero-social, .scroll-cue { color: var(--nav-text); }
+.hero-social:hover, .scroll-cue:hover, .resume-link:hover { color: var(--accent-primary); }
+.internship-badge { color: #205437; background: #edf5ee; border-color: #c0d6c4; letter-spacing: 0; }
+.hero-portrait { border: 2px solid var(--accent-primary); box-shadow: 10px 10px 0 #eddfd0; }
+.resume-link { color: var(--text-primary); }
+.nav-link { letter-spacing: 0.005em; }
+.nav-link:hover { text-decoration: underline; text-underline-offset: 6px; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 4px; }
+@media (max-width: 639px) { .site-container { padding-inline: 20px; } }

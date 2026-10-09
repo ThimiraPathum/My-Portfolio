@@ -11,6 +11,9 @@ class SiteSetting extends Model
     {
         return [
             'home_name'        => 'Thimira Pathum',
+            'home_status'      => 'Open to internships · AI/ML & Software Engineering',
+            'home_summary'     => 'ICT undergraduate at the University of Colombo. I build full-stack and AI applications, including MarketMentor with Python, FastAPI and React.',
+            'resume_url'       => '/cv/thimira-pathum.pdf',
             'home_greeting'    => 'Portfolio Journey',
             'home_roles'       => 'DevOps, MLOps, AI Integration, Linux Systems, Cloud Architecture',
             'home_tag'         => 'Evolving from basic scripting to designing robust orchestration architectures.',
