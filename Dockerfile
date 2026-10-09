@@ -15,7 +15,6 @@ RUN sed -ri -e 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.c
     && sed -ri -e 's/AllowOverride none/AllowOverride All/g' /etc/apache2/apache2.conf
 
 WORKDIR /var/www/html
-COPY backend/ /var/www/html/
 
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/000-default.conf
@@ -26,7 +25,13 @@ ENV DB_CONNECTION=sqlite
 ENV DB_DATABASE=/var/data/database.sqlite
 ENV LOG_CHANNEL=stdout
 
-RUN composer install --no-dev --no-interaction --optimize-autoloader
+# Keep dependency installation cached when only application code changes.
+# Artisan and application classes are not available until the next COPY.
+COPY backend/composer.json backend/composer.lock ./
+RUN composer install --no-dev --no-interaction --prefer-dist --no-scripts --no-autoloader
+
+COPY backend/ /var/www/html/
+RUN composer dump-autoload --no-dev --optimize
 
 RUN mkdir -p /var/data/storage /var/www/html/bootstrap/cache && \
     chmod -R 777 /var/data/storage /var/www/html/bootstrap/cache && \
