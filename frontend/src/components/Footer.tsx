@@ -2,17 +2,17 @@ import { usePublishedBlogs } from '../hooks/usePublishedBlogs';
 import Brand from './Brand';
 import { useSettings } from '../context/useSettings';
 import { FiGithub, FiLinkedin, FiMail, FiCode } from 'react-icons/fi';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 const quickLinks = [
-  { label: 'Home', sectionId: 'home-section' },
-  { label: 'About', sectionId: 'about-section' },
-  { label: 'Projects', sectionId: 'projects-section' },
-  { label: 'Skills', sectionId: 'skills-section' },
-  { label: 'Education', sectionId: 'experience-section' },
+  { label: 'Home', route: '/', sectionId: 'home-section' },
+  { label: 'About', route: '/about', sectionId: 'about-section' },
+  { label: 'Projects', route: '/projects', sectionId: 'projects-section' },
+  { label: 'Skills', route: '/skills', sectionId: 'skills-section' },
+  { label: 'Education', route: '/experience', sectionId: 'experience-section' },
   { label: 'Blog', route: '/blog' },
-  { label: 'Contact', sectionId: 'contact-section' },
+  { label: 'Contact', route: '/contact', sectionId: 'contact-section' },
 ];
 
 export default function Footer() {
@@ -23,10 +23,11 @@ export default function Footer() {
     { icon: FiMail, href: settings.social_email ? 'mailto:' + settings.social_email : '', label: 'Email' },
   ].filter(social => social.href);
   const navigate = useNavigate();
+  const location = useLocation();
   const hasPosts = usePublishedBlogs();
 
   const handleLink = (item: typeof quickLinks[0]) => {
-    if (item.route) {
+    if (item.route && (location.pathname !== '/' || !item.sectionId)) {
       navigate(item.route);
       return;
     }

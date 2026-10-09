@@ -15,13 +15,13 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { key: 'home', label: 'Home', sectionId: 'home-section' },
-  { key: 'projects', label: 'Projects', sectionId: 'projects-section' },
-  { key: 'about', label: 'About', sectionId: 'about-section' },
-  { key: 'skills', label: 'Skills', sectionId: 'skills-section' },
-  { key: 'experience', label: 'Education', sectionId: 'experience-section' },
+  { key: 'home', label: 'Home', route: '/', sectionId: 'home-section' },
+  { key: 'projects', label: 'Projects', route: '/projects', sectionId: 'projects-section' },
+  { key: 'about', label: 'About', route: '/about', sectionId: 'about-section' },
+  { key: 'skills', label: 'Skills', route: '/skills', sectionId: 'skills-section' },
+  { key: 'experience', label: 'Education', route: '/experience', sectionId: 'experience-section' },
   { key: 'blog', label: 'Blog', route: '/blog' },
-  { key: 'contact', label: 'Contact', sectionId: 'contact-section' },
+  { key: 'contact', label: 'Contact', route: '/contact', sectionId: 'contact-section' },
 ];
 
 export default function Navbar() {
@@ -64,12 +64,12 @@ export default function Navbar() {
     };
   }, [location.pathname, isLoading]);
 
-  // Smart Nav Click Handler: smooth scroll on SPA landing, navigate to '/' then scroll from other routes, navigate to '/blog' for Blog link
+  // Keep homepage section scrolling; elsewhere open the destination page directly.
   const handleNavClick = (item: NavItem) => {
     setMenuOpen(false);
 
-    // Dedicated separate route (Blog page)
-    if (item.route) {
+    // Avoid mounting the homepage as an intermediate destination.
+    if (item.route && (location.pathname !== '/' || !item.sectionId)) {
       navigate(item.route);
       return;
     }
@@ -80,13 +80,12 @@ export default function Navbar() {
   };
 
   const isItemActive = (item: NavItem) => {
-    if (item.route) {
-      return location.pathname.startsWith(item.route);
-    }
     if (location.pathname === '/' && item.sectionId) {
       return activeSection === item.sectionId;
     }
-    return false;
+    if (item.key === 'projects' && location.pathname.startsWith('/project/')) return true;
+    return item.route === location.pathname ||
+      (item.route !== '/' && Boolean(item.route && location.pathname.startsWith(`${item.route}/`)));
   };
 
   return (
