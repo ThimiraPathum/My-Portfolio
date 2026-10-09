@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 /* ===========================
@@ -20,9 +20,9 @@
   --color-warm-info: #5B8DBE;
 
   /* Font Families */
-  --font-display: 'Plus Jakarta Sans', sans-serif;
-  --font-body: 'Plus Jakarta Sans', sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Consolas, monospace;
+  --font-display: 'Manrope', sans-serif;
+  --font-body: 'Manrope', sans-serif;
+  --font-mono: 'Manrope', sans-serif;
 
   /* Warm Shadows */
   --shadow-warm-xs: 0 2px 4px rgba(0, 0, 0, 0.08);
@@ -72,7 +72,7 @@ html {
 body {
   background: var(--bg-primary);
   color: var(--text-primary);
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: var(--font-body);
   margin: 0;
   padding: 0;
   width: 100%;
@@ -132,7 +132,7 @@ body {
    SECTION HEADING
    =========================== */
 .section-heading {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: var(--font-body);
   font-size: clamp(2rem, 3vw, 2.25rem);
   font-weight: 600;
   color: var(--text-primary);
@@ -342,3 +342,19 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent-primary)
 }
 
 .nav-link { font-weight: 500; }
+
+/* Keep the same display face across headings, cards, navigation and admin UI. */
+.mono { font-family: var(--font-body); }
+.skills-columns {
+  column-count: 1;
+  column-gap: 1.25rem;
+}
+.skills-columns > * {
+  display: inline-block;
+  width: 100%;
+  margin-bottom: 1.25rem;
+  break-inside: avoid;
+}
+@media (min-width: 1280px) {
+  .skills-columns { column-count: 2; }
+}

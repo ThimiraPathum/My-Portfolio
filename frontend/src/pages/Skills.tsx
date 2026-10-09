@@ -140,7 +140,7 @@ export default function Skills() {
             ))}
           </div>
         ) : (
-          <div className={`grid gap-5 items-start ${activeTab === 'All' ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
+          <div className={activeTab === 'All' ? 'skills-columns' : 'grid grid-cols-1 gap-5'}>
             {tabs.filter(category => category !== 'All').map(category => {
               const items = filteredSkills.filter(skill => getCategory(skill.name) === category);
               if (!items.length) return null;

@@ -1,4 +1,4 @@
-.admin-shell { --admin-ink: #252c36; --admin-muted: #647080; --admin-border: #dce2e8; min-height: 100vh; background: #f5f7fa; color: var(--admin-ink); font-family: 'Plus Jakarta Sans', sans-serif; }
+.admin-shell { --admin-ink: #252c36; --admin-muted: #647080; --admin-border: #dce2e8; min-height: 100vh; background: #f5f7fa; color: var(--admin-ink); font-family: 'Manrope', sans-serif; }
 .admin-shell *, .admin-shell *::before, .admin-shell *::after { box-sizing: border-box; }
 .admin-topbar { min-height: 76px; padding: 16px 4vw; display: flex; align-items: center; justify-content: space-between; gap: 16px; background: #fff; border-bottom: 1px solid var(--admin-border); }
 .admin-brand { color: var(--admin-ink); font-size: 20px; font-weight: 800; text-decoration: none; }

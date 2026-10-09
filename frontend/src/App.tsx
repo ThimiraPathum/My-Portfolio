@@ -38,7 +38,7 @@ export default function App() {
               background: '#FAF4EF',
               color: '#1A1410',
               border: '1px solid rgba(212, 175, 55, 0.2)',
-              fontFamily: 'Inter, sans-serif',
+              fontFamily: 'Manrope, sans-serif',
               fontSize: '14px',
               boxShadow: '0 4px 12px rgba(212, 175, 55, 0.1)',
             },
