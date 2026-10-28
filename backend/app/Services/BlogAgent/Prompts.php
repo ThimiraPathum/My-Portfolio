@@ -25,6 +25,7 @@ TEXT;
         };
 
         if ($stage === 'draft') {
+            $task .= ' Each sentence and heading must be supported by the supplied excerpts, not merely associated with their topic. Do not extend a source about one failure mode into a different one, or turn a limited benefit into a guarantee. Narrow the outline when the excerpts lack coverage. When editorial_feedback identifies unsupported wording, remove or narrow that claim and its heading; do not just attach another related quote. Keep already supported material and satisfy all prior editorial feedback during an evidence repair.';
             $task .= ' Evidence quotes are checked as case-sensitive contiguous substrings of the supplied sources[].text, with 20-1200 characters after trimming. Copy directly from that text: preserve capitalization, spaces, punctuation and the exact hyphen character. Never shorten a quote with ... or an ellipsis, combine separated passages, paraphrase it, or quote material outside the supplied excerpt. Use separate evidence entries for separate passages. When evidence_feedback is supplied, repair the specified zero-based block_index/evidence_index: choose an existing source_id and copy a supporting passage exactly. If the supplied text does not support the claim, remove or narrow the claim instead. Do not relabel factual claims as interpretation to avoid evidence checks.';
         }
 

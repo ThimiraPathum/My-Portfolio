@@ -51,11 +51,16 @@ class ShowBlogReport extends Command
                 $blocks[] = ['number' => $i + 1, 'heading' => $block['heading'], 'text' => $block['text'], 'evidence' => $block['evidence']];
             }
             $summary = ['report' => $path, 'title' => $report['draft']['title'] ?? '',
+                'revisions' => $report['revisions'] ?? null, 'content_revisions' => $report['content_revisions'] ?? null,
+                'evidence_repairs' => $report['evidence_repairs'] ?? null,
                 'issues' => $report['gate']['issues'] ?? [], 'reviewer_feedback' => $report['review']['issues'] ?? [], 'blocks' => $blocks,
                 'evidence_errors' => $evidenceErrors,
                 'evidence_sources' => array_values(array_map(fn ($source) => [
                     'id' => $source['id'], 'url' => $source['url'], 'text' => $source['text'],
-                ], array_filter($report['sources'], fn ($source) => in_array($source['id'], array_column($evidenceErrors, 'source_id'), true))))];
+                ], array_filter($report['sources'], fn ($source) => in_array($source['id'], array_merge(
+                    array_column($evidenceErrors, 'source_id'),
+                    array_column(array_merge(...array_column($blocks, 'evidence')), 'source_id')
+                ), true))))];
             // Treat model prose as data: no terminal controls/markup, no configured
             // key if a provider ever echoes it into an unusual response.
             $redact = function ($value) use (&$redact) {

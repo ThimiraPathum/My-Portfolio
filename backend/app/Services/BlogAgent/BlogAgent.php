@@ -30,23 +30,44 @@ class BlogAgent
         $context['plan'] = $plan;
         $draft = $this->client->json('draft', $this->prompts->for('draft', $topic['category']), $context);
         $maxRevisions = min(1, max(0, (int) config('blog_agent.max_revisions')));
-        for ($revision = 0; $revision <= $maxRevisions; $revision++) {
+        $maxEvidenceRepairs = $maxRevisions === 0 ? 0 : min(1, max(0, (int) config('blog_agent.max_evidence_repairs', 1)));
+        $revision = 0;
+        $evidenceRepairs = 0;
+        $editorialFeedback = [];
+        while (true) {
             $gate = $this->quality->validate($draft, $sources, $topic);
             $review = null;
             if (! $gate['issues']) {
                 $review = $this->client->json('review', $this->prompts->for('review', $topic['category']), $context + ['draft' => $draft]);
                 $gate = $this->quality->validate($draft, $sources, $topic, $review);
+                $editorialFeedback = $review['issues'];
             }
-            if (! $gate['issues'] || $revision === $maxRevisions) {
+            if (! $gate['issues']) {
                 break;
             }
+            // A quote-copy repair must not spend the only opportunity to act on
+            // later editorial feedback. Each budget is hard-capped at one.
+            $hasEvidenceIssues = (bool) array_filter($gate['issues'], fn ($issue) => preg_match('/^block_\d+_evidence_(invalid|missing)$/', $issue) || $issue === 'article_insufficient_evidence');
+            if ($hasEvidenceIssues) {
+                if ($evidenceRepairs >= $maxEvidenceRepairs) {
+                    break;
+                }
+                $evidenceRepairs++;
+            } else {
+                if ($revision >= $maxRevisions) {
+                    break;
+                }
+                $revision++;
+            }
             $draft = $this->client->json('draft', $this->prompts->for('draft', $topic['category']), $context + [
-                'previous_draft' => $draft, 'revision_feedback' => $gate['issues'], 'editorial_feedback' => $review['issues'] ?? [],
+                'previous_draft' => $draft, 'revision_feedback' => $gate['issues'], 'editorial_feedback' => $editorialFeedback,
                 'evidence_feedback' => $gate['evidence_errors'] ?? [],
+                'repair_type' => $hasEvidenceIssues ? 'evidence' : 'content',
             ]);
         }
         $report = ['topic' => $topic, 'model' => config('blog_agent.model'), 'sources' => $sources, 'plan' => $plan,
-            'draft' => $draft, 'review' => $review, 'gate' => $gate, 'revisions' => $revision, 'created_at' => now()->toIso8601String()];
+            'draft' => $draft, 'review' => $review, 'gate' => $gate, 'revisions' => $revision + $evidenceRepairs,
+            'content_revisions' => $revision, 'evidence_repairs' => $evidenceRepairs, 'created_at' => now()->toIso8601String()];
         if ($gate['issues']) {
             $reportPath = null;
             if (! $dryRun) {

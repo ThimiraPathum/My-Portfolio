@@ -8,6 +8,7 @@ use App\Services\BlogAgent\BlogAgent;
 use App\Services\BlogAgent\PublicDns;
 use App\Services\BlogAgent\SourceTransport;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Tests\Support\BlogAgentFixtures as F;
@@ -173,6 +174,91 @@ class BlogAgentTest extends TestCase
         Http::assertSentCount(4);
     }
 
+    public function test_evidence_repair_preserves_a_revision_for_editorial_feedback(): void
+    {
+        $badQuote = $this->fixture['draft'];
+        $badQuote['blocks'][0]['evidence'][0]['quote'] = 'An abbreviated ... quotation that cannot match the supplied source.';
+        $review = F::review();
+        $review['checks']['factual_support'] = false;
+        $review['blocks'][0]['supported'] = false;
+        $review['issues'] = ['Narrow the claim to the supplied evidence; do not promise prevention.'];
+        Http::fake(['api.groq.com/*' => Http::sequence()->push(F::response(F::plan()))
+            ->push(F::response($badQuote))->push(F::response($this->fixture['draft']))
+            ->push(F::response($review))->push(F::response($this->fixture['draft']))->push(F::response(F::review()))]);
+        $result = $this->runAgent();
+        $this->assertSame('draft', $result['status']);
+        $audit = json_decode(Storage::disk('blog_research')->get($result['report']), true);
+        $this->assertSame(1, $audit['evidence_repairs']);
+        $this->assertSame(1, $audit['content_revisions']);
+        $this->assertSame(2, $audit['revisions']);
+        Http::assertSent(function ($request) use ($review) {
+            $data = json_decode($request['messages'][1]['content'], true);
+
+            return ($data['repair_type'] ?? null) === 'content' && ($data['editorial_feedback'] ?? null) === $review['issues'];
+        });
+        Http::assertSentCount(6);
+    }
+
+    public function test_persistent_editorial_failure_still_rejects_after_both_repair_budgets(): void
+    {
+        config(['blog_agent.auto_publish' => true, 'blog_agent.max_revisions' => 99, 'blog_agent.max_evidence_repairs' => 99]);
+        $badQuote = $this->fixture['draft'];
+        $badQuote['blocks'][0]['evidence'][0]['source_id'] = 'S99';
+        $review = F::review();
+        $review['checks']['factual_support'] = false;
+        $review['blocks'][0]['supported'] = false;
+        $review['issues'] = ['Unsupported claim persists.'];
+        Http::fake(['api.groq.com/*' => Http::sequence()->push(F::response(F::plan()))
+            ->push(F::response($badQuote))->push(F::response($this->fixture['draft']))
+            ->push(F::response($review))->push(F::response($this->fixture['draft']))->push(F::response($review))]);
+        try {
+            $this->runAgent();
+            $this->fail('Unsupported article accepted');
+        } catch (AgentException $e) {
+            $this->assertStringContainsString('review_factual_support', $e->reason);
+            $audit = json_decode(Storage::disk('blog_research')->get($e->reportPath), true);
+            $this->assertSame(2, $audit['revisions']);
+        }
+        $this->assertDatabaseCount('blogs', 0);
+        Http::assertSentCount(6);
+    }
+
+    public function test_late_evidence_repair_retains_prior_editorial_feedback(): void
+    {
+        $badQuote = $this->fixture['draft'];
+        $badQuote['blocks'][0]['evidence'][0]['source_id'] = 'S99';
+        $review = F::review();
+        $review['checks']['factual_support'] = false;
+        $review['blocks'][0]['supported'] = false;
+        $review['issues'] = ['Remove the unsupported guarantee.'];
+        Http::fake(['api.groq.com/*' => Http::sequence()->push(F::response(F::plan()))
+            ->push(F::response($this->fixture['draft']))->push(F::response($review))
+            ->push(F::response($badQuote))->push(F::response($this->fixture['draft']))->push(F::response(F::review()))]);
+        $this->runAgent();
+        Http::assertSent(function ($request) use ($review) {
+            $data = json_decode($request['messages'][1]['content'], true);
+
+            return ($data['repair_type'] ?? null) === 'evidence' && ($data['editorial_feedback'] ?? null) === $review['issues'];
+        });
+        Http::assertSentCount(6);
+    }
+
+    public function test_disabled_revisions_also_disable_evidence_repair(): void
+    {
+        config(['blog_agent.max_revisions' => 0]);
+        $bad = $this->fixture['draft'];
+        $bad['blocks'][0]['evidence'][0]['source_id'] = 'S99';
+        Http::fake(['api.groq.com/*' => Http::sequence()->push(F::response(F::plan()))->push(F::response($bad))]);
+        try {
+            $this->runAgent();
+            $this->fail('Invalid evidence accepted');
+        } catch (AgentException $e) {
+            $this->assertStringContainsString('evidence_invalid', $e->reason);
+        }
+        Http::assertSentCount(2);
+        $this->assertDatabaseCount('blogs', 0);
+    }
+
     public function test_old_report_explains_quote_mismatch_using_saved_sources_without_api_calls(): void
     {
         $path = 'reports/rejected-agent-'.str_repeat('a', 32).'-20261028184648-'.str_repeat('b', 12).'.json';
@@ -184,8 +270,8 @@ class BlogAgentTest extends TestCase
             'draft' => $draft, 'sources' => $this->fixture['sources'], 'topic' => $this->fixture['topic'],
             'review' => $review, 'gate' => ['issues' => ['block_0_evidence_invalid']],
         ]));
-        $this->assertSame(0, \Illuminate\Support\Facades\Artisan::call('blog:report', ['report' => $path]));
-        $output = json_decode(\Illuminate\Support\Facades\Artisan::output(), true, 64, JSON_THROW_ON_ERROR);
+        $this->assertSame(0, Artisan::call('blog:report', ['report' => $path]));
+        $output = json_decode(Artisan::output(), true, 64, JSON_THROW_ON_ERROR);
         $this->assertSame('quote_not_verbatim', $output['evidence_errors'][0]['reason']);
         $this->assertSame($this->fixture['sources'][0]['text'], $output['evidence_sources'][0]['text']);
         $this->assertSame([1, 3], array_column($output['blocks'], 'number'));
@@ -259,6 +345,10 @@ class BlogAgentTest extends TestCase
             $this->assertNotNull($e->reportPath);
         }
         $this->artisan('blog:report')->expectsOutputToContain('unsupported assertion. [REDACTED]')->assertSuccessful();
+        $this->assertSame(0, Artisan::call('blog:report'));
+        $output = json_decode(Artisan::output(), true, 64, JSON_THROW_ON_ERROR);
+        $this->assertSame([], $output['evidence_errors']);
+        $this->assertNotEmpty($output['evidence_sources']);
         $this->assertDatabaseCount('blogs', 0);
         Http::assertSentCount(3);
     }

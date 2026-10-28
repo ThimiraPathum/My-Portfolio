@@ -13,6 +13,7 @@ return [
     'research_chars' => (int) env('BLOG_RESEARCH_CHARS', 6000),
     'api_attempts' => 3,
     'max_revisions' => 1,
+    'max_evidence_repairs' => 1,
     'retry_delay' => 2,
     'max_retry_wait' => 60,
     'min_sources' => 2,

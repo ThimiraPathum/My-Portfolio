@@ -4,7 +4,7 @@ Latest backend verification on 2026-10-29 before push; earlier frontend and tran
 
 ## Results
 
-- Full backend suite after evidence revision feedback: **94 tests, 286 assertions passed**, PHP 8.5.8 / PHPUnit 11.5.56. Includes 78 Blog Agent tests and 16 existing backend tests. Covers precise quote-copy diagnostics, rejection of case/hyphen/ellipsis changes, feedback delivery before revision/review, and inspection of older reports without API requests. Mocked waits also verify missing Retry-After, fractional/compound reset headers, pacing between stages, daily exhaustion, bounded retries and safe diagnostics.
+- Full backend suite after separate bounded repair budgets: **98 tests, 304 assertions passed**, PHP 8.5.8 / PHPUnit 11.5.56. Includes 82 Blog Agent tests and 16 existing backend tests. Covers evidence repair followed by editorial correction/re-review, persistent rejection after both budgets, feedback retention during late quote repair, disabled repairs, and sources for semantic rejection reports. Also covers precise quote-copy diagnostics, rejection of case/hyphen/ellipsis changes, and inspection of older reports without API requests. Mocked waits verify missing Retry-After, fractional/compound reset headers, pacing between stages, daily exhaustion, bounded retries and safe diagnostics.
 - Frontend production build: TypeScript and Vite passed. All nine category cover assets are included.
 - PHP syntax checks on the command, services and modified configuration: passed.
 - Laravel Pint formatting applied to the new/rewritten PHP implementation and tests.
