@@ -3,9 +3,12 @@ FROM php:8.4-apache
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 RUN apt-get update && apt-get install -y \
-    libsqlite3-dev libpq-dev libonig-dev libxml2-dev unzip \
+    libsqlite3-dev libpq-dev libonig-dev libxml2-dev unzip ca-certificates \
     && docker-php-ext-install pdo pdo_sqlite mbstring xml bcmath \
     && rm -rf /var/lib/apt/lists/*
+
+# Source retrieval requires cURL DNS pinning and normal TLS verification.
+RUN php -r 'exit(extension_loaded("curl") ? 0 : 1);'
 
 RUN printf "file_uploads=On\nupload_max_filesize=120M\npost_max_size=120M\nmemory_limit=256M\n" > /usr/local/etc/php/conf.d/uploads.ini
 

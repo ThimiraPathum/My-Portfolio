@@ -9,4 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 // Schedule AI Blog Agent to run daily at 09:00
-Schedule::command('blog:generate')->dailyAt('09:00');
+Schedule::command('blog:generate')->dailyAt('09:00')->withoutOverlapping(30);

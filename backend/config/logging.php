@@ -52,6 +52,13 @@ return [
 
     'channels' => [
 
+        'stdout' => [
+            'driver' => 'monolog',
+            'handler' => StreamHandler::class,
+            'handler_with' => ['stream' => 'php://stdout'],
+            'level' => env('LOG_LEVEL', 'info'),
+        ],
+
         'stack' => [
             'driver' => 'stack',
             'channels' => explode(',', (string) env('LOG_STACK', 'single')),

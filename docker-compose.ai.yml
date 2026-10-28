@@ -1,0 +1,7 @@
+# Optional overlay used ONLY when a GitHub AI_API_KEY secret was supplied.
+# Without this overlay Laravel keeps reading the existing server .env unchanged.
+version: '3.8'
+services:
+  backend-api:
+    environment:
+      AI_API_KEY: ${AI_API_KEY:?Set AI_API_KEY before using this optional overlay}

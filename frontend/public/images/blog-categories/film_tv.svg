@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+<title id="title">Film &amp; Television — editorial illustration</title>
+<desc id="desc">Neutral abstract category cover, not a photograph or official artwork.</desc>
+<rect width="1200" height="630" fill="#f5f0e9"/>
+<circle cx="1060" cy="170" r="290" fill="#e6d8c5"/>
+<circle cx="1060" cy="170" r="210" fill="none" stroke="#b77638" stroke-width="2"/>
+<path d="M800 620 L1100 330 L1250 480" fill="none" stroke="#b77638" stroke-width="2"/>
+<rect x="72" y="72" width="42" height="5" rx="2" fill="#ad5425"/>
+<text x="72" y="128" font-family="Arial, sans-serif" font-size="18" letter-spacing="3" fill="#5c5047">THIMIRA PATHUM · JOURNAL</text>
+<text x="72" y="318" font-family="Arial, sans-serif" font-size="52" font-weight="700" fill="#24211e">Film &amp; Television</text>
+<text x="72" y="380" font-family="Arial, sans-serif" font-size="23" fill="#5c5047">Ideas, evidence and perspective.</text>
+<text x="72" y="557" font-family="Arial, sans-serif" font-size="14" letter-spacing="2" fill="#716252">EDITORIAL ILLUSTRATION / 07</text>
+</svg>

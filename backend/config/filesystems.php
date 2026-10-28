@@ -30,6 +30,17 @@ return [
 
     'disks' => [
 
+        // Evidence snapshots are never exposed through public or signed file routes.
+        'blog_research' => [
+            'driver' => 'local',
+            'root' => env('LARAVEL_STORAGE_PATH')
+                ? rtrim(env('LARAVEL_STORAGE_PATH'), '/').'/app/private/blog-agent'
+                : storage_path('app/private/blog-agent'),
+            'visibility' => 'private',
+            'serve' => false,
+            'throw' => true,
+        ],
+
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
