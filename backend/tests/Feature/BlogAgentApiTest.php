@@ -6,6 +6,7 @@ use App\Services\BlogAgent\AgentException;
 use App\Services\BlogAgent\GroqClient;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Sleep;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Support\BlogAgentFixtures as F;
 use Tests\TestCase;
@@ -18,6 +19,7 @@ class BlogAgentApiTest extends TestCase
         config(['blog_agent.api_key' => 'gsk_TEST_SECRET', 'blog_agent.api_url' => 'https://api.groq.com/openai/v1/chat/completions',
             'blog_agent.model' => 'openai/gpt-oss-120b', 'blog_agent.retry_delay' => 0]);
         Http::preventStrayRequests();
+        Sleep::fake();
     }
 
     public function test_rate_limit_retries_are_bounded_and_success_uses_configured_model(): void
@@ -51,6 +53,62 @@ class BlogAgentApiTest extends TestCase
             $this->assertSame('api_rate_limited', $e->reason);
         }
         Http::assertSentCount(3);
+        Sleep::assertSequence([Sleep::for(60)->seconds(), Sleep::for(60)->seconds()]);
+    }
+
+    public function test_token_reset_header_is_used_without_retry_after(): void
+    {
+        Http::fake(['api.groq.com/*' => Http::sequence()
+            ->push([], 429, ['x-ratelimit-reset-tokens' => '7.66s'])
+            ->push(F::response(F::plan()))]);
+        $this->assertSame(F::plan(), app(GroqClient::class)->json('plan', 'JSON', []));
+        Sleep::assertSequence([Sleep::for(8)->seconds()]);
+        Http::assertSentCount(2);
+    }
+
+    public function test_successful_response_paces_the_next_stage(): void
+    {
+        Http::fake(['api.groq.com/*' => Http::sequence()
+            ->push(F::response(F::plan()), 200, ['x-ratelimit-remaining-tokens' => '10', 'x-ratelimit-reset-tokens' => '1m0s'])
+            ->push(F::response(F::plan()))]);
+        $client = app(GroqClient::class);
+        $client->json('plan', 'JSON', []);
+        $this->assertSame(F::plan(), $client->json('plan', 'JSON', []));
+        Sleep::assertSequence([Sleep::for(60)->seconds()]);
+        Http::assertSentCount(2);
+    }
+
+    public function test_daily_exhaustion_returns_only_safe_stage_and_quota_details(): void
+    {
+        Http::fake(['api.groq.com/*' => Http::response(['error' => ['message' => 'gsk_TEST_SECRET']], 429, [
+            'x-ratelimit-remaining-requests' => '0', 'x-ratelimit-reset-requests' => '2h3m4s',
+            'x-ratelimit-remaining-tokens' => 'gsk_TEST_SECRET',
+        ])]);
+        try {
+            app(GroqClient::class)->json('review', 'JSON', []);
+            $this->fail('Daily exhaustion accepted');
+        } catch (AgentException $e) {
+            $this->assertSame('api_daily_request_limit', $e->reason);
+            $this->assertSame('review', $e->diagnostics['stage']);
+            $this->assertSame(7384, $e->diagnostics['reset_requests_seconds']);
+            $this->assertStringNotContainsString('gsk_TEST_SECRET', json_encode($e->diagnostics));
+        }
+        Sleep::assertNeverSlept();
+        Http::assertSentCount(1);
+    }
+
+    public function test_long_token_reset_stops_instead_of_retrying_early(): void
+    {
+        Http::fake(['api.groq.com/*' => Http::response([], 429, ['x-ratelimit-reset-tokens' => '1m12s'])]);
+        try {
+            app(GroqClient::class)->json('plan', 'JSON', []);
+            $this->fail('Long reset accepted');
+        } catch (AgentException $e) {
+            $this->assertSame('api_retry_later', $e->reason);
+            $this->assertSame(72, $e->diagnostics['wait_seconds']);
+        }
+        Sleep::assertNeverSlept();
+        Http::assertSentCount(1);
     }
 
     #[DataProvider('failures')]

@@ -3,10 +3,17 @@
 namespace App\Services\BlogAgent;
 
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Sleep;
 
 class GroqClient
 {
+    private ?array $lastLimits = null;
+
+    private int $lastResponseAt = 0;
+
     public function ready(): void
     {
         if (! config('blog_agent.api_key')) {
@@ -47,6 +54,8 @@ class GroqClient
             throw new AgentException('api_context_budget_exceeded');
         }
         $payload['max_completion_tokens'] = min($payload['max_completion_tokens'], $available);
+        $estimatedTotal = $estimatedInput + $payload['max_completion_tokens'];
+        $this->paceNextStage($stage, $estimatedTotal);
         $attempts = min(3, max(1, (int) config('blog_agent.api_attempts')));
         for ($attempt = 1; $attempt <= $attempts; $attempt++) {
             try {
@@ -56,22 +65,35 @@ class GroqClient
                     ->post(config('blog_agent.api_url'), $payload);
             } catch (ConnectionException) {
                 if ($attempt === $attempts) {
-                    throw new AgentException('api_connection_failed');
+                    throw new AgentException('api_connection_failed', diagnostics: ['stage' => $stage, 'attempts' => $attempt]);
                 }
                 $this->pause($attempt);
 
                 continue;
             }
+            $details = $this->rateDetails($response, $stage, $estimatedTotal) + ['attempts' => $attempt];
             if ($response->status() === 429 || $response->serverError()) {
+                if (($details['remaining_requests'] ?? null) === 0) {
+                    throw new AgentException('api_daily_request_limit', diagnostics: $details);
+                }
+                if ($response->json('error.code') === 'insufficient_quota') {
+                    throw new AgentException('api_quota_exhausted', diagnostics: $details);
+                }
                 if ($attempt === $attempts) {
-                    throw new AgentException($response->status() === 429 ? 'api_rate_limited' : 'api_unavailable');
+                    throw new AgentException($response->status() === 429 ? 'api_rate_limited' : 'api_unavailable', diagnostics: $details);
                 }
-                $retryAfter = $response->header('Retry-After');
-                $wait = is_numeric($retryAfter) ? (int) ceil((float) $retryAfter) : max(0, (strtotime($retryAfter ?: '') ?: time()) - time());
+                $wait = $details['retry_after_seconds'] ?? null;
+                if ($response->status() === 429) {
+                    // Some compatible responses omit Retry-After. Use token reset
+                    // headers when available, otherwise allow a whole minute.
+                    $reset = $details['reset_tokens_seconds'] ?? null;
+                    $wait = max($wait ?? ($reset === null ? 60 : 0), $reset ?? 0);
+                }
+                $wait ??= 0;
                 if ($wait > min(60, config('blog_agent.max_retry_wait'))) {
-                    throw new AgentException('api_retry_later');
+                    throw new AgentException('api_retry_later', diagnostics: $details + ['wait_seconds' => $wait]);
                 }
-                $this->pause($attempt, $wait);
+                $this->pause($attempt, $wait, $stage);
 
                 continue;
             }
@@ -85,7 +107,7 @@ class GroqClient
                 if (in_array($response->json('error.code'), ['model_decommissioned', 'model_not_found'], true)) {
                     $reason = 'api_model_unavailable';
                 }
-                throw new AgentException($reason);
+                throw new AgentException($reason, diagnostics: $details);
             }
             if ($response->json('choices.0.finish_reason') !== 'stop') {
                 throw new AgentException('api_incomplete_response');
@@ -103,16 +125,97 @@ class GroqClient
                 throw new AgentException('api_schema_invalid');
             }
 
+            $this->lastLimits = $details;
+            $this->lastResponseAt = now()->timestamp;
+
             return $result;
         }
         throw new AgentException('api_unavailable');
     }
 
-    private function pause(int $attempt, int $minimum = 0): void
+    private function pause(int $attempt, int $minimum = 0, ?string $stage = null): void
     {
         $seconds = max($minimum, min(30, (int) config('blog_agent.retry_delay') * (2 ** ($attempt - 1))));
         if ($seconds > 0) {
-            sleep($seconds);
+            if (! app()->runningUnitTests()) {
+                Log::info('blog_agent.waiting_for_provider', ['stage' => $stage, 'seconds' => $seconds]);
+            }
+            Sleep::for($seconds)->seconds();
         }
+    }
+
+    private function paceNextStage(string $stage, int $estimatedTotal): void
+    {
+        if ($this->lastLimits === null) {
+            return;
+        }
+        $details = array_replace($this->lastLimits, ['stage' => $stage, 'requested_tokens_estimate' => $estimatedTotal, 'attempts' => 0]);
+        $elapsed = max(0, now()->timestamp - $this->lastResponseAt);
+        if (($details['remaining_requests'] ?? null) === 0 && $elapsed < ($details['reset_requests_seconds'] ?? 86400)) {
+            throw new AgentException('api_daily_request_limit', diagnostics: $details);
+        }
+        if (isset($details['token_limit']) && $estimatedTotal > $details['token_limit']) {
+            throw new AgentException('api_request_exceeds_token_limit', diagnostics: $details);
+        }
+        if (! isset($details['remaining_tokens']) || $details['remaining_tokens'] >= $estimatedTotal) {
+            return;
+        }
+        $wait = max(0, ($details['reset_tokens_seconds'] ?? 60) - $elapsed);
+        if ($wait > min(60, config('blog_agent.max_retry_wait'))) {
+            throw new AgentException('api_retry_later', diagnostics: $details + ['wait_seconds' => $wait]);
+        }
+        if ($wait > 0) {
+            $this->pause(0, $wait, $stage);
+        }
+    }
+
+    /** Only allowlisted numeric quota fields, never response bodies or arbitrary headers. */
+    private function rateDetails(Response $response, string $stage, int $estimatedTotal): array
+    {
+        $details = ['stage' => $stage, 'http_status' => $response->status(), 'requested_tokens_estimate' => $estimatedTotal];
+        foreach (['token_limit' => 'x-ratelimit-limit-tokens', 'remaining_tokens' => 'x-ratelimit-remaining-tokens',
+            'remaining_requests' => 'x-ratelimit-remaining-requests'] as $name => $header) {
+            $value = $response->header($header);
+            if (preg_match('/^\d{1,12}$/', $value)) {
+                $details[$name] = (int) $value;
+            }
+        }
+        foreach (['reset_tokens_seconds' => 'x-ratelimit-reset-tokens', 'reset_requests_seconds' => 'x-ratelimit-reset-requests'] as $name => $header) {
+            $seconds = $this->duration($response->header($header));
+            if ($seconds !== null) {
+                $details[$name] = $seconds;
+            }
+        }
+        $retry = $response->header('Retry-After');
+        $seconds = $this->duration($retry);
+        if ($seconds === null && strlen($retry) <= 64 && preg_match('/^[A-Za-z]{3}, \d{2} [A-Za-z]{3} \d{4} \d{2}:\d{2}:\d{2} GMT$/', $retry)) {
+            $timestamp = strtotime($retry);
+            $seconds = $timestamp === false ? null : max(0, $timestamp - now()->timestamp);
+        }
+        if ($seconds !== null) {
+            $details['retry_after_seconds'] = $seconds;
+        }
+
+        return $details;
+    }
+
+    private function duration(string $value): ?int
+    {
+        if (strlen($value) > 40 || $value === '') {
+            return null;
+        }
+        if (preg_match('/^\d+(?:\.\d+)?$/', $value)) {
+            return (int) min(604800, ceil((float) $value));
+        }
+        if (! preg_match('/^(?:\d+(?:\.\d+)?(?:ms|s|m|h|d))+$/', $value)) {
+            return null;
+        }
+        preg_match_all('/(\d+(?:\.\d+)?)(ms|s|m|h|d)/', $value, $parts, PREG_SET_ORDER);
+        $seconds = 0;
+        foreach ($parts as $part) {
+            $seconds += (float) $part[1] * ['ms' => 0.001, 's' => 1, 'm' => 60, 'h' => 3600, 'd' => 86400][$part[2]];
+        }
+
+        return (int) min(604800, ceil($seconds));
     }
 }

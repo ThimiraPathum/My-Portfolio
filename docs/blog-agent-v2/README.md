@@ -35,9 +35,9 @@ Catalogue coverage is deliberately limited. Some pages redirect, exceed the byte
 - Resolve DNS and reject private/reserved/mixed-address responses. Pin the validated address with `CURLOPT_RESOLVE` on a new cURL handle. Disable proxies and all redirects. A redirect must be reviewed as a separate candidate URL; it is not followed automatically.
 - Verify TLS against the normal CA trust store. Five-second connect timeout, twelve-second source timeout, and a 512 KiB limit enforced on decompressed chunks. Extract at most 14,000 characters per source. Never execute page scripts or load XML network entities.
 - Research requests carry no API credentials. Source and draft data are explicitly untrusted in model prompts. The API client only sends its bearer key to the configured approved Groq/OpenAI endpoint, with redirects disabled.
-- Three attempts maximum for connection failures, 429s and 5xx responses. Exponential backoff respects `Retry-After`; waits longer than 60 seconds abort for a later run. Auth/model/JSON/truncation errors fail immediately. A normal article uses three successful model calls; a revision uses at most two more. No paid research services were added. Existing provider usage/billing still applies to Groq calls.
+- Three attempts maximum for connection failures, 429s and 5xx responses. Backoff respects `Retry-After` and token-reset headers; a 429 without either waits 60 seconds. Successful responses also pace the next stage when its estimated token need exceeds the reported remainder. Waits longer than 60 seconds abort for a later run. Exhausted request quota stops without retrying. Auth/model/JSON/truncation errors fail immediately. A normal article uses three successful model calls; a revision uses at most two more. No paid research services were added. Existing provider usage/billing still applies to Groq calls.
 - Strict structured output is used for the configured GPT-OSS models; other explicitly configured models use JSON mode with the same local schema validation. No silent model switching. The default draft output cap is 3,000 completion tokens, including reasoning; plan/review caps are 1,500. Total source context is bounded to 6,000 characters. A conservative bytes/3 input-token estimate reduces output allowance within a 7,500-token request budget, below the documented 8K Groq free-tier TPM cap. This is a heuristic, not a provider tokenizer or an account quota guarantee. Requests that cannot leave 1,000 output tokens fail before calling the provider; articles are never partially reviewed to squeeze them in. Truncated responses are rejected.
-- CLI/log errors contain application-owned codes only, never provider response bodies, headers, keys or raw prompts. `LOG_CHANNEL=stdout`, already set by Docker, now has a defined log channel.
+- CLI/log errors contain application-owned codes and allowlisted numeric quota diagnostics (stage, attempts, status, token estimate, remaining quota and reset seconds), never raw provider bodies/headers, keys or prompts. `LOG_CHANNEL=stdout`, already set by Docker, now has a defined log channel.
 
 ## Configuration
 
@@ -158,7 +158,9 @@ sudo crontab -e
 | `api_credentials_missing` | Restore the existing private server credential or configure the optional GitHub secret and deploy through its workflow. Do not paste a key into logs/chat. |
 | `api_key_invalid_or_revoked` | Check the credential privately in the provider dashboard. No automatic rotation occurs. |
 | `api_model_unavailable` | Verify the currently configured model against provider documentation; the agent does not change it automatically. |
-| `api_rate_limited` / `api_retry_later` | Wait for the provider's quota window; no aggressive retry loop. |
+| `api_rate_limited` / `api_retry_later` | Inspect the printed `Provider diagnostics` stage/reset/wait fields and wait for the provider's quota window. Do not repeatedly restart generation. |
+| `api_daily_request_limit` / `api_quota_exhausted` | The provider reports exhausted quota. Check the account limits/reset window; short retries cannot restore quota. |
+| `api_request_exceeds_token_limit` | The estimated next request exceeds the reported token limit. Adjust the request budget against your actual provider allowance. |
 | `api_context_budget_exceeded` | Choose a narrower article or increase the request budget only if your account permits it. The complete draft must fit in the review; its claims are not silently omitted. |
 | `research_insufficient_sources:source_tls_failed` | Repair the OS/PHP CA trust configuration. Never disable TLS verification. Docker explicitly installs `ca-certificates`. |
 | `source_redirect_blocked` | Review and configure the final canonical URL if its host is approved. |
@@ -175,6 +177,8 @@ sudo crontab -e
 These explain provider/transport behaviour. They are not evidence for any generated article.
 
 ### Inspecting a quality rejection
+
+API failures, including rate limits during any stage, do not create a final rejected-draft report. For these failures use the printed provider diagnostics. `blog:report` may show an older quality rejection or no report; it is not an API failure history.
 
 `review_block_3_unsupported_or_unsafe` refers to the fourth structured content block (the review index is zero-based). It is not an API key/quota error, and it does not independently prove that the claim is false: the reviewer found insufficient support or a safety concern. After this diagnostics update, failed normal runs print a unique private report path. On the server, inspect it with:
 

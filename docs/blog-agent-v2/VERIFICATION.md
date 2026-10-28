@@ -4,7 +4,7 @@ Verified locally on 2026-10-28 before push.
 
 ## Results
 
-- Full backend suite after rejection diagnostics: **87 tests, 245 assertions passed**, PHP 8.5.8 / PHPUnit 11.5.56. Includes 71 Blog Agent tests and 16 existing backend tests.
+- Full backend suite after quota pacing and diagnostics: **91 tests, 266 assertions passed**, PHP 8.5.8 / PHPUnit 11.5.56. Includes 75 Blog Agent tests and 16 existing backend tests. Mocked waits verify missing Retry-After, fractional/compound reset headers, pacing between stages, daily exhaustion, bounded retries and safe diagnostics.
 - Frontend production build: TypeScript and Vite passed. All nine category cover assets are included.
 - PHP syntax checks on the command, services and modified configuration: passed.
 - Laravel Pint formatting applied to the new/rewritten PHP implementation and tests.
