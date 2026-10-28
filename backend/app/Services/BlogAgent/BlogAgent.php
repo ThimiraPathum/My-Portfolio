@@ -42,6 +42,7 @@ class BlogAgent
             }
             $draft = $this->client->json('draft', $this->prompts->for('draft', $topic['category']), $context + [
                 'previous_draft' => $draft, 'revision_feedback' => $gate['issues'], 'editorial_feedback' => $review['issues'] ?? [],
+                'evidence_feedback' => $gate['evidence_errors'] ?? [],
             ]);
         }
         $report = ['topic' => $topic, 'model' => config('blog_agent.model'), 'sources' => $sources, 'plan' => $plan,

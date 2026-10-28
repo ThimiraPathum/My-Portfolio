@@ -180,6 +180,10 @@ These explain provider/transport behaviour. They are not evidence for any genera
 
 API failures, including rate limits during any stage, do not create a final rejected-draft report. For these failures use the printed provider diagnostics. `blog:report` may show an older quality rejection or no report; it is not an API failure history.
 
+Evidence-copy failures now include zero-based block/evidence indexes, the source ID, the submitted quote, and a precise reason (`source_id_unknown`, `quote_length_out_of_range`, or `quote_not_verbatim`). The single revision receives those details alongside the original source context. Draft instructions require copying 20-1200 characters verbatim, preserving case, whitespace and hyphens; inserted ellipses and stitched passages are not accepted. No fuzzy matching or automatic approval was added, and corrected drafts still require editorial review.
+
+`blog:report` recomputes evidence diagnostics from the saved source snapshot, including for older reports, and prints the affected source texts. It includes both deterministic and editorial failed blocks. It does not fetch current pages or consume API quota. This makes the original failure inspectable without generating another article. Better feedback is not a guarantee that a live model will produce a valid or factually supported revision.
+
 `review_block_3_unsupported_or_unsafe` refers to the fourth structured content block (the review index is zero-based). It is not an API key/quota error, and it does not independently prove that the claim is false: the reviewer found insufficient support or a safety concern. After this diagnostics update, failed normal runs print a unique private report path. On the server, inspect it with:
 
 ```bash

@@ -54,6 +54,29 @@ class BlogAgentQualityTest extends TestCase
         ];
     }
 
+    public function test_quote_copy_errors_have_precise_feedback_and_still_fail(): void
+    {
+        $f = F::example();
+        $original = 'Learning the parameters of a prediction function and testing it on the same data is a methodological mistake.';
+        $f['sources'][0]['text'] = $original.' In k-fold CV, the training set is split into k smaller sets.';
+        foreach ([
+            ['source_id' => 'S1', 'quote' => lcfirst($original), 'reason' => 'quote_not_verbatim'],
+            ['source_id' => 'S1', 'quote' => 'Learning the parameters ... is a methodological mistake.', 'reason' => 'quote_not_verbatim'],
+            ['source_id' => 'S1', 'quote' => "In k\u{2011}fold CV, the training set is split into k smaller sets.", 'reason' => 'quote_not_verbatim'],
+            ['source_id' => 'S99', 'quote' => $original, 'reason' => 'source_id_unknown'],
+            ['source_id' => 'S1', 'quote' => 'Learning', 'reason' => 'quote_length_out_of_range'],
+        ] as $case) {
+            $f['draft']['blocks'][0]['evidence'] = [['source_id' => $case['source_id'], 'quote' => $case['quote']]];
+            $gate = app(QualityGate::class)->validate($f['draft'], $f['sources'], $f['topic']);
+            $this->assertContains('block_0_evidence_invalid', $gate['issues']);
+            $this->assertSame(['block_index' => 0, 'evidence_index' => 0, 'source_id' => $case['source_id'],
+                'quote' => $case['quote'], 'reason' => $case['reason']], $gate['evidence_errors'][0]);
+        }
+        $f['draft']['blocks'][0]['evidence'] = [['source_id' => 'S1', 'quote' => $original]];
+        $gate = app(QualityGate::class)->validate($f['draft'], $f['sources'], $f['topic']);
+        $this->assertNotContains('block_0_evidence_invalid', $gate['issues']);
+    }
+
     public function test_wrong_film_credits_and_unsupported_animation_claims_are_rejected_by_evidence_and_review(): void
     {
         $f = F::example('film_tv');

@@ -24,6 +24,10 @@ TEXT;
             default => throw new AgentException('prompt_stage_invalid'),
         };
 
+        if ($stage === 'draft') {
+            $task .= ' Evidence quotes are checked as case-sensitive contiguous substrings of the supplied sources[].text, with 20-1200 characters after trimming. Copy directly from that text: preserve capitalization, spaces, punctuation and the exact hyphen character. Never shorten a quote with ... or an ellipsis, combine separated passages, paraphrase it, or quote material outside the supplied excerpt. Use separate evidence entries for separate passages. When evidence_feedback is supplied, repair the specified zero-based block_index/evidence_index: choose an existing source_id and copy a supporting passage exactly. If the supplied text does not support the claim, remove or narrow the claim instead. Do not relabel factual claims as interpretation to avoid evidence checks.';
+        }
+
         return $policy."\n\nCATEGORY: ".$style."\n\nTASK: ".$task;
     }
 }

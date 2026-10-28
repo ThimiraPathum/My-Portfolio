@@ -7,6 +7,7 @@ class QualityGate
     public function validate(array $draft, array $sources, array $topic, ?array $review = null): array
     {
         $issues = [];
+        $evidenceErrors = [];
         if (! Schemas::valid($draft, Schemas::get('draft'))) {
             return ['issues' => ['article_schema_invalid'], 'requires_human_review' => true];
         }
@@ -47,11 +48,17 @@ class QualityGate
                 $issues[] = "block_{$i}_evidence_missing";
             }
             $quotes = '';
-            foreach ($block['evidence'] as $evidence) {
+            foreach ($block['evidence'] as $evidenceIndex => $evidence) {
                 $source = $byId[$evidence['source_id']] ?? null;
                 $quote = trim($evidence['quote']);
                 if (! $source || mb_strlen($quote) < 20 || mb_strlen($quote) > 1200 || ! str_contains($source['text'], $quote)) {
                     $issues[] = "block_{$i}_evidence_invalid";
+                    $evidenceErrors[] = [
+                        'block_index' => $i, 'evidence_index' => $evidenceIndex,
+                        'source_id' => $evidence['source_id'], 'quote' => $evidence['quote'],
+                        'reason' => ! $source ? 'source_id_unknown' :
+                            (mb_strlen($quote) < 20 || mb_strlen($quote) > 1200 ? 'quote_length_out_of_range' : 'quote_not_verbatim'),
+                    ];
 
                     continue;
                 }
@@ -119,7 +126,8 @@ class QualityGate
             }
         }
 
-        return ['issues' => array_values(array_unique($issues)), 'requires_human_review' => (bool) $operational];
+        return ['issues' => array_values(array_unique($issues)), 'requires_human_review' => (bool) $operational,
+            'evidence_errors' => $evidenceErrors];
     }
 
     private function markdownIssues(string $text): array

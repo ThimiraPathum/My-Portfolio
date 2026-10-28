@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\BlogAgent\QualityGate;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -33,7 +34,15 @@ class ShowBlogReport extends Command
                 return self::FAILURE;
             }
             $report = json_decode($disk->get($path), true, 64, JSON_THROW_ON_ERROR);
+            // Recompute for older reports too, using the saved evidence snapshot;
+            // never fetch today's page as a substitute for that run's sources.
+            $evidenceErrors = app(QualityGate::class)->validate($report['draft'], $report['sources'], $report['topic'])['evidence_errors'] ?? [];
             $failed = collect($report['review']['blocks'] ?? [])->filter(fn ($b) => ! ($b['supported'] ?? false) || ! ($b['safe'] ?? false))->pluck('index')->all();
+            foreach ($report['gate']['issues'] ?? [] as $issue) {
+                if (preg_match('/^block_(\d+)_/', $issue, $match)) {
+                    $failed[] = (int) $match[1];
+                }
+            }
             $blocks = [];
             foreach ($report['draft']['blocks'] ?? [] as $i => $block) {
                 if ($failed && ! in_array($i, $failed, true)) {
@@ -42,7 +51,11 @@ class ShowBlogReport extends Command
                 $blocks[] = ['number' => $i + 1, 'heading' => $block['heading'], 'text' => $block['text'], 'evidence' => $block['evidence']];
             }
             $summary = ['report' => $path, 'title' => $report['draft']['title'] ?? '',
-                'issues' => $report['gate']['issues'] ?? [], 'reviewer_feedback' => $report['review']['issues'] ?? [], 'blocks' => $blocks];
+                'issues' => $report['gate']['issues'] ?? [], 'reviewer_feedback' => $report['review']['issues'] ?? [], 'blocks' => $blocks,
+                'evidence_errors' => $evidenceErrors,
+                'evidence_sources' => array_values(array_map(fn ($source) => [
+                    'id' => $source['id'], 'url' => $source['url'], 'text' => $source['text'],
+                ], array_filter($report['sources'], fn ($source) => in_array($source['id'], array_column($evidenceErrors, 'source_id'), true))))];
             // Treat model prose as data: no terminal controls/markup, no configured
             // key if a provider ever echoes it into an unusual response.
             $redact = function ($value) use (&$redact) {

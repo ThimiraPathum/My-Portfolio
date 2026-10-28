@@ -154,6 +154,45 @@ class BlogAgentTest extends TestCase
         Http::assertSentCount(3);
     }
 
+    public function test_quote_revision_receives_exact_error_and_requires_review_before_save(): void
+    {
+        $bad = $this->fixture['draft'];
+        $bad['blocks'][0]['evidence'][0]['quote'] = 'An abbreviated ... quotation that cannot match the supplied source.';
+        Http::fake(['api.groq.com/*' => Http::sequence()->push(F::response(F::plan()))
+            ->push(F::response($bad))->push(F::response($this->fixture['draft']))->push(F::response(F::review()))]);
+        $result = $this->runAgent();
+        $this->assertSame('draft', $result['status']);
+        Http::assertSent(function ($request) use ($bad) {
+            $data = json_decode($request['messages'][1]['content'], true);
+
+            return ($data['evidence_feedback'][0] ?? null) === [
+                'block_index' => 0, 'evidence_index' => 0, 'source_id' => $bad['blocks'][0]['evidence'][0]['source_id'],
+                'quote' => $bad['blocks'][0]['evidence'][0]['quote'], 'reason' => 'quote_not_verbatim',
+            ];
+        });
+        Http::assertSentCount(4);
+    }
+
+    public function test_old_report_explains_quote_mismatch_using_saved_sources_without_api_calls(): void
+    {
+        $path = 'reports/rejected-agent-'.str_repeat('a', 32).'-20261028184648-'.str_repeat('b', 12).'.json';
+        $draft = $this->fixture['draft'];
+        $draft['blocks'][0]['evidence'][0]['quote'] = 'An abbreviated ... quotation that cannot match the supplied source.';
+        $review = F::review();
+        $review['blocks'][2]['supported'] = false;
+        Storage::disk('blog_research')->put($path, json_encode([
+            'draft' => $draft, 'sources' => $this->fixture['sources'], 'topic' => $this->fixture['topic'],
+            'review' => $review, 'gate' => ['issues' => ['block_0_evidence_invalid']],
+        ]));
+        $this->assertSame(0, \Illuminate\Support\Facades\Artisan::call('blog:report', ['report' => $path]));
+        $output = json_decode(\Illuminate\Support\Facades\Artisan::output(), true, 64, JSON_THROW_ON_ERROR);
+        $this->assertSame('quote_not_verbatim', $output['evidence_errors'][0]['reason']);
+        $this->assertSame($this->fixture['sources'][0]['text'], $output['evidence_sources'][0]['text']);
+        $this->assertSame([1, 3], array_column($output['blocks'], 'number'));
+        Http::assertNothingSent();
+        $this->assertDatabaseCount('blogs', 0);
+    }
+
     public function test_critical_editorial_failure_cannot_be_outvoted_by_other_passing_checks(): void
     {
         config(['blog_agent.auto_publish' => true, 'blog_agent.max_revisions' => 0]);
