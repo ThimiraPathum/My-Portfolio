@@ -30,6 +30,23 @@ class GroqClient
         $this->ready();
         $model = config('blog_agent.model');
         $schema = Schemas::get($stage);
+        $catalog = null;
+        if ($stage === 'draft' || ($stage === 'review' && isset($data['sources'], $data['draft']))) {
+            $evidence = new EvidenceCatalog;
+            $catalog = $evidence->build($data['sources'] ?? []);
+            if (count(array_unique(array_column($catalog, 'source_id'))) < 2) {
+                throw new AgentException('research_insufficient_passages');
+            }
+            $data['sources'] = $evidence->context($data['sources'], $catalog);
+            foreach (['previous_draft', 'draft'] as $key) {
+                if (isset($data[$key])) {
+                    $data[$key] = $evidence->references($data[$key], $catalog);
+                }
+            }
+            if ($stage === 'draft') {
+                $schema = Schemas::draftReferences();
+            }
+        }
         $strict = in_array($model, ['openai/gpt-oss-120b', 'openai/gpt-oss-20b'], true);
         $payload = [
             'model' => $model,
@@ -128,7 +145,7 @@ class GroqClient
             $this->lastLimits = $details;
             $this->lastResponseAt = now()->timestamp;
 
-            return $result;
+            return $stage === 'draft' ? (new EvidenceCatalog)->resolve($result, $catalog) : $result;
         }
         throw new AgentException('api_unavailable');
     }

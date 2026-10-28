@@ -41,6 +41,17 @@ class Schemas
         };
     }
 
+    /** Provider-only shape; persisted drafts retain resolved source IDs and quotes. */
+    public static function draftReferences(): array
+    {
+        $schema = self::get('draft');
+        $schema['properties']['blocks']['items']['properties']['evidence'] = self::list(self::object([
+            'excerpt_id' => ['type' => 'string'],
+        ]));
+
+        return $schema;
+    }
+
     /** Validate again locally even when a provider claims strict schema support. */
     public static function valid(mixed $value, array $schema): bool
     {

@@ -4,7 +4,7 @@ Latest backend verification on 2026-10-29 before push; earlier frontend and tran
 
 ## Results
 
-- Full backend suite after separate bounded repair budgets: **98 tests, 304 assertions passed**, PHP 8.5.8 / PHPUnit 11.5.56. Includes 82 Blog Agent tests and 16 existing backend tests. Covers evidence repair followed by editorial correction/re-review, persistent rejection after both budgets, feedback retention during late quote repair, disabled repairs, and sources for semantic rejection reports. Also covers precise quote-copy diagnostics, rejection of case/hyphen/ellipsis changes, and inspection of older reports without API requests. Mocked waits verify missing Retry-After, fractional/compound reset headers, pacing between stages, daily exhaustion, bounded retries and safe diagnostics.
+- Full backend suite after passage-ID evidence selection: **104 tests, 360 assertions passed**, PHP 8.5.8 / PHPUnit 11.5.56. Includes 88 Blog Agent tests and 16 existing backend tests. New coverage verifies verbatim Unicode/long-source passage preservation, ID resolution in strict and JSON modes, unknown-ID and spoofed-field rejection, compact review context with all source text, and continued semantic rejection despite valid IDs. Existing tests cover both bounded repair budgets, disabled repairs, old reports, and quota handling. Mocked provider fixtures now explicitly translate their persisted draft shape into the passage-selection response format; no live provider response was used.
 - Frontend production build: TypeScript and Vite passed. All nine category cover assets are included.
 - PHP syntax checks on the command, services and modified configuration: passed.
 - Laravel Pint formatting applied to the new/rewritten PHP implementation and tests.
@@ -42,6 +42,7 @@ The Windows execution sandbox's PHP readability check initially blocked Composer
 | `backend/app/Services/BlogAgent/ArticleRenderer.php` | Verified source links and category covers. |
 | `backend/app/Services/BlogAgent/BlogAgent.php` | End-to-end orchestration and publication gate. |
 | `backend/app/Services/BlogAgent/GroqClient.php` | TLS, structured output, bounded retry/backoff and safe API errors. |
+| `backend/app/Services/BlogAgent/EvidenceCatalog.php` | Verbatim passage catalogue, model-selected ID resolution and compact review/revision references. |
 | `backend/app/Services/BlogAgent/Prompts.php` | Shared accuracy policy and category/stage instructions. |
 | `backend/app/Services/BlogAgent/PublicDns.php` | Public-address validation and DNS pin selection. |
 | `backend/app/Services/BlogAgent/QualityGate.php` | Deterministic and editorial gates; mandatory safety holds. |
@@ -53,6 +54,7 @@ The Windows execution sandbox's PHP readability check initially blocked Composer
 | `backend/config/blog_agent.php` | Environment/configuration, retrieval allowlist and limits. |
 | `backend/config/blog_topics.php` | Curated topic/source candidates across all requested categories. |
 | `backend/tests/Feature/BlogAgentApiTest.php` | Provider response/failure/retry coverage. |
+| `backend/tests/Feature/BlogAgentEvidenceTest.php` | Passage preservation, wire format, reference resolution and semantic-gate regressions. |
 | `backend/tests/Feature/BlogAgentQualityTest.php` | Evidence, editorial, Markdown and safety regressions. |
 | `backend/tests/Feature/BlogAgentResearchTest.php` | Retrieval, SSRF, freshness, extraction and size tests. |
 | `backend/tests/Feature/BlogAgentTest.php` | Generation, persistence, drafts, publication, retries and duplicates. |

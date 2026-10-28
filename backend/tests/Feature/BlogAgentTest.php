@@ -163,12 +163,12 @@ class BlogAgentTest extends TestCase
             ->push(F::response($bad))->push(F::response($this->fixture['draft']))->push(F::response(F::review()))]);
         $result = $this->runAgent();
         $this->assertSame('draft', $result['status']);
-        Http::assertSent(function ($request) use ($bad) {
+        Http::assertSent(function ($request) {
             $data = json_decode($request['messages'][1]['content'], true);
 
             return ($data['evidence_feedback'][0] ?? null) === [
-                'block_index' => 0, 'evidence_index' => 0, 'source_id' => $bad['blocks'][0]['evidence'][0]['source_id'],
-                'quote' => $bad['blocks'][0]['evidence'][0]['quote'], 'reason' => 'quote_not_verbatim',
+                'block_index' => 0, 'evidence_index' => 0, 'source_id' => 'unknown_excerpt:INVALID',
+                'quote' => '', 'reason' => 'source_id_unknown',
             ];
         });
         Http::assertSentCount(4);

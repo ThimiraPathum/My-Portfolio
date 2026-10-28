@@ -2,6 +2,7 @@
 
 namespace Tests\Support;
 
+use App\Services\BlogAgent\EvidenceCatalog;
 use App\Services\BlogAgent\Schemas;
 
 /** Synthetic evidence and articles. These are test data, NOT live research. */
@@ -75,6 +76,33 @@ class BlogAgentFixtures
 
     public static function response(array $data): array
     {
+        // Fixtures keep the persisted article shape. Mock provider responses use
+        // the passage-selection wire format; invalid fixture quotes stay invalid.
+        if (isset($data['title'], $data['blocks'])) {
+            $sources = self::example()['sources'];
+            foreach (['film_tv', 'cybersecurity'] as $category) {
+                $fixture = self::example($category);
+                if ($fixture['draft']['title'] === $data['title']) {
+                    $sources = $fixture['sources'];
+                }
+            }
+            $catalog = (new EvidenceCatalog)->build($sources);
+            foreach ($data['blocks'] as &$block) {
+                $block['evidence'] = array_map(function ($item) use ($catalog) {
+                    $id = 'INVALID';
+                    foreach ($catalog as $candidate => $passage) {
+                        if ($passage['source_id'] === $item['source_id'] && str_contains($passage['quote'], $item['quote'])) {
+                            $id = $candidate;
+                            break;
+                        }
+                    }
+
+                    return ['excerpt_id' => $id];
+                }, $block['evidence']);
+            }
+            unset($block);
+        }
+
         return ['choices' => [['finish_reason' => 'stop', 'message' => ['content' => json_encode($data)]]]];
     }
 }
