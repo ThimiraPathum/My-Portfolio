@@ -16,7 +16,7 @@ Separately, the reported production failure occurred **before** an API call: the
 2. At most four source candidates are fetched. At least two distinct accessible source texts are required; mirrored text does not count twice. The catalogue is **candidate URLs, not pre-verified evidence**. An unknown manual topic needs explicit URLs. There is no search subscription, invented URL generation or unrestricted crawler. Each run fetches fresh text and retains its timestamp and hash. HTML/plain text only; PDFs and JavaScript-only sites fail closed. Freshness for time-sensitive topics requires two publication dates within 30 days, extracted from explicit metadata; fetching an old page today does not make it fresh.
 3. The model plans an angle against those excerpts. A missing source, false premise or insufficient research must stop the plan. The second request produces structured blocks: facts, interpretation, guidance or code. Factual and instructional blocks require source IDs and exact supporting excerpts. Category prompts distinguish tutorials, AI/ML explanation, editorial film/TV writing, games and science. No universal article word count or mandatory code/table format.
 4. Deterministic checks validate the response schema, evidence IDs and exact excerpts, numerical claims, citation integrity, basic Markdown, repetition, obvious dangerous configurations and category mismatch. The small 650-character/three-block floor rejects stubs; it is not an 800-word padding target. Links are rendered from fetched sources by application code, never accepted from the model. Internal evidence quotes are not published.
-5. A separate model request reviews the **whole** article, including metadata and every block, against the retrieved text across ten dimensions. Every dimension and every block must pass; missing/duplicate block assessments fail. One revision is allowed, then the full gates run again. Failures are rejected without a new database row. No score can override a critical failure.
+5. A separate model request reviews the **whole** article, including metadata and every block, against the retrieved text across ten dimensions. Every dimension and every block must pass; missing/duplicate block assessments fail. One revision is allowed, then the full gates run again. Failures are rejected without a new database row. After a final quality rejection, a normal run retains a private rejection report so the actual draft/evidence/reviewer feedback can be inspected; dry runs still write nothing. No score can override a critical failure.
 6. Eligible articles default to an ordinary admin-visible `draft`, with `coming_soon=false` and no publication date. An opt-in `BLOG_AUTO_PUBLISH=true` allows eligible articles to publish. `--draft` always overrides it. Cybersecurity and detected operational DevOps instructions remain drafts for human review even if all model checks pass.
 7. Original category SVG illustrations replace random remote photographs. They explicitly identify themselves as editorial illustrations, not official artwork. Existing cover images are untouched. No image API or license assumption is required.
 8. A private evidence report records topic, model, source text/hashes/dates, plan, blocks, review and revision count. The report must save before the new article is created. Reports use the dedicated `blog_research` disk with no HTTP serving route. No database migration was added and old articles are never edited.
@@ -68,6 +68,10 @@ php artisan blog:generate --dry-run --topic="SSH hardening: testing authenticati
 
 # Force a private draft even when auto-publication was configured.
 php artisan blog:generate --draft --topic="Cross-validation and data leakage in machine learning pipelines"
+
+# Read the latest rejected draft's feedback and failed blocks. No API call.
+php artisan blog:report
+# For a particular run, pass the exact private report path printed by generation.
 
 # Explicit source candidates for a manual topic (repeat --source).
 php artisan blog:generate --dry-run --topic="Past Lives: distance and memory" \
@@ -169,3 +173,13 @@ sudo crontab -e
 - [cURL DNS pinning](https://curl.se/libcurl/c/CURLOPT_RESOLVE.html)
 
 These explain provider/transport behaviour. They are not evidence for any generated article.
+
+### Inspecting a quality rejection
+
+`review_block_3_unsupported_or_unsafe` refers to the fourth structured content block (the review index is zero-based). It is not an API key/quota error, and it does not independently prove that the claim is false: the reviewer found insufficient support or a safety concern. After this diagnostics update, failed normal runs print a unique private report path. On the server, inspect it with:
+
+```bash
+sudo docker exec -w /var/www/html backend-api php artisan blog:report
+```
+
+The report command defaults to the latest rejection, or accepts the exact `reports/rejected-...json` path printed by generation. It displays model feedback and one-based block numbers without saving/publishing anything or making an API call. Raw terminal formatting is disabled and the configured API key is redacted if echoed in feedback. The reports remain on the unserved private disk and are never returned by public blog endpoints. Earlier failed runs that predate this change cannot be recovered; generate once with the updated version to capture one. The quality gates and one-revision limit have not been relaxed.

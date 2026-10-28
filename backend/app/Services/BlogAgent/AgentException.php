@@ -7,7 +7,7 @@ use RuntimeException;
 /** Only application-owned reason codes may be logged or printed. */
 class AgentException extends RuntimeException
 {
-    public function __construct(public readonly string $reason)
+    public function __construct(public readonly string $reason, public readonly ?string $reportPath = null)
     {
         parent::__construct($reason);
     }

@@ -44,8 +44,18 @@ class BlogAgent
                 'previous_draft' => $draft, 'revision_feedback' => $gate['issues'], 'editorial_feedback' => $review['issues'] ?? [],
             ]);
         }
+        $report = ['topic' => $topic, 'model' => config('blog_agent.model'), 'sources' => $sources, 'plan' => $plan,
+            'draft' => $draft, 'review' => $review, 'gate' => $gate, 'revisions' => $revision, 'created_at' => now()->toIso8601String()];
         if ($gate['issues']) {
-            throw new AgentException('quality_rejected:'.implode(',', $gate['issues']));
+            $reportPath = null;
+            if (! $dryRun) {
+                $reportPath = 'reports/rejected-'.$topic['key'].'-'.now()->format('YmdHis').'-'.bin2hex(random_bytes(6)).'.json';
+                $report['outcome'] = 'rejected';
+                if (! Storage::disk('blog_research')->put($reportPath, json_encode($report, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT))) {
+                    throw new AgentException('rejection_audit_save_failed');
+                }
+            }
+            throw new AgentException('quality_rejected:'.implode(',', $gate['issues']), $reportPath);
         }
         if ($this->topics->duplicate($draft['title'])) {
             throw new AgentException('article_duplicate');
@@ -60,8 +70,7 @@ class BlogAgent
             return ['dry_run' => true, 'would_save_as' => $status, 'article' => $result, 'requires_human_review' => $gate['requires_human_review']];
         }
         // Save a private audit before allowing any article to be published.
-        $report = ['topic' => $topic, 'model' => config('blog_agent.model'), 'sources' => $sources, 'plan' => $plan,
-            'draft' => $draft, 'review' => $review, 'gate' => $gate, 'revisions' => $revision, 'created_at' => now()->toIso8601String()];
+        $report['outcome'] = $status;
         $reportPath = 'reports/'.$topic['key'].'.json';
         if (! Storage::disk('blog_research')->put($reportPath, json_encode($report, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT))) {
             throw new AgentException('audit_save_failed');

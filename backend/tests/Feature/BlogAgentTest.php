@@ -147,6 +147,8 @@ class BlogAgentTest extends TestCase
             $this->fail('Fabricated source accepted');
         } catch (AgentException $e) {
             $this->assertStringContainsString('evidence_invalid', $e->reason);
+            $this->assertNotNull($e->reportPath);
+            Storage::disk('blog_research')->assertExists($e->reportPath);
         }
         $this->assertDatabaseCount('blogs', 0);
         Http::assertSentCount(3);
@@ -187,6 +189,45 @@ class BlogAgentTest extends TestCase
         $this->artisan('blog:generate --dry-run')->expectsOutput('Blog generation stopped: api_credentials_missing')->assertFailed();
         Http::assertNothingSent();
         $this->assertDatabaseCount('blogs', 0);
+    }
+
+    public function test_rejected_dry_run_does_not_write_a_report(): void
+    {
+        config(['blog_agent.max_revisions' => 0]);
+        $review = F::review();
+        $review['checks']['factual_support'] = false;
+        $this->responses(review: $review);
+        try {
+            $this->runAgent(true);
+            $this->fail('Bad dry run accepted');
+        } catch (AgentException $e) {
+            $this->assertNull($e->reportPath);
+        }
+        $this->assertSame([], Storage::disk('blog_research')->allFiles());
+        $this->assertDatabaseCount('blogs', 0);
+    }
+
+    public function test_report_shows_editorial_reason_and_block_without_secret_or_public_post(): void
+    {
+        config(['blog_agent.max_revisions' => 0]);
+        $review = F::review();
+        $review['blocks'][2]['supported'] = false;
+        $review['issues'] = ['The third block contains an unsupported assertion. gsk_TEST_NOT_A_REAL_KEY'];
+        $this->responses(review: $review);
+        try {
+            $this->runAgent();
+        } catch (AgentException $e) {
+            $this->assertNotNull($e->reportPath);
+        }
+        $this->artisan('blog:report')->expectsOutputToContain('unsupported assertion. [REDACTED]')->assertSuccessful();
+        $this->assertDatabaseCount('blogs', 0);
+        Http::assertSentCount(3);
+    }
+
+    public function test_report_rejects_path_traversal(): void
+    {
+        $this->artisan('blog:report', ['report' => '../../.env'])->assertFailed();
+        Http::assertNothingSent();
     }
 
     public function test_manual_source_free_unknown_topic_is_honestly_rejected(): void

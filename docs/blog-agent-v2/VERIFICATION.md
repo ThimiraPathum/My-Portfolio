@@ -4,7 +4,7 @@ Verified locally on 2026-10-28 before push.
 
 ## Results
 
-- Full backend suite: **84 tests, 233 assertions passed**, PHP 8.5.8 / PHPUnit 11.5.56. Includes 68 Blog Agent tests and 16 existing backend tests.
+- Full backend suite after rejection diagnostics: **87 tests, 245 assertions passed**, PHP 8.5.8 / PHPUnit 11.5.56. Includes 71 Blog Agent tests and 16 existing backend tests.
 - Frontend production build: TypeScript and Vite passed. All nine category cover assets are included.
 - PHP syntax checks on the command, services and modified configuration: passed.
 - Laravel Pint formatting applied to the new/rewritten PHP implementation and tests.
@@ -38,6 +38,7 @@ The Windows execution sandbox's PHP readability check initially blocked Composer
 | File | Responsibility |
 | --- | --- |
 | `backend/app/Services/BlogAgent/AgentException.php` | Safe application-owned failure codes. |
+| `backend/app/Console/Commands/ShowBlogReport.php` | Read-only private rejection report inspection with secret redaction and path validation. |
 | `backend/app/Services/BlogAgent/ArticleRenderer.php` | Verified source links and category covers. |
 | `backend/app/Services/BlogAgent/BlogAgent.php` | End-to-end orchestration and publication gate. |
 | `backend/app/Services/BlogAgent/GroqClient.php` | TLS, structured output, bounded retry/backoff and safe API errors. |

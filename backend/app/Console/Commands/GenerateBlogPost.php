@@ -47,8 +47,12 @@ class GenerateBlogPost extends Command
             return self::SUCCESS;
         } catch (AgentException $e) {
             $this->error('Blog generation stopped: '.$e->reason);
+            if ($e->reportPath) {
+                $this->line('Private rejection report: '.$e->reportPath);
+                $this->line('Inspect with: php artisan blog:report '.$e->reportPath);
+            }
             if (! $dryRun) {
-                Log::warning('blog_agent.rejected', ['reason' => $e->reason]);
+                Log::warning('blog_agent.rejected', ['reason' => $e->reason, 'report' => $e->reportPath]);
             }
 
             return self::FAILURE;
